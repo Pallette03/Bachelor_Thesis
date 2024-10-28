@@ -1,0 +1,5 @@
+x	change colour of objects randomly
+o	extract keypoints of each obj (need to adress symmetry of parts)
+x	raycast from keypoints to camera origin to ensure visibility (occlussion)
+o	catch intersections between objects and delete random (case of more than 2 needs to be caught cleanly)
+o	collect more background images
