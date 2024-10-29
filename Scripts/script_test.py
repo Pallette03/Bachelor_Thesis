@@ -19,6 +19,17 @@ backgrounds_folder_path = '//Backgrounds'
 min_items = 1
 max_items = 10
 
+# Set the render resolution
+bpy.context.scene.render.resolution_x = 1920
+bpy.context.scene.render.resolution_y = 1080
+
+# Set output file path and format
+will_render_image = False
+render_images_folder = '//Rendered_Images'
+
+image_name = time.strftime("%Y%m%d-%H%M%S") + '.png'
+bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), image_name)
+bpy.context.scene.render.image_settings.file_format = 'PNG'
 
 # Get the collection
 collection = bpy.data.collections.get(collection_name)
@@ -41,7 +52,7 @@ to_be_removed = set()
 
 def main():
     
-    start_time = time.time()
+    
     
     if collection and camera_collection and camera and line_collection:
         print(f"Everything found.")
@@ -106,8 +117,7 @@ def main():
         
         remove_objects(to_be_removed)
         
-        end_time = time.time()
-        print(f"Time taken: {end_time - start_time} seconds")
+        
         
         
     else:
@@ -347,7 +357,10 @@ def get_corners_of_object(obj):
     return corners
     
 
+start_time = time.time()
 main()
 remove_objects(to_be_removed)
-
-
+if will_render_image:
+    bpy.ops.render.render(write_still=True)
+end_time = time.time()
+print(f"Time taken: {end_time - start_time} seconds")
