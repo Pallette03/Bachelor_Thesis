@@ -192,30 +192,6 @@ def is_point_above_plane(point, plane_point, normal):
     # Dot product with the plane's normal vector
     dot_product = sum(vector[i] * normal[i] for i in range(3))
     return dot_product > 0  # Returns True if above, False if below or on the plane
-
-def create_plane_with_normal(normal, point, name="CustomPlane"):
-    # Normalize the normal vector
-    normal = mathutils.Vector(normal).normalized()
-    point = mathutils.Vector(point)
-
-    # Create a new plane
-    bpy.ops.mesh.primitive_plane_add(size=5)
-    plane = bpy.context.object
-    plane.name = name
-
-    # Set the plane location to the given point
-    plane.location = point
-
-    # Calculate the rotation to align the plane's normal to the given normal vector
-    up = mathutils.Vector((0, 0, 1))
-    rotation = up.rotation_difference(normal).to_euler()
-    plane.rotation_euler = rotation
-    
-    # unlink the plane from the scene collection
-    bpy.context.collection.objects.unlink(plane)
-    
-    line_collection.objects.link(plane)
-    return plane
     
 def define_plane_from_vertices(v1, v2, v3):
     
@@ -223,37 +199,10 @@ def define_plane_from_vertices(v1, v2, v3):
     vec1 = v2 - v1
     vec2 = v3 - v1
     
-    # Calculate the normal vector (cross product of vec1 and vec2)
+    # Calculate the normal vector
     normal = vec1.cross(vec2)
-    A, B, C = normal
-    
-    # Calculate D using the point-normal form of the plane equation
-    D = -normal.dot(v1)
     
     return normal, v1
-
-def get_camera_opening_angle(camera):
-    # Check if the object is a camera
-    if camera.type != 'CAMERA':
-        raise ValueError("The object is not a camera")
-
-    # Get the camera data
-    cam_data = camera.data
-    aspect_ratio = cam_data.sensor_width / cam_data.sensor_height
-    
-    # Check sensor fit and get field of view (FOV)
-    if cam_data.sensor_fit == 'VERTICAL':
-        vertical_fov = cam_data.angle_y
-        horizontal_fov = cam_data.angle_x
-    else:  # 'HORIZONTAL' or automatic fit
-        horizontal_fov = cam_data.angle_x
-        vertical_fov = cam_data.angle_y
-
-    # Convert radians to degrees if needed
-    horizontal_fov_deg = math.degrees(horizontal_fov)
-    vertical_fov_deg = math.degrees(vertical_fov)
-    
-    return horizontal_fov_deg, vertical_fov_deg
 
 
 def random_point_in_camera_view(scene, camera_obj, depth):
@@ -274,22 +223,30 @@ def random_point_in_camera_view(scene, camera_obj, depth):
     return random_point
 
 def random_attributes_object(obj):
-    """
-    Randomly rotate an object.
-    """
     # Random location
     obj.location = random_point_in_camera_view(bpy.context.scene, camera, random.uniform(min_z, max_z))
     
     # Random rotation
     obj.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
     
+    # Random color
     colours = [(255,0,0), (0,255,0), (0,0,255)]
+    rgb = random.choice(colours)
     
-    # Random colour adjust material
-    mat = copy_simple_mat(random.choice(colours), obj.data.materials[0])
+    new_mat = obj.data.materials[0].copy()
+    unique_id = str(uuid.uuid4())
+    new_mat.name = obj.data.materials[0].name + '_copy_' + unique_id
+    
+    node_tree = new_mat.node_tree
+    nodes = node_tree.nodes
+    
+    # get the node with the name "Group"
+    group_node = nodes.get("Group")
+    
+    group_node.inputs[0].default_value = (to_blender_color(rgb[0]), to_blender_color(rgb[1]), to_blender_color(rgb[2]), 1)
     
     obj.data.materials.clear()
-    obj.data.materials.append(mat)
+    obj.data.materials.append(new_mat)
     
     return obj
 
@@ -299,17 +256,7 @@ def to_blender_color(c):    # gamma correction
 
 # function to create a material that not assign to any object
 def copy_simple_mat(rgb, material):
-    new_mat = material.copy()
-    unique_id = str(uuid.uuid4())
-    new_mat.name = material.name + '_copy_' + unique_id
     
-    node_tree = new_mat.node_tree
-    nodes = node_tree.nodes
-    
-    # get the node with the name "Group"
-    group_node = nodes.get("Group")
-    
-    group_node.inputs[0].default_value = (to_blender_color(rgb[0]), to_blender_color(rgb[1]), to_blender_color(rgb[2]), 1)
     
     return new_mat
 
