@@ -4,6 +4,7 @@ import os
 import mathutils
 import math
 import uuid
+import time
 
 print('----------------')
 
@@ -16,7 +17,7 @@ backgrounds_folder_path = '//Backgrounds'
 
 # Minimum and Maximum amount of items to be placed in the camera collection
 min_items = 1
-max_items = 1
+max_items = 10
 
 
 # Get the collection
@@ -39,6 +40,9 @@ to_be_removed = set()
 
 
 def main():
+    
+    start_time = time.time()
+    
     if collection and camera_collection and camera and line_collection:
         print(f"Everything found.")
         
@@ -74,6 +78,8 @@ def main():
             camera_collection.objects.link(new_obj)
             # Set the location of the new object within the camera's view frustum 
             random_attributes_object(new_obj)
+            
+            
         
         # Force update
         bpy.context.view_layer.update()
@@ -84,18 +90,25 @@ def main():
                 to_be_removed.add(occluding_obj)
             
         remove_objects(to_be_removed)
-                
+        
+        
+        
+        
         for obj in camera_collection.objects:
             # Get the object's bounding box corners in world space
             corners = get_corners_of_object(obj)
-            print(f"Object: {obj.name}")
-            is_point_in_camera_view(camera, obj.location)
-            
-            
-            
-            
-            
-            
+            for corner in corners.values():
+                if is_point_in_camera_view(camera, corner):
+                    continue
+                else:
+                    to_be_removed.add(obj)
+                    break
+        
+        remove_objects(to_be_removed)
+        
+        end_time = time.time()
+        print(f"Time taken: {end_time - start_time} seconds")
+        
         
     else:
         if not collection:
@@ -143,9 +156,9 @@ def get_camera_view_bounds(scene, camera_obj, depth):
     frame = [camera_obj.matrix_world @ (v * depth) for v in frame]
     
     # Extract the corners
-    lower_left = frame[0]
+    upper_right = frame[0]
     lower_right = frame[1]
-    upper_right = frame[2]
+    lower_left = frame[2]
     upper_left = frame[3]
     
     return lower_left, lower_right, upper_right, upper_left
@@ -156,25 +169,68 @@ def is_point_in_camera_view(camera, point_world):
     
     # Get camera data
     cam_data = camera.data
-    horizontal_fov, vertical_fov = get_camera_opening_angle(camera)
-    print(f"Horizontal FOV: {horizontal_fov}, Vertical FOV: {vertical_fov}")
     
-    beta = -(vertical_fov / 2) + 90
-    c_y = point_camera_space.z / math.sin(beta) # correct
-    a_y = math.sqrt(-point_camera_space.z**2 + c_y**2) # correct
-    border_y = camera.location.y + a_y # incorrect
+    # Create Plane objects for each side of the camera frustum
+    lower_left, lower_right, upper_right, upper_left = get_camera_view_bounds(bpy.context.scene, camera, 1)
+    bottom_plane_data = define_plane_from_vertices(lower_left, lower_right, camera.location)
+    right_plane_data = define_plane_from_vertices(lower_right, upper_right, camera.location)
+    top_plane_data = define_plane_from_vertices(upper_right, upper_left, camera.location)
+    left_plane_data = define_plane_from_vertices(upper_left, lower_left, camera.location)
     
-    print(f"Beta: {beta}, C_y: {c_y}, A_y: {a_y}")
+    planes = [bottom_plane_data, right_plane_data, top_plane_data, left_plane_data]
     
-    alpha = -(horizontal_fov / 2) + 90
-    c_x = point_camera_space.z / math.sin(alpha) # correct
-    a_x = math.sqrt(-point_camera_space.z**2 + c_x**2) # correct
-    border_x = camera.location.x + a_x # incorrect
-    print(f"Alpha: {alpha}, C_x: {c_x}, A_x: {a_x}")
+    for plane in planes:
+        normal, point = plane
+        if is_point_above_plane(point_camera_space, point, normal):
+            return False
     
-    print(f"Point: {point_world}, Camera: {camera.location}, Border X: {border_x}, Border Y: {border_y}")
+    return True
+
+def is_point_above_plane(point, plane_point, normal):
+    # Calculate the vector from the point on the plane to the point of interest
+    vector = [point[i] - plane_point[i] for i in range(3)]
+    # Dot product with the plane's normal vector
+    dot_product = sum(vector[i] * normal[i] for i in range(3))
+    return dot_product > 0  # Returns True if above, False if below or on the plane
+
+def create_plane_with_normal(normal, point, name="CustomPlane"):
+    # Normalize the normal vector
+    normal = mathutils.Vector(normal).normalized()
+    point = mathutils.Vector(point)
+
+    # Create a new plane
+    bpy.ops.mesh.primitive_plane_add(size=5)
+    plane = bpy.context.object
+    plane.name = name
+
+    # Set the plane location to the given point
+    plane.location = point
+
+    # Calculate the rotation to align the plane's normal to the given normal vector
+    up = mathutils.Vector((0, 0, 1))
+    rotation = up.rotation_difference(normal).to_euler()
+    plane.rotation_euler = rotation
     
+    # unlink the plane from the scene collection
+    bpy.context.collection.objects.unlink(plane)
     
+    line_collection.objects.link(plane)
+    return plane
+    
+def define_plane_from_vertices(v1, v2, v3):
+    
+    # Calculate two vectors in the plane
+    vec1 = v2 - v1
+    vec2 = v3 - v1
+    
+    # Calculate the normal vector (cross product of vec1 and vec2)
+    normal = vec1.cross(vec2)
+    A, B, C = normal
+    
+    # Calculate D using the point-normal form of the plane equation
+    D = -normal.dot(v1)
+    
+    return normal, v1
 
 def get_camera_opening_angle(camera):
     # Check if the object is a camera
@@ -188,10 +244,10 @@ def get_camera_opening_angle(camera):
     # Check sensor fit and get field of view (FOV)
     if cam_data.sensor_fit == 'VERTICAL':
         vertical_fov = cam_data.angle_y
-        horizontal_fov = 2 * math.atan(math.tan(vertical_fov / 2) * aspect_ratio)
+        horizontal_fov = cam_data.angle_x
     else:  # 'HORIZONTAL' or automatic fit
         horizontal_fov = cam_data.angle_x
-        vertical_fov = 2 * math.atan(math.tan(horizontal_fov / 2) / aspect_ratio)
+        vertical_fov = cam_data.angle_y
 
     # Convert radians to degrees if needed
     horizontal_fov_deg = math.degrees(horizontal_fov)
@@ -319,7 +375,7 @@ def draw_line_meth(start, direction, length, line_name="Line"):
 
 def remove_objects(obj_set: set):
     for obj in obj_set:
-        print(f"Removing object: {obj.name}")
+        # print(f"Removing object: {obj.name}")
         camera_collection.objects.unlink(obj)
         bpy.data.objects.remove(obj)
     
