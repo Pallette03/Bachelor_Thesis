@@ -287,6 +287,7 @@ def random_attributes_object(obj):
     
     # Random colour adjust material
     mat = copy_simple_mat(random.choice(colours), obj.data.materials[0])
+    
     obj.data.materials.clear()
     obj.data.materials.append(mat)
     
@@ -302,9 +303,13 @@ def copy_simple_mat(rgb, material):
     unique_id = str(uuid.uuid4())
     new_mat.name = material.name + '_copy_' + unique_id
     
+    node_tree = new_mat.node_tree
+    nodes = node_tree.nodes
     
-    # Set the new colour
-    new_mat.diffuse_color = (to_blender_color(rgb[0]), to_blender_color(rgb[1]), to_blender_color(rgb[2]), 1)
+    # get the node with the name "Group"
+    group_node = nodes.get("Group")
+    
+    group_node.inputs[0].default_value = (to_blender_color(rgb[0]), to_blender_color(rgb[1]), to_blender_color(rgb[2]), 1)
     
     return new_mat
 
