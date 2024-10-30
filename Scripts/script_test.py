@@ -24,10 +24,12 @@ bpy.context.scene.render.resolution_x = 1920
 bpy.context.scene.render.resolution_y = 1080
 
 # Set output file path and format
-will_render_image = False
+will_render_image = True
 render_images_folder = '//Rendered_Images'
 
 image_name = time.strftime("%Y%m%d-%H%M%S") + '.png'
+bpy.context.scene.use_nodes = True
+bpy.context.scene.render.film_transparent = True
 bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), image_name)
 bpy.context.scene.render.image_settings.file_format = 'PNG'
 
@@ -361,6 +363,6 @@ start_time = time.time()
 main()
 remove_objects(to_be_removed)
 if will_render_image:
-    bpy.ops.render.render(write_still=True)
+    bpy.ops.render.render(write_still=True, use_viewport=True)
 end_time = time.time()
 print(f"Time taken: {end_time - start_time} seconds")
