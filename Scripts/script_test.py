@@ -8,7 +8,11 @@ import time
 
 print('----------------')
 
-# Replace 'CollectionName' with the name of your collection
+# Create setup method 
+# - set up camera location
+# - load parts collection
+# - create composition nodes
+
 collection_name = 'Parts'
 camera_collection_name = 'In_Camera'
 line_collection_name = 'Lines'
@@ -18,20 +22,19 @@ backgrounds_folder_path = '//Backgrounds'
 # Minimum and Maximum amount of items to be placed in the camera collection
 min_items = 1
 max_items = 10
+rendered_images_amount = 1
 
 # Set the render resolution
 bpy.context.scene.render.resolution_x = 1920
 bpy.context.scene.render.resolution_y = 1080
 
 # Set output file path and format
-will_render_image = True
+will_render_image = False
 render_images_folder = '//Rendered_Images'
 
-image_name = time.strftime("%Y%m%d-%H%M%S") + '.png'
 bpy.context.scene.use_nodes = True
 bpy.context.scene.render.film_transparent = True
-bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), image_name)
-bpy.context.scene.render.image_settings.file_format = 'PNG'
+
 
 # Get the collection
 collection = bpy.data.collections.get(collection_name)
@@ -52,20 +55,18 @@ background_images = [f for f in os.listdir(bpy.path.abspath(backgrounds_folder_p
 to_be_removed = set()
 
 
-def main():
+def main(file_name="rendered_image.png"):
     
-    
+    bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
+    bpy.context.scene.render.image_settings.file_format = 'PNG'
     
     if collection and camera_collection and camera and line_collection:
         print(f"Everything found.")
         
         # Set random Background Image
         random_background = random.choice(background_images)
-        img = bpy.data.images.load(os.path.join(bpy.path.abspath(backgrounds_folder_path), random_background))
-        camera.data.background_images.clear()
-        bg = camera.data.background_images.new()
-        bg.image = img
-        camera.data.show_background_images = True
+        set_background_image(camera, random_background)
+        
         
         # Clear the camera collection
         for obj in camera_collection.objects:
@@ -132,6 +133,30 @@ def main():
         if not line_collection:
             print(f"Collection '{line_collection_name}' not found.")
     
+
+def set_background_image(camera, img_path):
+    img = bpy.data.images.load(os.path.join(bpy.path.abspath(backgrounds_folder_path), img_path))
+    camera.data.background_images.clear()
+    bg = camera.data.background_images.new()
+    bg.image = img
+    camera.data.show_background_images = True
+    
+    #Create new composition nodes
+    scene = bpy.context.scene
+    tree = scene.node_tree
+    
+    for node in tree.nodes:
+        print(f"Type: {node.type}")
+        if node.type == 'IMAGE':
+            tree.nodes.remove(node)
+            break
+        
+    new_img_node = tree.nodes.new(type="CompositorNodeImage")
+    new_img_node.image = img
+    
+    # Connect the image node to the scale node
+    tree.links.new(new_img_node.outputs[0], tree.nodes['Scale'].inputs[0])
+
 
 def draw_bounding_box(obj, box_name="BoundingBox"):
     # Get the bounding box corners in world space
@@ -266,12 +291,6 @@ def to_blender_color(c):    # gamma correction
     c = min(max(0, c), 255) / 255
     return c / 12.92 if c < 0.04045 else math.pow((c + 0.055) / 1.055, 2.4)
 
-# function to create a material that not assign to any object
-def copy_simple_mat(rgb, material):
-    
-    
-    return new_mat
-
 
 def get_occluding_objects(camera, target, draw_line=False):
     # Get the position of the camera and target
@@ -360,9 +379,16 @@ def get_corners_of_object(obj):
     
 
 start_time = time.time()
-main()
-remove_objects(to_be_removed)
-if will_render_image:
-    bpy.ops.render.render(write_still=True, use_viewport=True)
+
+for i in range(rendered_images_amount):
+    current_time = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
+    image_name = current_time + '.png'
+    main(image_name)
+    remove_objects(to_be_removed)
+    if will_render_image:
+        print(f"Rendering image {i+1}/{rendered_images_amount}")
+        bpy.ops.render.render(write_still=True, use_viewport=True)
+        
 end_time = time.time()
 print(f"Time taken: {end_time - start_time} seconds")
+print(f"Average time per image: {(end_time - start_time) / rendered_images_amount} seconds")
