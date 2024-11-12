@@ -119,6 +119,8 @@ def main(file_name="rendered_image.png"):
                     break
         
         remove_objects(to_be_removed)
+
+        #prepare_annotations()
         
         
         
@@ -157,6 +159,55 @@ def set_background_image(camera, img_path):
     # Connect the image node to the scale node
     tree.links.new(new_img_node.outputs[0], tree.nodes['Scale'].inputs[0])
 
+
+def prepare_annotations():
+    # Create a new text data block
+    text = bpy.data.texts.new("Annotations")
+    
+    # Define the text content
+    text.write("Annotations:\n")
+    
+    # Loop through the objects in the camera collection
+    for obj in camera_collection.objects:
+        # Get the object's bounding box corners in world space
+        corners = get_corners_of_object(obj)
+        
+        # Write the object's name
+        text.write(f"Object: {str(obj.name).split('.')[0]}\n")
+        
+        # Write the object's corners
+        for corner_name, corner in corners.items():
+            text.write(f"{corner_name}: {(corner.x,corner.y,corner.z)}\n")
+        
+        # Write the object's position relative to the camera
+        relative_position = position_relative_to_camera(camera, obj)
+        text.write(f"Relative Position: {relative_position}\n")
+        
+        # Write the object's color
+        r = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[0]
+        g = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[1]
+        b = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[2]
+        if r == 1 and g == 0 and b == 0:
+            color = "Red"
+        elif r == 0 and g == 1 and b == 0:
+            color = "Green"
+        elif r == 0 and g == 0 and b == 1:
+            color = "Blue"
+        else:
+            color = "Red" # Default color
+
+        text.write(f"Color: {color}\n")
+
+
+        
+        text.write("\n")
+
+    
+    # Save the text data block to a file
+    text_file_path = os.path.join(bpy.path.abspath('//dataset'), "annotations.txt")
+    with open(text_file_path, "w") as file:
+        file.write(text.as_string())
+    print(f"Annotations saved to: {text_file_path}")
 
 def draw_bounding_box(obj, box_name="BoundingBox"):
     # Get the bounding box corners in world space
