@@ -148,7 +148,6 @@ def set_background_image(camera, img_path):
     tree = scene.node_tree
     
     for node in tree.nodes:
-        print(f"Type: {node.type}")
         if node.type == 'IMAGE':
             tree.nodes.remove(node)
             break
