@@ -5,6 +5,7 @@ import mathutils
 import math
 import uuid
 import time
+import csv
 
 print('----------------')
 
@@ -30,7 +31,8 @@ bpy.context.scene.render.resolution_y = 1080
 
 # Set output file path and format
 will_render_image = False
-render_images_folder = '//Rendered_Images'
+render_images_folder = '//dataset/images'
+annotations_folder = '//dataset/annotations'
 
 bpy.context.scene.use_nodes = True
 bpy.context.scene.render.film_transparent = True
@@ -119,7 +121,7 @@ def main(file_name="rendered_image.png"):
                     break
         
         remove_objects(to_be_removed)
-
+        
         #prepare_annotations()
         
         
@@ -159,6 +161,34 @@ def set_background_image(camera, img_path):
     tree.links.new(new_img_node.outputs[0], tree.nodes['Scale'].inputs[0])
 
 
+def write_annotations_to_file(file_name):
+    
+    annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.csv")
+
+    with open(annotations_file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Object', 'Corner_0', 'Corner_1', 'Corner_2', 'Corner_3', 'Corner_4', 'Corner_5', 'Corner_6', 'Corner_7', 'Color'])
+        
+        for obj in camera_collection.objects:
+            name = obj.name.split('.')[0]
+            
+            corners = get_corners_of_object(obj)
+            r = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[0]
+            g = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[1]
+            b = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[2]
+            if r == 1 and g == 0 and b == 0:
+                color = "Red"
+            elif r == 0 and g == 1 and b == 0:
+                color = "Green"
+            elif r == 0 and g == 0 and b == 1:
+                color = "Blue"
+            else:
+                color = "Red"  # Default color
+
+            writer.writerow([name] + [f"{corner.x},{corner.y},{corner.z}" for corner in corners.values()] + [color])
+            
+    print(f"Annotations saved to: {annotations_file_path}")
+    
 def prepare_annotations():
     # Create a new text data block
     text = bpy.data.texts.new("Annotations")
@@ -208,28 +238,31 @@ def prepare_annotations():
         file.write(text.as_string())
     print(f"Annotations saved to: {text_file_path}")
 
-def draw_bounding_box(obj, box_name="BoundingBox"):
-    # Get the bounding box corners in world space
-    bbox_corners = [obj.matrix_world @ mathutils.Vector(corner) for corner in obj.bound_box]
-
-    # Create a new mesh and object for the bounding box
-    mesh = bpy.data.meshes.new(box_name)
-    bbox_obj = bpy.data.objects.new(box_name, mesh)
-    line_collection.objects.link(bbox_obj)
-
-    # Define vertices and edges for the bounding box
-    vertices = bbox_corners
-    edges = [
-        (0, 1), (1, 2), (2, 3), (3, 0),  # Bottom face
-        (4, 5), (5, 6), (6, 7), (7, 4),  # Top face
-        (0, 4), (1, 5), (2, 6), (3, 7)   # Vertical edges
-    ]
-
+def draw_corners(obj):
+    # Get the object's bounding box corners in world space
+    corners = get_corners_of_object(obj)
+    
+    # Create a new mesh object for the corners
+    mesh = bpy.data.meshes.new("Corners")
+    obj_corners = bpy.data.objects.new("Corners", mesh)
+    line_collection.objects.link(obj_corners)
+    
+    # Define vertices and edges
+    vertices = list(corners.values())
+    edges = [(0, 1), (1, 2), (2, 3), (3, 0),
+             (4, 5), (5, 6), (6, 7), (7, 4),
+             (0, 4), (1, 5), (2, 6), (3, 7)]
+    
     # Create the mesh
     mesh.from_pydata(vertices, edges, [])
     mesh.update()
-
-    return bbox_obj
+    
+    # Change the line color to red
+    mat = bpy.data.materials.new(name="CornersMaterial")
+    mat.diffuse_color = (1, 0, 0, 1)
+    obj_corners.data.materials.append(mat)
+    
+    return obj_corners
 
 
 def get_camera_view_bounds(scene, camera_obj, depth):
@@ -268,7 +301,7 @@ def is_point_in_camera_view(camera, point_world):
     
     for plane in planes:
         normal, point = plane
-        if is_point_above_plane(point_camera_space, point, normal):
+        if not is_point_above_plane(point_camera_space, point, normal):
             return False
     
     return True
@@ -426,16 +459,24 @@ def get_corners_of_object(obj):
     # Get the object's bounding box corners in world space and put them in a dictionary
     corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
     return corners
-    
 
+def convert_coordinates():
+    camera_position = bpy.data.objects['Camera'].location
+    
+    camera_view_width = bpy.data.cameras['Camera'].sensor_width
+    print(camera_view_width)
+    
+    
+convert_coordinates()
 start_time = time.time()
 
 for i in range(rendered_images_amount):
-    current_time = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
-    image_name = current_time + '.png'
+    time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
+    image_name = time_for_name + '.png'
     main(image_name)
     remove_objects(to_be_removed)
     if will_render_image:
+        write_annotations_to_file(time_for_name)
         print(f"Rendering image {i+1}/{rendered_images_amount}")
         bpy.ops.render.render(write_still=True, use_viewport=True)
         
