@@ -9,6 +9,7 @@ import math
 import uuid
 import time
 import csv
+import json
 
 print('----------------')
 
@@ -166,87 +167,33 @@ def set_background_image(camera, img_path):
 
 
 def write_annotations_to_file(file_name):
-    
-    annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.csv")
 
-    with open(annotations_file_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Object', 'Corner_0', 'Corner_1', 'Corner_2', 'Corner_3', 'Corner_4', 'Corner_5', 'Corner_6', 'Corner_7', 'Color'])
+    with open(os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.json"), mode='a') as json_file:
+        
+        image_id = file_name
+        json_file.write(f'{{"image_id": "{image_id}", "annotations": [\n')
         
         for obj in camera_collection.objects:
-            name = obj.name.split('.')[0]
-            
             corners = get_corners_of_object(obj)
-            converted_corners = {}
-            for corner_name, corner in corners.items():
-                x, y = convert_coordinates(corner)
-                converted_corners[corner_name] = mathutils.Vector((x, y))
+            brick_type = obj.name.split('.')[0]
+            color = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value
             
-            r = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[0]
-            g = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[1]
-            b = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[2]
-            if r == 1 and g == 0 and b == 0:
-                color = "Red"
-            elif r == 0 and g == 1 and b == 0:
-                color = "Green"
-            elif r == 0 and g == 0 and b == 1:
-                color = "Blue"
+            json_file.write(f'{{"brick_type": "{brick_type}",\n "color": "{[color[0], color[1], color[2]]}",\n "keypoints": \n')
+        
+            serialized_corners = [convert_coordinates(corner) for corner in corners.values()]
+            
+            json.dump(serialized_corners, json_file)
+            json_file.write('\n')
+            if obj == camera_collection.objects[-1]:
+                json_file.write('}\n')
             else:
-                color = "Red"  # Default color
-
-            writer.writerow([name] + [f"{int(corner.x)},{int(corner.y)}" for corner in converted_corners.values()] + [color])
+                json_file.write('},\n')
             
-    print(f"Annotations saved to: {annotations_file_path}")
-    
-def prepare_annotations():
-    # Create a new text data block
-    text = bpy.data.texts.new("Annotations")
-    
-    # Define the text content
-    text.write("Annotations:\n")
-    
-    # Loop through the objects in the camera collection
-    for obj in camera_collection.objects:
-        # Get the object's bounding box corners in world space
-        corners = get_corners_of_object(obj)
+        json_file.write(']\n}\n')
+        json_file.close()
         
-        # Write the object's name
-        text.write(f"Object: {str(obj.name).split('.')[0]}\n")
-        
-        # Write the object's corners
-        for corner_name, corner in corners.items():
-            text.write(f"{corner_name}: {(corner.x,corner.y,corner.z)}\n")
-        
-        # Write the object's position relative to the camera
-        relative_position = position_relative_to_camera(camera, obj)
-        text.write(f"Relative Position: {relative_position}\n")
-        
-        # Write the object's color
-        r = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[0]
-        g = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[1]
-        b = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[2]
-        if r == 1 and g == 0 and b == 0:
-            color = "Red"
-        elif r == 0 and g == 1 and b == 0:
-            color = "Green"
-        elif r == 0 and g == 0 and b == 1:
-            color = "Blue"
-        else:
-            color = "Red" # Default color
-
-        text.write(f"Color: {color}\n")
-
-
-        
-        text.write("\n")
-
-    
-    # Save the text data block to a file
-    text_file_path = os.path.join(bpy.path.abspath('//dataset'), "annotations.txt")
-    with open(text_file_path, "w") as file:
-        file.write(text.as_string())
-    print(f"Annotations saved to: {text_file_path}")
-
+    print(f"Annotations written to file {file_name}.json")
+            
 def draw_corners(obj):
     # Get the object's bounding box corners in world space
     corners = get_corners_of_object(obj)
@@ -496,14 +443,14 @@ def draw_points_on_rendered_image(image_path, file_name):
     img_height = img.size[1]
     
     # Get the annotations
-    annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.csv")
+    annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.json")
     with open(annotations_file_path, mode='r') as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip the header
-        for row in reader:
-            obj_name = row[0]
-            corners = [tuple(map(int, corner.split(','))) for corner in row[1:9]]
-            color = row[9]
+        data = json.load(file)
+        annotations = data['annotations']
+        for annotation in annotations:
+            obj_name = annotation['brick_type']
+            corners = annotation['keypoints']
+            color = annotation['color']
             
             #lowest x and highest y
             top_left_corner = (min(corner[0] for corner in corners), max(corner[1] for corner in corners))
@@ -530,6 +477,8 @@ def draw_points_on_rendered_image(image_path, file_name):
             font_thickness = 1
             cv2.putText(img_cv2, obj_name, center, font, font_scale, bgr, font_thickness)
             cv2.rectangle(img_cv2, top_left_corner, bottom_right_corner, bgr, 1)
+            for corner in corners:
+                cv2.circle(img_cv2, corner, 3, bgr, -1)
             
             
     
