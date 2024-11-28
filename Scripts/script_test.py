@@ -1,7 +1,10 @@
 import bpy
+import bpy_extras
 import random
 import os
 import mathutils
+import numpy as np
+import cv2
 import math
 import uuid
 import time
@@ -122,6 +125,7 @@ def main(file_name="rendered_image.png"):
         
         remove_objects(to_be_removed)
         
+        
         #prepare_annotations()
         
         
@@ -173,6 +177,11 @@ def write_annotations_to_file(file_name):
             name = obj.name.split('.')[0]
             
             corners = get_corners_of_object(obj)
+            converted_corners = {}
+            for corner_name, corner in corners.items():
+                x, y = convert_coordinates(corner)
+                converted_corners[corner_name] = mathutils.Vector((x, y))
+            
             r = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[0]
             g = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[1]
             b = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value[2]
@@ -185,7 +194,7 @@ def write_annotations_to_file(file_name):
             else:
                 color = "Red"  # Default color
 
-            writer.writerow([name] + [f"{corner.x},{corner.y},{corner.z}" for corner in corners.values()] + [color])
+            writer.writerow([name] + [f"{int(corner.x)},{int(corner.y)}" for corner in converted_corners.values()] + [color])
             
     print(f"Annotations saved to: {annotations_file_path}")
     
@@ -460,14 +469,75 @@ def get_corners_of_object(obj):
     corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
     return corners
 
-def convert_coordinates():
-    camera_position = bpy.data.objects['Camera'].location
+def convert_coordinates(vector):
+    # Get the camera object
+    camera = bpy.data.objects.get('Camera')
     
-    camera_view_width = bpy.data.cameras['Camera'].sensor_width
-    print(camera_view_width)
+    # Convert the world coordinates to camera view coordinates
     
+    co_2d = bpy_extras.object_utils.world_to_camera_view(bpy.context.scene, camera, vector)
     
-convert_coordinates()
+    # Convert the normalized coordinates to pixel coordinates
+    render = bpy.context.scene.render
+    x = round(co_2d.x * render.resolution_x)
+    y = round(co_2d.y * render.resolution_y)
+    
+    # Flip the y coordinate
+    y = render.resolution_y - y
+    
+    return x, y
+
+def draw_points_on_rendered_image(image_path, file_name):
+    # Load the image
+    img_cv2 = cv2.imread(image_path)
+    img = bpy.data.images.load(image_path)
+    
+    #img height
+    img_height = img.size[1]
+    
+    # Get the annotations
+    annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.csv")
+    with open(annotations_file_path, mode='r') as file:
+        reader = csv.reader(file)
+        next(reader)  # Skip the header
+        for row in reader:
+            obj_name = row[0]
+            corners = [tuple(map(int, corner.split(','))) for corner in row[1:9]]
+            color = row[9]
+            
+            #lowest x and highest y
+            top_left_corner = (min(corner[0] for corner in corners), max(corner[1] for corner in corners))
+            #highest x and lowest y
+            bottom_right_corner = (max(corner[0] for corner in corners), min(corner[1] for corner in corners))
+            
+            # Draw the object's name
+            # Get the center of the bounding box
+            center = (sum(corner[0] for corner in corners) // 8, sum(corner[1] for corner in corners) // 8)
+            
+            # Get the color
+            if color == "Blue":
+                bgr = (255, 0, 0)
+            elif color == "Green":
+                bgr = (0, 255, 0)
+            elif color == "Red":
+                bgr = (0, 0, 255)
+            else:
+                bgr = (255, 255, 255)  # Default color
+                
+            # Draw the object's name
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.5
+            font_thickness = 1
+            cv2.putText(img_cv2, obj_name, center, font, font_scale, bgr, font_thickness)
+            cv2.rectangle(img_cv2, top_left_corner, bottom_right_corner, bgr, 1)
+            
+            
+    
+    # Save the image
+    img.save_render(image_path)
+    cv2.imwrite(image_path, img_cv2)
+    
+
 start_time = time.time()
 
 for i in range(rendered_images_amount):
@@ -479,6 +549,7 @@ for i in range(rendered_images_amount):
         write_annotations_to_file(time_for_name)
         print(f"Rendering image {i+1}/{rendered_images_amount}")
         bpy.ops.render.render(write_still=True, use_viewport=True)
+        draw_points_on_rendered_image(bpy.context.scene.render.filepath, time_for_name)
         
 end_time = time.time()
 print(f"Time taken: {end_time - start_time} seconds")
