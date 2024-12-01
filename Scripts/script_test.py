@@ -34,7 +34,8 @@ bpy.context.scene.render.resolution_x = 1920
 bpy.context.scene.render.resolution_y = 1080
 
 # Set output file path and format
-will_render_image = False
+will_render_image = True
+draw_on_image = False
 render_images_folder = '//dataset/images'
 annotations_folder = '//dataset/annotations'
 
@@ -164,7 +165,20 @@ def set_background_image(camera, img_path):
     
     # Connect the image node to the scale node
     tree.links.new(new_img_node.outputs[0], tree.nodes['Scale'].inputs[0])
+ 
 
+def normalize_keypoints(keypoints, image_width, image_height):
+    normalized_keypoints = []
+    for x, y in keypoints:
+        normalized_keypoints.append([x / image_width, y / image_height])
+    return normalized_keypoints
+
+
+def denormalize_keypoints(keypoints, image_width, image_height):
+    denormalized_keypoints = []
+    for x, y in keypoints:
+        denormalized_keypoints.append([x * image_width, y * image_height])
+    return denormalized_keypoints
 
 def write_annotations_to_file(file_name):
 
@@ -181,8 +195,9 @@ def write_annotations_to_file(file_name):
             json_file.write(f'{{"brick_type": "{brick_type}",\n "color": "{[color[0], color[1], color[2]]}",\n "keypoints": \n')
         
             serialized_corners = [convert_coordinates(corner) for corner in corners.values()]
+            normalized_corners = normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
             
-            json.dump(serialized_corners, json_file)
+            json.dump(normalized_corners, json_file)
             json_file.write('\n')
             if obj == camera_collection.objects[-1]:
                 json_file.write('}\n')
@@ -371,7 +386,6 @@ def get_occluding_objects(camera, target, draw_line=False):
 
     return objects_in_between
 
-
 def draw_line_meth(start, direction, length, line_name="Line"):
     # Calculate the end point of the line
     end = start + direction.normalized() * length
@@ -426,13 +440,15 @@ def convert_coordinates(vector):
     
     # Convert the normalized coordinates to pixel coordinates
     render = bpy.context.scene.render
-    x = round(co_2d.x * render.resolution_x)
-    y = round(co_2d.y * render.resolution_y)
+    x = co_2d.x * render.resolution_x
+    y = co_2d.y * render.resolution_y
     
     # Flip the y coordinate
     y = render.resolution_y - y
     
     return x, y
+
+
 
 def draw_points_on_rendered_image(image_path, file_name):
     # Load the image
@@ -452,14 +468,21 @@ def draw_points_on_rendered_image(image_path, file_name):
             corners = annotation['keypoints']
             color = annotation['color']
             
+            denormalized_corners = denormalize_keypoints(corners, img.size[0], img.size[1])
+            
+            for corner in denormalized_corners:
+                corner[0] = round(corner[0])
+                corner[1] = round(corner[1])
+            
             #lowest x and highest y
-            top_left_corner = (min(corner[0] for corner in corners), max(corner[1] for corner in corners))
+            top_left_corner = (min(corner[0] for corner in denormalized_corners), max(corner[1] for corner in denormalized_corners))
             #highest x and lowest y
-            bottom_right_corner = (max(corner[0] for corner in corners), min(corner[1] for corner in corners))
+            bottom_right_corner = (max(corner[0] for corner in denormalized_corners), min(corner[1] for corner in denormalized_corners))
             
             # Draw the object's name
             # Get the center of the bounding box
-            center = (sum(corner[0] for corner in corners) // 8, sum(corner[1] for corner in corners) // 8)
+            center = (sum(corner[0] for corner in denormalized_corners) // 8, sum(corner[1] for corner in denormalized_corners) // 8)
+            
             
             # Get the color
             if color == "Blue":
@@ -477,7 +500,7 @@ def draw_points_on_rendered_image(image_path, file_name):
             font_thickness = 1
             cv2.putText(img_cv2, obj_name, center, font, font_scale, bgr, font_thickness)
             cv2.rectangle(img_cv2, top_left_corner, bottom_right_corner, bgr, 1)
-            for corner in corners:
+            for corner in denormalized_corners:
                 cv2.circle(img_cv2, corner, 3, bgr, -1)
             
             
@@ -495,11 +518,14 @@ for i in range(rendered_images_amount):
     main(image_name)
     remove_objects(to_be_removed)
     if will_render_image:
-        write_annotations_to_file(time_for_name)
-        print(f"Rendering image {i+1}/{rendered_images_amount}")
-        bpy.ops.render.render(write_still=True, use_viewport=True)
-        draw_points_on_rendered_image(bpy.context.scene.render.filepath, time_for_name)
-        
+        if camera_collection.objects:
+            write_annotations_to_file(time_for_name)
+            print(f"Rendering image {i+1}/{rendered_images_amount}")
+            bpy.ops.render.render(write_still=True, use_viewport=True)
+            if draw_on_image:
+                draw_points_on_rendered_image(bpy.context.scene.render.filepath, time_for_name)
+        else:
+            print(f"No objects in camera collection. Not saving image.")
 end_time = time.time()
 print(f"Time taken: {end_time - start_time} seconds")
 print(f"Average time per image: {(end_time - start_time) / rendered_images_amount} seconds")
