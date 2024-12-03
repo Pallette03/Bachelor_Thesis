@@ -168,16 +168,20 @@ def set_background_image(camera, img_path):
  
 
 def normalize_keypoints(keypoints, image_width, image_height):
-    normalized_keypoints = []
-    for x, y in keypoints:
-        normalized_keypoints.append([x / image_width, y / image_height])
+    normalized_keypoints = {}
+    for corner_name, corner_vector in keypoints.items():
+        x = corner_vector[0] / image_width
+        y = corner_vector[1] / image_height
+        normalized_keypoints[corner_name] = [x, y]
     return normalized_keypoints
 
 
 def denormalize_keypoints(keypoints, image_width, image_height):
-    denormalized_keypoints = []
-    for x, y in keypoints:
-        denormalized_keypoints.append([x * image_width, y * image_height])
+    denormalized_keypoints = {}
+    for corner_name, corner_vector in keypoints.items():
+        x = corner_vector[0] * image_width
+        y = corner_vector[1] * image_height
+        denormalized_keypoints[corner_name] = [x, y]
     return denormalized_keypoints
 
 def write_annotations_to_file(file_name):
@@ -192,9 +196,12 @@ def write_annotations_to_file(file_name):
             brick_type = obj.name.split('.')[0]
             color = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value
             
-            json_file.write(f'{{"brick_type": "{brick_type}",\n "color": "{[color[0], color[1], color[2]]}",\n "keypoints": \n')
+            json_file.write(f'{{"brick_type": "{brick_type}",\n "color": "{[color[0], color[1], color[2]]}",\n "keypoints": ')
         
-            serialized_corners = [convert_coordinates(corner) for corner in corners.values()]
+            serialized_corners = {}
+            for corner_name, corner_vector in corners.items():
+                serialized_corners.update(convert_coordinates(corner_name, corner_vector))
+            
             normalized_corners = normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
             
             json.dump(normalized_corners, json_file)
@@ -430,7 +437,7 @@ def get_corners_of_object(obj):
     corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
     return corners
 
-def convert_coordinates(vector):
+def convert_coordinates(corner_name, vector):
     # Get the camera object
     camera = bpy.data.objects.get('Camera')
     
@@ -446,7 +453,7 @@ def convert_coordinates(vector):
     # Flip the y coordinate
     y = render.resolution_y - y
     
-    return x, y
+    return {corner_name: (x, y)}
 
 
 
@@ -470,18 +477,18 @@ def draw_points_on_rendered_image(image_path, file_name):
             
             denormalized_corners = denormalize_keypoints(corners, img.size[0], img.size[1])
             
-            for corner in denormalized_corners:
-                corner[0] = round(corner[0])
-                corner[1] = round(corner[1])
+            for corner_name, corner_vector in denormalized_corners.items():
+                x, y = corner_vector
+                cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 255, 0), -1)
             
             #lowest x and highest y
-            top_left_corner = (min(corner[0] for corner in denormalized_corners), max(corner[1] for corner in denormalized_corners))
+            top_left_corner = (int(min(denormalized_corners.values(), key=lambda x: x[0])[0]), int(max(denormalized_corners.values(), key=lambda x: x[1])[1]))
             #highest x and lowest y
-            bottom_right_corner = (max(corner[0] for corner in denormalized_corners), min(corner[1] for corner in denormalized_corners))
+            bottom_right_corner = (int(max(denormalized_corners.values(), key=lambda x: x[0])[0]), int(min(denormalized_corners.values(), key=lambda x: x[1])[1]))
             
             # Draw the object's name
             # Get the center of the bounding box
-            center = (sum(corner[0] for corner in denormalized_corners) // 8, sum(corner[1] for corner in denormalized_corners) // 8)
+            center = (int((top_left_corner[0] + bottom_right_corner[0]) / 2), int((top_left_corner[1] + bottom_right_corner[1]) / 2))
             
             
             # Get the color
@@ -500,8 +507,6 @@ def draw_points_on_rendered_image(image_path, file_name):
             font_thickness = 1
             cv2.putText(img_cv2, obj_name, center, font, font_scale, bgr, font_thickness)
             cv2.rectangle(img_cv2, top_left_corner, bottom_right_corner, bgr, 1)
-            for corner in denormalized_corners:
-                cv2.circle(img_cv2, corner, 3, bgr, -1)
             
             
     
