@@ -24,7 +24,6 @@ class LegoKeypointDataset(Dataset):
         img_path = os.path.join(self.img_dir, annotation["image_id"]) + ".png"
         image = Image.open(img_path).convert("RGB")
         
-        # Extract keypoints and other labels
         keypoints = []
         for brick in annotation["annotations"]:
             keypoints.extend(brick["keypoints"])
