@@ -5,11 +5,13 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from LegoKeypointDataset import LegoKeypointDataset
 from KeypointDetector import KeypointDetector
+from bobe import LegoKeypointDetector
+from bobe import compute_loss
 import torch.nn as nn
 
 num_keypoints = 8
 batch_size = 16
-num_epochs = 20
+num_epochs = 5
 learning_rate = 0.001
 
 render_images_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images'
@@ -33,6 +35,7 @@ val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 
 model = KeypointDetector().to('cuda')
+#model = LegoKeypointDetector().to('cuda')
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -45,7 +48,7 @@ for epoch in range(num_epochs):
         images = images.to('cuda')
         keypoints = keypoints.to('cuda')
 
-        outputs = model(images)
+        outputs = model(images, 10*8)
         loss = criterion(outputs, keypoints)
 
         optimizer.zero_grad()
@@ -65,7 +68,7 @@ with torch.no_grad():
         images = images.to('cuda')
         keypoints = keypoints.to('cuda')
 
-        outputs = model(images)
+        outputs = model(images, 10*8) 
 
         loss = criterion(outputs, keypoints)
         

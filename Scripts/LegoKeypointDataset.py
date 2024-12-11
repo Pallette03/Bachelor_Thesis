@@ -26,7 +26,7 @@ class LegoKeypointDataset(Dataset):
         
         keypoints = []
         for brick in annotation["annotations"]:
-            keypoints.extend(brick["keypoints"])
+            keypoints.extend(brick["keypoints"].values())
             
         # Flatten keypoints for simplicity (x1, y1, x2, y2, ...)
         #keypoints = torch.tensor([kp for brick in keypoints for kp in brick], dtype=torch.float32)

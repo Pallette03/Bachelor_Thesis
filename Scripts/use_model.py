@@ -4,7 +4,7 @@ from KeypointDetector import KeypointDetector
 from PIL import Image
 import matplotlib.pyplot as plt
 
-image_name = '01122024-183039-173.png'
+image_name = '04122024-155559-869.png'
 model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
 image_base_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/'
 
@@ -31,16 +31,13 @@ with torch.no_grad():
 
 keypoints = output[0]  # Remove batch dimension: shape [MaxKeypoints, 2]
 
-# Filter out invalid keypoints
-valid_keypoints = keypoints[keypoints[:, 0] != -1]  # Only keep valid (non-placeholder) keypoints
-
 # Convert keypoints back to image coordinates (if necessary)
 width, height = image.size
-valid_keypoints[:, 0] *= width   # Scale x-coordinates
-valid_keypoints[:, 1] *= height  # Scale y-coordinates
+keypoints[:, 0] *= width   # Scale x-coordinates
+keypoints[:, 1] *= height  # Scale y-coordinates
 
 # Plot the image and keypoints
 plt.imshow(image)
-for x, y in valid_keypoints:
+for x, y in keypoints:
     plt.scatter(x.item(), y.item(), color="red", s=10)
 plt.show()

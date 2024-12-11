@@ -36,6 +36,7 @@ bpy.context.scene.render.resolution_y = 1080
 # Set output file path and format
 will_render_image = True
 draw_on_image = False
+fill_to_max_items = False
 render_images_folder = '//dataset/images'
 annotations_folder = '//dataset/annotations'
 
@@ -62,7 +63,7 @@ background_images = [f for f in os.listdir(bpy.path.abspath(backgrounds_folder_p
 to_be_removed = set()
 
 
-def main(file_name="rendered_image.png"):
+def main(file_name="rendered_image.png", fill_to_max_items=False):
     
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
@@ -100,38 +101,27 @@ def main(file_name="rendered_image.png"):
             # Set the location of the new object within the camera's view frustum 
             random_attributes_object(new_obj)
             
-            
-        
         # Force update
         bpy.context.view_layer.update()
         
-        for obj in camera_collection.objects:
-            occluding_objects = get_occluding_objects(camera, obj)
-            for occluding_obj in occluding_objects:
-                to_be_removed.add(occluding_obj)
-            
-        remove_objects(to_be_removed)
+        clean_scene()
         
-        
-        
-        
-        for obj in camera_collection.objects:
-            # Get the object's bounding box corners in world space
-            corners = get_corners_of_object(obj)
-            for corner in corners.values():
-                if is_point_in_camera_view(camera, corner):
-                    continue
-                else:
-                    to_be_removed.add(obj)
-                    break
-        
-        remove_objects(to_be_removed)
-        
-        
-        #prepare_annotations()
-        
-        
-        
+        if fill_to_max_items:
+            while len(camera_collection.objects) < max_items:
+                random_objects = []
+                for i in range(max_items - len(camera_collection.objects)):
+                    random_objects.append(random.choice(collection.objects))
+                
+                for obj in random_objects:
+                    new_obj = obj.copy()
+                    new_obj.data = obj.data.copy()
+                    camera_collection.objects.link(new_obj)
+                    # Set the location of the new object within the camera's view frustum 
+                    random_attributes_object(new_obj)
+                    
+                bpy.context.view_layer.update()
+                
+                clean_scene()
         
     else:
         if not collection:
@@ -142,6 +132,28 @@ def main(file_name="rendered_image.png"):
             print(f"Camera not found.")
         if not line_collection:
             print(f"Collection '{line_collection_name}' not found.")
+    
+
+def clean_scene():
+    # Checks for occlusions and objects out of bounds
+    for obj in camera_collection.objects:
+        occluding_objects = get_occluding_objects(camera, obj)
+        for occluding_obj in occluding_objects:
+            to_be_removed.add(occluding_obj)
+        
+    remove_objects(to_be_removed)
+        
+    for obj in camera_collection.objects:
+        # Get the object's bounding box corners in world space
+        corners = get_corners_of_object(obj)
+        for corner in corners.values():
+            if is_point_in_camera_view(camera, corner):
+                continue
+            else:
+                to_be_removed.add(obj)
+                break
+    
+    remove_objects(to_be_removed)
     
 
 def set_background_image(camera, img_path):
@@ -520,7 +532,7 @@ start_time = time.time()
 for i in range(rendered_images_amount):
     time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
     image_name = time_for_name + '.png'
-    main(image_name)
+    main(image_name, fill_to_max_items)
     remove_objects(to_be_removed)
     if will_render_image:
         if camera_collection.objects:
