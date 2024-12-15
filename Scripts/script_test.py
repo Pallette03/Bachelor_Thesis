@@ -156,6 +156,17 @@ def clean_scene():
     remove_objects(to_be_removed)
     
 
+def world_to_camera_coords(camera, world_coords):
+    if not isinstance(world_coords, mathutils.Vector):
+        world_coords = mathutils.Vector(world_coords)
+
+    cam_matrix_world = camera.matrix_world
+    cam_matrix_world_inv = cam_matrix_world.inverted()
+
+    camera_relative_coords = cam_matrix_world_inv @ world_coords
+
+    return camera_relative_coords
+
 def set_background_image(camera, img_path):
     img = bpy.data.images.load(os.path.join(bpy.path.abspath(backgrounds_folder_path), img_path))
     camera.data.background_images.clear()
@@ -201,7 +212,15 @@ def write_annotations_to_file(file_name):
     with open(os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.json"), mode='a') as json_file:
         
         image_id = file_name
-        json_file.write(f'{{"image_id": "{image_id}", "annotations": [\n')
+        json_file.write(f'{{"image_id": "{image_id}", ')
+        json_file.write('"camera_matrix": [')
+        for vector in camera.matrix_world:
+            json.dump((vector[0], vector[1], vector[2]), json_file)
+            if vector != camera.matrix_world[-1]:
+                json_file.write(', ')
+            else:
+                json_file.write('], \n')
+        json_file.write('"annotations": [\n')
         
         for obj in camera_collection.objects:
             corners = get_corners_of_object(obj)
@@ -210,11 +229,20 @@ def write_annotations_to_file(file_name):
             
             json_file.write(f'{{"brick_type": "{brick_type}",\n "color": "{[color[0], color[1], color[2]]}",\n "keypoints": ')
         
-            serialized_corners = {}
+            camera_corners = {}
             for corner_name, corner_vector in corners.items():
-                serialized_corners.update(convert_coordinates(corner_name, corner_vector))
+                temp_tuple = ()
+                for val in world_to_camera_coords(camera, corner_vector):
+                    temp_tuple += (val,)
+                camera_corners[corner_name] = temp_tuple
             
-            normalized_corners = normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
+            # serialized_corners = {}
+            # for corner_name, corner_vector in corners.items():
+            #     serialized_corners.update(convert_coordinates(corner_name, corner_vector))
+            
+            #normalized_corners = normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
+            normalized_corners = camera_corners
+            print(normalized_corners)
             
             json.dump(normalized_corners, json_file)
             json_file.write('\n')
