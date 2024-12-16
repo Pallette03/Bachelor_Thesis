@@ -399,13 +399,6 @@ def get_random_point_on_plane(width=1.0, height=1.0):
     return random_point
     
 def random_rotation_on_any_plane(rect_obj, plane_obj):
-    """
-    Rotates a rectangular object to align one of its sides with a plane and applies a random rotation around the plane's normal.
-    
-    Parameters:
-    - rect_obj: The Blender object representing the rectangle.
-    - plane_obj: The Blender object representing the plane.
-    """
     # Ensure both objects are valid meshes
     if rect_obj.type != 'MESH' or plane_obj.type != 'MESH':
         raise TypeError("Both objects must be meshes.")
@@ -413,18 +406,23 @@ def random_rotation_on_any_plane(rect_obj, plane_obj):
     # Get the plane's normal in world space
     plane_normal = plane_obj.matrix_world.to_3x3().col[2].normalized()  # Plane's Z-axis as its normal
 
-    # Define the possible sides (local axes of the block) for alignment
+    # Get the plane's origin in world space
+    plane_origin = plane_obj.matrix_world.translation
+    
+    rect_dimensions = rect_obj.dimensions
+
+    # Define the possible sides (local axes of the block) for alignment with their corresponding dimensions
     local_sides = [
-        mathutils.Vector((0, 0, 1)),  # Top face (local Z+)
-        mathutils.Vector((0, 0, -1)),  # Bottom face (local Z-)
-        mathutils.Vector((1, 0, 0)),  # Right face (local X+)
-        mathutils.Vector((-1, 0, 0)),  # Left face (local X-)
-        mathutils.Vector((0, 1, 0)),  # Front face (local Y+)
-        mathutils.Vector((0, -1, 0))  # Back face (local Y-)
+        (mathutils.Vector((0, 0, 1)), rect_dimensions[2]),   # Top face (local Z+)
+        (mathutils.Vector((0, 0, -1)), rect_dimensions[2]),  # Bottom face (local Z-)
+        (mathutils.Vector((1, 0, 0)), rect_dimensions[0]),   # Right face (local X+)
+        (mathutils.Vector((-1, 0, 0)), rect_dimensions[0]),  # Left face (local X-)
+        (mathutils.Vector((0, 1, 0)), rect_dimensions[1]),   # Front face (local Y+)
+        (mathutils.Vector((0, -1, 0)), rect_dimensions[1])   # Back face (local Y-)
     ]
 
     # Randomly pick a side to align with the plane
-    chosen_side = random.choice(local_sides)
+    chosen_side, offset_distance = random.choice(local_sides)
 
     # Transform the chosen local side to world space
     chosen_side_world = rect_obj.matrix_world.to_3x3() @ chosen_side
@@ -446,6 +444,8 @@ def random_rotation_on_any_plane(rect_obj, plane_obj):
     random_rotation_matrix = mathutils.Matrix.Rotation(random_angle, 4, plane_normal)
     rect_obj.matrix_world = random_rotation_matrix @ rect_obj.matrix_world
 
+    # Move the rectangle along the plane's normal to avoid intersection
+    rect_obj.location += plane_normal * offset_distance
 
 def random_attributes_object(obj):
     
