@@ -21,6 +21,7 @@ print('----------------')
 collection_name = 'Parts'
 camera_collection_name = 'In_Camera'
 line_collection_name = 'Lines'
+table_name = 'Table'
 # Backgrounds images folder path
 backgrounds_folder_path = '//Backgrounds'
 
@@ -37,7 +38,9 @@ bpy.context.scene.render.resolution_y = 1080
 will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
-render_images_folder = '//dataset/images'
+create_depth_map = False
+render_images_folder = '//dataset/images/rgb'
+depth_map_folder = '//dataset/images/depth'
 annotations_folder = '//dataset/annotations'
 
 bpy.context.scene.use_nodes = True
@@ -48,6 +51,13 @@ bpy.context.scene.render.film_transparent = True
 collection = bpy.data.collections.get(collection_name)
 camera_collection = bpy.data.collections.get(camera_collection_name)
 line_collection = bpy.data.collections.get(line_collection_name)
+table = bpy.data.objects.get(table_name)
+
+# Ensure the object is a mesh
+if table.type != 'MESH':
+    print(f"Object '{table_name}' is not a mesh")
+    raise ValueError(f"Object '{table_name}' is not a mesh")
+
 
 # Get the Camera
 camera = bpy.data.objects.get('Camera')
@@ -68,7 +78,11 @@ def main(file_name="rendered_image.png", fill_to_max_items=False):
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
     
-    if collection and camera_collection and camera and line_collection:
+    bpy.context.scene.node_tree.nodes['File Output'].base_path = bpy.path.abspath(depth_map_folder)
+    bpy.context.scene.node_tree.nodes['File Output'].file_slots[0].path = file_name.split('.')[0] + '#'
+    bpy.context.scene.node_tree.nodes['File Output'].format.file_format = 'PNG'
+    
+    if collection and camera_collection and camera and line_collection and table:
         print(f"Everything found.")
         
         # Set random Background Image
@@ -132,6 +146,8 @@ def main(file_name="rendered_image.png", fill_to_max_items=False):
             print(f"Camera not found.")
         if not line_collection:
             print(f"Collection '{line_collection_name}' not found.")
+        if not table:
+            print(f"Table not found.")
     
 
 def clean_scene():
@@ -242,7 +258,6 @@ def write_annotations_to_file(file_name):
             
             #normalized_corners = normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
             normalized_corners = camera_corners
-            print(normalized_corners)
             
             json.dump(normalized_corners, json_file)
             json_file.write('\n')
@@ -360,9 +375,38 @@ def random_point_in_camera_view(scene, camera_obj, depth):
     random_point = point_on_left.lerp(point_on_right, random_x)
     return random_point
 
+def get_random_point_on_plane(width=1.0, height=1.0):
+    """
+    Generate a random point on a plane.
+    
+    :param plane_origin: Vector, origin of the plane in 3D space.
+    :param plane_u: Vector, one vector defining the plane's direction.
+    :param plane_v: Vector, another vector defining the plane's direction.
+    :param width: Float, width of the area in plane coordinates (default: 1.0).
+    :param height: Float, height of the area in plane coordinates (default: 1.0).
+    :return: Vector, random point on the plane.
+    """
+    plane_origin = table.location
+    plane_u = table.matrix_world.to_3x3() @ mathutils.Vector((1, 0, 0))  # X-axis in world space
+    plane_v = table.matrix_world.to_3x3() @ mathutils.Vector((0, 1, 0))  # Y-axis in world space
+    
+    # Generate random factors within bounds
+    u = random.uniform(-0.5 * width, 0.5 * width)
+    v = random.uniform(-0.5 * height, 0.5 * height)
+    
+    # Compute the random point
+    random_point = plane_origin + u * plane_u + v * plane_v
+    return random_point
+    
+
+
 def random_attributes_object(obj):
+    
     # Random location
-    obj.location = random_point_in_camera_view(bpy.context.scene, camera, random.uniform(min_z, max_z))
+    #obj.location = random_point_in_camera_view(bpy.context.scene, camera, random.uniform(min_z, max_z))
+    
+    
+    obj.location = get_random_point_on_plane()
     
     # Random rotation
     obj.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
@@ -464,9 +508,6 @@ def remove_objects(obj_set: set):
     
     obj_set.clear()
     
-    
-    
-    
 def position_relative_to_camera(camera, obj):
     # Convert the object's world location to the camera's local space
     relative_position = camera.matrix_world.inverted() @ obj.location
@@ -554,6 +595,15 @@ def draw_points_on_rendered_image(image_path, file_name):
     img.save_render(image_path)
     cv2.imwrite(image_path, img_cv2)
     
+
+def get_depth_map():
+    z = bpy.data.images['Viewer Node']
+    w, h = z.size
+    dmap = np.array(z.pixels[:], dtype=np.float32) # convert to numpy array
+    dmap = np.reshape(dmap, (h, w, 4))[:,:,0]
+    dmap = np.rot90(dmap, k=2)
+    dmap = np.fliplr(dmap)
+    return dmap
 
 start_time = time.time()
 
