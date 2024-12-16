@@ -398,6 +398,53 @@ def get_random_point_on_plane(width=1.0, height=1.0):
     random_point = plane_origin + u * plane_u + v * plane_v
     return random_point
     
+def random_rotation_on_any_plane(rect_obj, plane_obj):
+    """
+    Rotates a rectangular object to align one of its sides with a plane and applies a random rotation around the plane's normal.
+    
+    Parameters:
+    - rect_obj: The Blender object representing the rectangle.
+    - plane_obj: The Blender object representing the plane.
+    """
+    # Ensure both objects are valid meshes
+    if rect_obj.type != 'MESH' or plane_obj.type != 'MESH':
+        raise TypeError("Both objects must be meshes.")
+    
+    # Get the plane's normal in world space
+    plane_normal = plane_obj.matrix_world.to_3x3().col[2].normalized()  # Plane's Z-axis as its normal
+
+    # Define the possible sides (local axes of the block) for alignment
+    local_sides = [
+        mathutils.Vector((0, 0, 1)),  # Top face (local Z+)
+        mathutils.Vector((0, 0, -1)),  # Bottom face (local Z-)
+        mathutils.Vector((1, 0, 0)),  # Right face (local X+)
+        mathutils.Vector((-1, 0, 0)),  # Left face (local X-)
+        mathutils.Vector((0, 1, 0)),  # Front face (local Y+)
+        mathutils.Vector((0, -1, 0))  # Back face (local Y-)
+    ]
+
+    # Randomly pick a side to align with the plane
+    chosen_side = random.choice(local_sides)
+
+    # Transform the chosen local side to world space
+    chosen_side_world = rect_obj.matrix_world.to_3x3() @ chosen_side
+
+    # Compute rotation matrix to align the chosen side with the plane's normal
+    if not chosen_side_world.cross(plane_normal).length == 0:  # Ensure the vectors aren't parallel
+        rotation_axis = chosen_side_world.cross(plane_normal).normalized()
+        rotation_angle = chosen_side_world.angle(plane_normal)
+        alignment_matrix = mathutils.Matrix.Rotation(rotation_angle, 4, rotation_axis)
+    else:
+        # If the chosen side is already aligned with the plane normal, no alignment needed
+        alignment_matrix = mathutils.Matrix.Identity(4)
+
+    # Apply the alignment matrix to the object's rotation
+    rect_obj.matrix_world = alignment_matrix @ rect_obj.matrix_world
+
+    # Apply random rotation around the plane's normal
+    random_angle = math.radians(random.uniform(0, 360))
+    random_rotation_matrix = mathutils.Matrix.Rotation(random_angle, 4, plane_normal)
+    rect_obj.matrix_world = random_rotation_matrix @ rect_obj.matrix_world
 
 
 def random_attributes_object(obj):
@@ -405,11 +452,15 @@ def random_attributes_object(obj):
     # Random location
     #obj.location = random_point_in_camera_view(bpy.context.scene, camera, random.uniform(min_z, max_z))
     
-    
+    random_rotation_on_any_plane(obj, table)
     obj.location = get_random_point_on_plane()
     
     # Random rotation
-    obj.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
+    #obj.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
+    
+    # Lay object on the table on a random side and offset the position by its width
+    
+    
     
     # Random color
     colours = [(255,0,0), (0,255,0), (0,0,255)]
