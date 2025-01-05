@@ -4,9 +4,6 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from LegoKeypointDataset import LegoKeypointDataset
-from KeypointDetector import KeypointDetector
-from bobe import LegoKeypointDetector
-from bobe import compute_loss
 import torch.nn as nn
 
 num_keypoints = 8
