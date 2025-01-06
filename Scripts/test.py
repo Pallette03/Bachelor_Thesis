@@ -2,8 +2,22 @@ import os
 import json
 import numpy as np
 import cv2
+from LegoKeypointDataset import LegoKeypointDataset
 
 annotations_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/annotations'
+img_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb'
+
+# Harris Corner Detector
+def harris_corner_detector(image, threshold=0.01):
+    # Convert PIL image to OpenCV image
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = np.float32(gray)
+    dst = cv2.cornerHarris(gray, 2, 3, 0.04)
+    dst = cv2.dilate(dst, None)
+    image[dst > threshold * dst.max()] = [0, 0, 255]
+    return image
 
 def denormalize_keypoints(keypoints, image_width, image_height):
     denormalized_keypoints = {}
@@ -47,4 +61,14 @@ def draw_points_on_rendered_image(file_name):
             cv2.waitKey(0)
             
             
-draw_points_on_rendered_image("04012025-005453-98")
+dataset = LegoKeypointDataset(annotations_folder, img_dir)
+
+image, _ = dataset[0]
+
+for img, _ in dataset:
+    harris = harris_corner_detector(img)
+    cv2.imshow("Harris", harris)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+   
+#draw_points_on_rendered_image("04012025-005453-98")

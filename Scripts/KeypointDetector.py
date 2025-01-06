@@ -11,6 +11,17 @@ from PIL import Image
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 
+
+# Harris Corner Detector
+def harris_corner_detector(image, threshold=0.01):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = np.float32(gray)
+    dst = cv2.cornerHarris(gray, 2, 3, 0.04)
+    dst = cv2.dilate(dst, None)
+    image[dst > threshold * dst.max()] = [0, 0, 255]
+    return image
+
+
 class UNet(nn.Module):
     def __init__(self):
         super(UNet, self).__init__()
@@ -99,16 +110,10 @@ def visualize_predictions(model, image, transform):
     input_image = transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         preds = model(input_image).squeeze(0).cpu().numpy()
-    print("Predictions:")
-    print(np.max(preds))
-    print(preds)
     
     preds_binary = (preds > 0.95).astype(np.uint8)
-    print(preds_binary)
     for y, x in zip(*np.where(preds_binary[0] == 1)):
         plt.plot(x, y, 'ro', markersize=2)
-
-    
 
     plt.imshow(image)
     plt.show()
@@ -149,5 +154,13 @@ print("Saving the model...")
 torch.save(model.state_dict(), model_path)
 
 # Visualize results on an image
-image, _ = dataset[156]
-visualize_predictions(model, image, transform)
+#image, _ = dataset[0]
+
+# Create a loop that goes through the dataset and visualizes the predictions at the press of a button
+for image, _ in dataset:
+    visualize_predictions(model, image, transform)
+    if input("Press 'q' to quit, or any other key to continue: ") == 'q':
+        break
+    else:
+        plt.close()
+        
