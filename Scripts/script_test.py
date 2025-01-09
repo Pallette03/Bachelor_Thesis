@@ -8,11 +8,25 @@ import cv2
 import math
 import uuid
 import time
-import csv
 import json
 
+debug = False
 print('----------------')
 
+if debug:
+    import debugpy
+    try:
+        debugpy.listen(("localhost", 5678))
+        print('Listening')
+    except RuntimeError as e:
+        if not str(e).__contains__('debugpy.listen() has already been called on this process'):
+            raise e
+        else:
+            print('Already listening')
+    print('Waiting for debugger attach')
+    debugpy.wait_for_client()
+    print('Debugger attached')
+    
 # Create setup method 
 # - set up camera location
 # - load parts collection
@@ -348,38 +362,40 @@ def is_point_in_camera_view(camera, point_world):
 
     # Create Plane objects for each side of the camera frustum
     lower_left, lower_right, upper_right, upper_left = get_camera_view_bounds(bpy.context.scene, camera, 1)
-    bottom_plane_data = define_plane_from_vertices(lower_left, lower_right, camera.location)
-    right_plane_data = define_plane_from_vertices(lower_right, upper_right, camera.location)
-    top_plane_data = define_plane_from_vertices(upper_right, upper_left, camera.location)
-    left_plane_data = define_plane_from_vertices(upper_left, lower_left, camera.location)
+    bottom_test = is_point_above_plane(lower_left, lower_right, camera.location, point_world)
+    right_test = is_point_above_plane(lower_right, upper_right, camera.location, point_world)
+    top_test = is_point_above_plane(upper_right, upper_left, camera.location, point_world)
+    left_test = is_point_above_plane(upper_left, lower_left, camera.location, point_world)
+    
+    
+    if bottom_test and right_test and top_test and left_test:
+        return True
+    else:
+        return False
 
-    planes = [bottom_plane_data, right_plane_data, top_plane_data, left_plane_data]
+def is_point_above_plane(p1, p2, p3, test_point):
+    """
+    Determine on which side of the plane the test_point lies.
 
-    for plane in planes:
-        normal, point = plane
-        if not is_point_above_plane(point_camera_space, point, normal):
-            return False
-
-    return True
-
-def is_point_above_plane(point, plane_point, normal):
-    # Calculate the vector from the point on the plane to the point of interest
-    vector = [point[i] - plane_point[i] for i in range(3)]
-    # Dot product with the plane's normal vector
-    dot_product = sum(vector[i] * normal[i] for i in range(3))
-    return dot_product > 0  # Returns True if above, False if below or on the plane
-
-def define_plane_from_vertices(v1, v2, v3):
-
-    # Calculate two vectors in the plane
-    vec1 = v2 - v1
-    vec2 = v3 - v1
-
-    # Calculate the normal vector
-    normal = vec1.cross(vec2)
-
-    return normal, v1
-
+    :param p1: First point defining the plane (mathutils.Vector)
+    :param p2: Second point defining the plane (mathutils.Vector)
+    :param p3: Third point defining the plane (mathutils.Vector)
+    :param test_point: Point to test (mathutils.Vector)
+    """
+    # Calculate the normal of the plane
+    normal = (p2 - p1).cross(p3 - p1).normalized()
+    
+    # Calculate a vector from one plane point to the test point
+    vector_to_point = test_point - p1
+    
+    # Compute the dot product
+    dot_product = normal.dot(vector_to_point)
+    
+    # Determine the side
+    if dot_product < 0:
+        return True
+    else:
+        return False
 
 def random_point_in_camera_view(scene, camera_obj, depth):
     """
@@ -502,9 +518,6 @@ def remove_objects(obj_set: set):
 
     obj_set.clear()
 
-
-
-
 def position_relative_to_camera(camera, obj):
     # Convert the object's world location to the camera's local space
     relative_position = camera.matrix_world.inverted() @ obj.location
@@ -533,7 +546,12 @@ def convert_coordinates(corner_name, vector):
 
     return {corner_name: (x, y)}
 
-
+def get_2d_bound_box(obj):
+    # Get the object's bounding box corners in world space
+    corners = get_corners_of_object(obj)
+    # Convert the corners to camera view coordinates
+    corners_2d = {corner_name: convert_coordinates(corner_name, corner_vector) for corner_name, corner_vector in corners.items()}
+    return corners_2d
 
 def draw_points_on_rendered_image(image_path, file_name):
     # Load the image
