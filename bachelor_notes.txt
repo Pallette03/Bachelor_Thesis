@@ -12,3 +12,11 @@ viewpoint detection model trained solely on synthetic data -> https://ieeexplore
 
 Object Detection and Pose Estimation Based on Convolutional Neural Networks Trained with Synthetic Data
 	-> https://ieeexplore.ieee.org/document/8594379
+
+HDRI polyhaven
+
+Object detector --> viewpoint estimation dataset (only objects)
+https://www2.informatik.uni-hamburg.de/wtm/publications/2018/JKPPW18/JosifovskiKerzelPregizerPosniakWermter2018.pdf
+
+Detector (detects any Lego piece and extracts BB) --> Classifier (Brick Type or false positive) --> Pose Estimator (Trained on single Images of the corresponding brick)
+--> This approach is perfect for the Use of HDRI as well as not needing depthmaps

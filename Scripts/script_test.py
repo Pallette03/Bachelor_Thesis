@@ -21,8 +21,6 @@ print('----------------')
 collection_name = 'Parts'
 camera_collection_name = 'In_Camera'
 line_collection_name = 'Lines'
-# Backgrounds images folder path
-backgrounds_folder_path = '//Backgrounds'
 
 # Minimum and Maximum amount of items to be placed in the camera collection
 min_items = 1
@@ -39,9 +37,9 @@ draw_on_image = False
 fill_to_max_items = False
 render_images_folder = '//dataset/images/rgb'
 annotations_folder = '//dataset/annotations'
+hdri_folder = '//hdri'
 
 bpy.context.scene.use_nodes = True
-bpy.context.scene.render.film_transparent = True
 
 
 # Get the collection
@@ -56,8 +54,8 @@ min_z = 0.3  # Distance from camera to near plane
 max_z = 0.9  # Distance to far plane (adjust as needed)
 
 # Get the amount of images in the backgrounds folder
-image_extensions = ('.png', '.jpg', '.jpeg')
-background_images = [f for f in os.listdir(bpy.path.abspath(backgrounds_folder_path)) if f.lower().endswith(image_extensions)]
+image_extensions = ('.hdr', '.exr')
+background_images = [f for f in os.listdir(bpy.path.abspath(hdri_folder)) if f.lower().endswith(image_extensions)]
 
 # Set defining the items to be removed due to occlusion or other reasons
 to_be_removed = set()
@@ -68,13 +66,12 @@ def main(file_name="rendered_image.png", fill_to_max_items=False):
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
 
+    # Load the HDRI image
+    hdri_image_path = os.path.join(bpy.path.abspath(hdri_folder), random.choice(background_images))
+    load_hdri_image(hdri_image_path)
+
     if collection and camera_collection and camera and line_collection:
         print(f"Everything found.")
-
-        # Set random Background Image
-        random_background = random.choice(background_images)
-        set_background_image(camera, random_background)
-
 
         # Clear the camera collection
         for obj in camera_collection.objects:
@@ -205,29 +202,6 @@ def world_to_pixel(scene, camera_obj, world_coords):
     
     return (pixel_x, pixel_y)
 
-def set_background_image(camera, img_path):
-    img = bpy.data.images.load(os.path.join(bpy.path.abspath(backgrounds_folder_path), img_path))
-    camera.data.background_images.clear()
-    bg = camera.data.background_images.new()
-    bg.image = img
-    camera.data.show_background_images = True
-
-    #Create new composition nodes
-    scene = bpy.context.scene
-    tree = scene.node_tree
-
-    for node in tree.nodes:
-        if node.type == 'IMAGE':
-            tree.nodes.remove(node)
-            break
-
-    new_img_node = tree.nodes.new(type="CompositorNodeImage")
-    new_img_node.image = img
-
-    # Connect the image node to the scale node
-    tree.links.new(new_img_node.outputs[0], tree.nodes['Scale'].inputs[0])
-
-
 def normalize_keypoints(keypoints, image_width, image_height):
     normalized_keypoints = {}
     for corner_name, corner_vector in keypoints.items():
@@ -236,6 +210,26 @@ def normalize_keypoints(keypoints, image_width, image_height):
         normalized_keypoints[corner_name] = [x, y]
     return normalized_keypoints
 
+def load_hdri_image(img_path):
+    hdri_image = bpy.ops.image.open(filepath=img_path)
+    hdri_image = bpy.data.images.get(os.path.basename(img_path))
+    
+    # Environment Texture node
+    env_node = bpy.context.scene.world.node_tree.nodes.get('Environment Texture')
+    
+    if not env_node:
+        print("Environment Texture node not found, creating a new one")
+        env_node = bpy.context.scene.world.node_tree.nodes.new('ShaderNodeTexEnvironment')
+        env_node.location = (-300, 300)
+        env_node.name = 'Environment Texture'
+        # Connect to Background node
+        bg_node = bpy.context.scene.world.node_tree.nodes.get('Background')
+        if bg_node:
+            bpy.context.scene.world.node_tree.links.new(bg_node.inputs[0], env_node.outputs[0])
+        else:
+            raise ValueError("Background node not found")
+    
+    env_node.image = hdri_image
 
 def denormalize_keypoints(keypoints, image_width, image_height):
     denormalized_keypoints = {}
