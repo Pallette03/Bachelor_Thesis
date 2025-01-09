@@ -87,6 +87,10 @@ def main(file_name="rendered_image.png", fill_to_max_items=False):
     if collection and camera_collection and camera and line_collection:
         print(f"Everything found.")
 
+        # Randomly rotate the camera
+        camera.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
+        bpy.context.view_layer.update()
+        
         # Clear the camera collection
         for obj in camera_collection.objects:
             camera_collection.objects.unlink(obj)
