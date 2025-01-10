@@ -228,6 +228,11 @@ def normalize_keypoints(keypoints, image_width, image_height):
         normalized_keypoints[corner_name] = [x, y]
     return normalized_keypoints
 
+def normalize_coordinate(coord, image_width, image_height):
+    x = coord[0] / image_width
+    y = coord[1] / image_height
+    return (x, y)
+
 def load_hdri_image(img_path):
     hdri_image = bpy.ops.image.open(filepath=img_path)
     hdri_image = bpy.data.images.get(os.path.basename(img_path))
@@ -300,7 +305,11 @@ def write_annotations_to_file(file_name):
             
             json_file.write('"normal_pixel_coordinates": ')
             json.dump(normalized_corners, json_file)
+            json_file.write(',\n')
             
+            json_file.write('"bb_box": ')
+            top_left, bottom_right = get_2d_bound_box(obj)
+            json.dump({"top_left": normalize_coordinate(top_left, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y), "bottom_right": normalize_coordinate(bottom_right, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)}, json_file)
             
             if obj == camera_collection.objects[-1]:
                 json_file.write('}\n')
@@ -554,9 +563,13 @@ def get_2d_bound_box(obj):
     # Get the object's bounding box corners in world space
     corners = get_corners_of_object(obj)
     # Convert the corners to camera view coordinates
-    corners_2d = {corner_name: convert_coordinates(corner_name, corner_vector) for corner_name, corner_vector in corners.items()}
-    return corners_2d
-
+    corners_2d = {corner_name: convert_coordinates(corner_name, corner_vector)[corner_name] for corner_name, corner_vector in corners.items()}
+    
+    # Get the top left and bottom right coordinates
+    top_left = min(corners_2d.values(), key=lambda x: x[0])[0], max(corners_2d.values(), key=lambda x: x[1])[1]
+    bottom_right = max(corners_2d.values(), key=lambda x: x[0])[0], min(corners_2d.values(), key=lambda x: x[1])[1]
+    return top_left, bottom_right
+    
 def draw_points_on_rendered_image(image_path, file_name):
     # Load the image
     img_cv2 = cv2.imread(image_path)

@@ -2,7 +2,6 @@ import os
 import json
 import numpy as np
 import cv2
-from LegoKeypointDataset import LegoKeypointDataset
 
 annotations_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/annotations'
 img_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb'
@@ -27,6 +26,11 @@ def denormalize_keypoints(keypoints, image_width, image_height):
         denormalized_keypoints[corner_name] = [x, y]
     return denormalized_keypoints
 
+def demormalize_coordinates(normal_pixel_coordinates, image_width, image_height):
+    x = normal_pixel_coordinates[0] * image_width
+    y = normal_pixel_coordinates[1] * image_height
+    return [x, y]
+
 def draw_points_on_rendered_image(file_name):
     
     # Get the annotations
@@ -46,29 +50,19 @@ def draw_points_on_rendered_image(file_name):
             denormalized_keypoints = denormalize_keypoints(normal_pixel_coordinates, image.shape[1], image.shape[0])
             color = annotation['color']
             
-            heatmap = np.zeros((image.shape[0], image.shape[1]), dtype=np.float32)
-            for corner_name, corner_vector in denormalized_keypoints.items():
-                x, y = corner_vector
-                x, y = int(x), int(y)
-                heatmap[y, x] = 1.0
-                # Draw a circle on the heatmap
-                cv2.circle(image, (x, y), radius=3, color=(255, 0, 0), thickness=-1)
-                
-                
-            # Show the heatmap
-            cv2.imshow("Heatmap", heatmap)
-            cv2.imshow("Image", image)
-            cv2.waitKey(0)
+            bb_box = annotation['bb_box']
             
-            
-dataset = LegoKeypointDataset(annotations_folder, img_dir)
-
-image, _ = dataset[0]
-
-for img, _ in dataset:
-    harris = harris_corner_detector(img)
-    cv2.imshow("Harris", harris)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+            # Draw bounding box
+            top_left = demormalize_coordinates(bb_box["top_left"], image.shape[1], image.shape[0])
+            bottom_right = demormalize_coordinates(bb_box["bottom_right"], image.shape[1], image.shape[0])
+            cv2.rectangle(image, (int(top_left[0]), int(top_left[1])), (int(bottom_right[0]), int(bottom_right[1])), (0, 255, 0), 2)
+        
+        cv2.imshow('image', image)
+        cv2.waitKey(0)
    
-#draw_points_on_rendered_image("04012025-005453-98")
+#draw_points_on_rendered_image("10012025-115014-192")
+
+for f in os.listdir(img_dir):
+    file_name = f.split(".")[0]
+    draw_points_on_rendered_image(file_name)
+    continue
