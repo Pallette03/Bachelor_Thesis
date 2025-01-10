@@ -57,8 +57,8 @@ bpy.context.scene.render.resolution_y = 1080
 will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
-render_images_folder = '//dataset/images/rgb'
-annotations_folder = '//dataset/annotations'
+render_images_folder = '//datasets/object_detection/images/rgb'
+annotations_folder = '//datasets/object_detection/annotations'
 hdri_folder = '//hdri'
 
 bpy.context.scene.use_nodes = True

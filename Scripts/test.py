@@ -3,8 +3,8 @@ import json
 import numpy as np
 import cv2
 
-annotations_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/annotations'
-img_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb'
+annotations_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/annotations'
+img_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/images/rgb'
 
 # Harris Corner Detector
 def harris_corner_detector(image, threshold=0.01):
