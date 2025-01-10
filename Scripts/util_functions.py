@@ -1,5 +1,5 @@
-import bpy
-import bpy_extras
+import bpy # type: ignore
+import bpy_extras # type: ignore
 import json
 import math
 import os
