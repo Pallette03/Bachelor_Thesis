@@ -182,7 +182,7 @@ def write_annotations_to_file(file_name):
             serialized_corners = {}
             camera_corners = {}
             for corner_name, corner_vector in corners.items():
-                serialized_corners.update(uf.convert_coordinates(corner_name, corner_vector))
+                serialized_corners.update(uf.convert_coordinates(corner_name, corner_vector, bpy.context.scene, camera))
                 temp_tuple = ()
                 for val in uf.world_to_camera_coords(camera, corner_vector):
                     temp_tuple += (val,)
@@ -190,7 +190,7 @@ def write_annotations_to_file(file_name):
             
             # serialized_corners = {}
             # for corner_name, corner_vector in corners.items():
-            #     serialized_corners.update(convert_coordinates(corner_name, corner_vector))
+            #     serialized_corners.update(convert_coordinates(corner_name, corner_vector, bpy.context.scene, camera))
 
             normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
             #normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
@@ -203,7 +203,7 @@ def write_annotations_to_file(file_name):
             json_file.write(',\n')
             
             json_file.write('"bb_box": ')
-            top_left, bottom_right = uf.get_2d_bound_box(obj)
+            top_left, bottom_right = uf.get_2d_bound_box(obj, bpy.context.scene, camera)
             json.dump({"top_left": uf.normalize_coordinate(top_left, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y), "bottom_right": uf.normalize_coordinate(bottom_right, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)}, json_file)
             
             if obj == camera_collection.objects[-1]:

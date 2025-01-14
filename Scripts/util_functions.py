@@ -346,29 +346,26 @@ class Util_functions:
         corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
         return corners
     
-    def convert_coordinates(self, corner_name, vector):
-        # Get the camera object
-        camera = bpy.data.objects.get('Camera')
+    def convert_coordinates(self, corner_name, vector, scene, camera):
 
         # Convert the world coordinates to camera view coordinates
 
-        co_2d = bpy_extras.object_utils.world_to_camera_view(bpy.context.scene, camera, vector)
+        co_2d = bpy_extras.object_utils.world_to_camera_view(scene, camera, vector)
 
         # Convert the normalized coordinates to pixel coordinates
-        render = bpy.context.scene.render
-        x = co_2d.x * render.resolution_x
-        y = co_2d.y * render.resolution_y
+        x = co_2d.x * scene.render.resolution_x
+        y = co_2d.y * scene.render.resolution_y
 
         # Flip the y coordinate
-        y = render.resolution_y - y
+        y = scene.render.resolution_y - y
 
         return {corner_name: (x, y)}
     
-    def get_2d_bound_box(self, obj):
+    def get_2d_bound_box(self, obj, scene, camera):
         # Get the object's bounding box corners in world space
         corners = self.get_corners_of_object(obj)
         # Convert the corners to camera view coordinates
-        corners_2d = {corner_name: self.convert_coordinates(corner_name, corner_vector)[corner_name] for corner_name, corner_vector in corners.items()}
+        corners_2d = {corner_name: self.convert_coordinates(corner_name, corner_vector, scene, camera)[corner_name] for corner_name, corner_vector in corners.items()}
         
         # Get the top left and bottom right coordinates
         top_left = min(corners_2d.values(), key=lambda x: x[0])[0], max(corners_2d.values(), key=lambda x: x[1])[1]
@@ -431,3 +428,29 @@ class Util_functions:
         # Save the image
         img.save_render(image_path)
         cv2.imwrite(image_path, img_cv2)
+        
+    def crop_image(self, image_path, bottom_left, top_right):
+        image = cv2.imread(image_path)
+        if image is None:
+            raise FileNotFoundError(f"Image at path '{image_path}' could not be found or loaded.")
+        
+        # Use bottom_left and top_right to crop the image
+        x1, y1 = bottom_left
+        x2, y2 = top_right
+        
+        # Ensure the coordinates are within the image bounds
+        x1 = max(0, x1)
+        y1 = max(0, y1)
+        x2 = min(image.shape[1], x2)
+        y2 = min(image.shape[0], y2)
+        print(f"x1: {x1}, y1: {y1}, x2: {x2}, y2: {y2}")
+        
+        
+        cropped_image = image[y2:y1, x1:x2]
+        
+
+        cv2.imwrite(image_path, cropped_image)
+        
+        #cv2.imwrite(image_path, cropped_image)
+        
+        

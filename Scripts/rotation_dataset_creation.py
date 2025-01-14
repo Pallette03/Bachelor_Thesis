@@ -1,11 +1,13 @@
 import json
 import math
+import cv2
 import mathutils
 import random
 import bpy # type: ignore
 import bpy_extras # type: ignore
 import os
 import sys
+
 
 dir = os.path.dirname(bpy.data.filepath)
 dir = os.path.join(dir, 'Scripts')
@@ -27,8 +29,8 @@ rendered_images_amount = 1
 will_render_image = True
 
 
-bpy.context.scene.render.resolution_x = 1920
-bpy.context.scene.render.resolution_y = 1080
+bpy.context.scene.render.resolution_x = 2560
+bpy.context.scene.render.resolution_y = 1440
 bpy.context.scene.use_nodes = True
 
 # Get the collection
@@ -85,13 +87,19 @@ def create_rotation_images(obj, renderes_images_amount, camera, rotation_estimat
         print(f"Rendering image {i+1} of {renderes_images_amount}")
         
         file_name = f"{brick_type}_{name_number}.png"
-        bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(images_folder), file_name)
+        file_path = os.path.join(bpy.path.abspath(images_folder), file_name)
+        bpy.context.scene.render.filepath = file_path
         bpy.context.scene.render.image_settings.file_format = 'PNG'
         
-        azimuth, elevation, optical_rotation = place_camera_randomly(obj, camera)
+        azimuth, elevation, optical_rotation = place_camera_randomly(obj, camera, min_distance=0.2, max_distance=2)
         create_annotation_file(brick_type, file_name, annotations_folder, azimuth, elevation, optical_rotation)
         
         bpy.ops.render.render(write_still=True)
+        
+        # Crop the image to the object's bounding box
+        bottom_left, top_right = uf.get_2d_bound_box(obj, bpy.context.scene, camera)
+        print(f"Image size: {cv2.imread(file_path).shape}")
+        uf.crop_image(file_path, (int(bottom_left[0]),int(bottom_left[1])), (int(top_right[0]),int(top_right[1])))
         
         name_number += 1
         
@@ -134,15 +142,6 @@ def place_camera_randomly(obj, camera, min_distance=0.2, max_distance=2):
     camera.rotation_euler.rotate_axis('Z', optical_rotation)
     
     return math.degrees(azimuth), math.degrees(elevation), math.degrees(optical_rotation)
-    
-def split_into_bins(azimuth, elevation, optical_rotation, bin_size=5):
-    elevation = elevation + 90
-    
-    azimuth_bin = int(azimuth // bin_size)
-    elevation_bin = int(elevation // bin_size)
-    optical_rotation_bin = int(optical_rotation // bin_size)
-    
-    return azimuth_bin, elevation_bin, optical_rotation_bin
      
      
 def create_annotation_file(brick_type, img_name, annotations_folder, azimuth, elevation, optical_rotation):
