@@ -1,4 +1,5 @@
 Scripts/virtualEnv
 Rendered_Images
 Backgrounds
-dataset
+datasets
+output/viewpoint_estimator.pth
