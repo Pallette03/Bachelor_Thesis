@@ -10,40 +10,61 @@ from LegoKeypointDataset import LegoKeypointDataset
 from PIL import Image
 import torchvision.transforms as transforms
 import torch.nn.functional as F
+import torchvision.models as models
+import time
 
 
-# Harris Corner Detector
-def harris_corner_detector(image, threshold=0.01):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = np.float32(gray)
-    dst = cv2.cornerHarris(gray, 2, 3, 0.04)
-    dst = cv2.dilate(dst, None)
-    image[dst > threshold * dst.max()] = [0, 0, 255]
-    return image
-
-
-class UNet(nn.Module):
-    def __init__(self):
-        super(UNet, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
+class DynamicCornerDetector(nn.Module):
+    def __init__(self, input_channels=3, num_classes=1):
+        super(DynamicCornerDetector, self).__init__()
+        # Initial Convolutional Block
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(input_channels, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # Reduces spatial size by 2
         )
-        self.decoder = nn.Sequential(
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 1, kernel_size=3, padding=1),
-            nn.Sigmoid()
+        
+        # Intermediate Blocks
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # Reduces spatial size by 2
         )
-    
+        
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+        )
+        
+        # Output Heatmap Head
+        self.heatmap_head = nn.Sequential(
+            nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, num_classes, kernel_size=1, stride=1, padding=0),  # Final heatmap
+            nn.Upsample(scale_factor=4, mode="bilinear", align_corners=False)  # Upsample to 4x
+        )
+        
+        # Output Offset Head
+        self.offset_head = nn.Sequential(
+            nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 2, kernel_size=1, stride=1, padding=0),  # 2 channels: dx and dy
+            nn.Upsample(scale_factor=4, mode="bilinear", align_corners=False)  # Upsample to 4x
+        )
+
     def forward(self, x):
-        x = self.encoder(x)
-        x = nn.functional.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
-        x = self.decoder(x)
-        return x
+        # Feature extraction
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+
+        # Output heads
+        heatmap = self.heatmap_head(x)
+        offsets = self.offset_head(x)
+
+        return heatmap, offsets
 
 class WeightedBCELoss(nn.Module):
     def __init__(self, weight_corner, weight_non_corner):
@@ -68,31 +89,63 @@ def compute_class_weights(mask):
     
     return weight_corner, weight_non_corner
 
+def heatmap_loss(predicted_heatmaps, target_heatmaps):
+    return nn.MSELoss()(predicted_heatmaps, target_heatmaps)
+
+def offset_loss(predicted_offsets, target_offsets, mask):
+    # Mask ensures loss is only computed for valid corner locations
+    return nn.MSELoss()(predicted_offsets * mask, target_offsets * mask)
+
 # Training Loop
 def train_model(model, dataloader, num_epochs=5, lr=1e-3):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
+    # Loss functions
+    heatmap_criterion = nn.MSELoss()
+    offset_criterion = nn.MSELoss()
+    
     for epoch in range(num_epochs):
+        start_time = time.time()
         model.train()
-        epoch_loss = 0
-        for images, masks in dataloader:
-            images, masks = images.to(device), masks.to(device)
-            
-            weight_corner, weight_non_corner = compute_class_weights(masks)
-            criterion = WeightedBCELoss(weight_corner, weight_non_corner)
-            
-            preds = model(images)
-            preds_resized = F.interpolate(preds, size=masks.shape[-2:], mode='bilinear', align_corners=False)
-            loss = criterion(preds_resized, masks)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            epoch_loss += loss.item()
+        total_heatmap_loss = 0.0
+        total_offset_loss = 0.0
         
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss/len(dataloader)}")
+        for batch in dataloader:
+            images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
+            target_heatmaps = batch["heatmaps"].to(device)  # Shape: [batch_size, 1, H, W]
+            target_offsets = batch["offsets"].to(device)  # Shape: [batch_size, 2, H, W]
+            mask = batch["mask"].to(device)  # Shape: [batch_size, 1, H, W], 1 for valid corner locations
+            predicted_heatmaps, predicted_offsets = model(images)
+            
+            #print(f"predicted_offsets: {predicted_offsets.shape}, target_offsets: {target_offsets.shape}, mask: {mask.shape}")
+            
+            heatmap_loss = heatmap_criterion(predicted_heatmaps, target_heatmaps)
+            offset_loss = offset_criterion(predicted_offsets * mask, target_offsets * mask)
+            
+            # Total loss
+            total_loss = heatmap_loss + offset_loss
+            
+            # Backward pass
+            optimizer.zero_grad()
+            total_loss.backward()
+            optimizer.step()
+            
+            # Accumulate losses for logging
+            total_heatmap_loss += heatmap_loss.item()
+            total_offset_loss += offset_loss.item()
+        
+        # Update learning rate
+        #scheduler.step()
+
+        # Log epoch stats
+        print(f"Took {time.time() - start_time:.2f} seconds for epoch {epoch + 1}")
+        print(f"Epoch [{epoch + 1}/{num_epochs}], "
+            f"Heatmap Loss: {total_heatmap_loss / len(dataloader):.4f}, "
+            f"Offset Loss: {total_offset_loss / len(dataloader):.4f}")
     return model
 
 def convert_tensor_to_image(tensor):
@@ -101,46 +154,102 @@ def convert_tensor_to_image(tensor):
     return to_pil(tensor)
 
 # Visualize Predictions
-def visualize_predictions(model, image, transform):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
+    """
+    Visualizes the predicted corners on the input image.
+    
+    Args:
+        image (PIL.Image or tensor): The input image.
+        model (torch.nn.Module): The trained corner detection model.
+        threshold (float): Heatmap threshold to filter corner predictions.
+        image_size (tuple): The size to resize the input image.
+        
+    Returns:
+        None: Displays the image with predictions.
+    """
+    # Ensure model is in evaluation mode
     model.eval()
     
-    image = convert_tensor_to_image(image)
+    # Transform and preprocess the image
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+    if isinstance(image, Image.Image):
+        original_image = image.copy()
+        image = F.resize(image, image_size)
+        image_tensor = F.to_tensor(image).unsqueeze(0).to(next(model.parameters()).device)  # Add batch dim
+    if isinstance(image, torch.Tensor):
+        image_tensor = image.clone().detach().unsqueeze(0).to(next(model.parameters()).device)
+        original_image = convert_tensor_to_image(image)
+    else:
+        raise ValueError(f"Unsupported image type. Provide a PIL.Image or NumPy array. Got {type(image)}.")
     
-    input_image = transform(image).unsqueeze(0).to(device)
+    # Forward pass to get predictions
     with torch.no_grad():
-        preds = model(input_image).squeeze(0).cpu().numpy()
+        predicted_heatmaps, predicted_offsets = model(image_tensor)
     
-    preds_binary = (preds > 0.95).astype(np.uint8)
-    for y, x in zip(*np.where(preds_binary[0] == 1)):
-        plt.plot(x, y, 'ro', markersize=2)
-
-    plt.imshow(image)
+    # Process the heatmaps
+    predicted_heatmaps = predicted_heatmaps.squeeze(0).cpu().numpy()  # Shape: [1, H, W]
+    heatmap = predicted_heatmaps[0]  # Extract single channel heatmap
+    
+    # Apply thresholding to detect keypoints
+    keypoints = np.argwhere(heatmap > threshold)  # [y, x] positions
+    keypoints = keypoints[:, [1, 0]]  # Convert to [x, y]
+    
+    # Rescale keypoints back to the original image size
+    keypoints = keypoints * np.array(original_image.size) / np.array(heatmap.shape)
+    
+    
+    # Convert image to displayable format
+    original_image = np.array(original_image)
+    
+    # Show the image without keypoints
+    plt.figure(figsize=(8, 8))
+    plt.imshow(original_image)
+    plt.axis("off")
+    plt.title("Original Image")
+    plt.show()
+    
+    # Plot the image and overlay keypoints
+    plt.figure(figsize=(8, 8))
+    plt.imshow(original_image)
+    plt.scatter(keypoints[:, 0], keypoints[:, 1], c="red", s=50, label="Predicted Corners")
+    plt.legend()
+    plt.axis("off")
+    plt.title("Predicted Corners")
     plt.show()
 # Paths
 model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
-image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb'
-annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/annotations'
+image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/images/rgb'
+annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/annotations'
+temp_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/temp_dataset'
 
-just_visualize = True
+just_visualize = False
 
 transform = transforms.Compose([
-        transforms.Resize((256, 256)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
 
 # Dataset and DataLoader
 print("Loading dataset...")
-dataset = LegoKeypointDataset(annotation_dir, image_dir, transform=transform)
-dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+dataset = LegoKeypointDataset(annotation_dir, image_dir, transform=transform, sigma=0.5)
+dataset.reduce_dataset_size(3000)
+
+# Split the dataset into training and validation sets
+train_size = int(0.8 * len(dataset))
+val_size = len(dataset) - train_size
+train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+
+train_dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
 # Model, Optimizer, and Loss
-model = UNet()
+model = DynamicCornerDetector()
 
 if not just_visualize:
     # Train the model
     print("Training the model...")
-    model = train_model(model, dataloader, num_epochs=10, lr=1e-3)
+    model = train_model(model, train_dataloader, num_epochs=15, lr=1e-3)
 else:
     # Load the model
     print("Loading the model...")
@@ -157,8 +266,8 @@ torch.save(model.state_dict(), model_path)
 #image, _ = dataset[0]
 
 # Create a loop that goes through the dataset and visualizes the predictions at the press of a button
-for image, _ in dataset:
-    visualize_predictions(model, image, transform)
+for batch in val_dataset:
+    visualize_predictions(batch["image"], model, threshold=0.3, image_size=(224, 224))
     if input("Press 'q' to quit, or any other key to continue: ") == 'q':
         break
     else:
