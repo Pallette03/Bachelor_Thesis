@@ -1,0 +1,4 @@
+checkpointing
+early stop
+weights and biases
+validation accuracy and precision
