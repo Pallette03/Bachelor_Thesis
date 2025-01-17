@@ -4,14 +4,11 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
-import cv2
-from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
 from LegoKeypointDataset import LegoKeypointDataset
 from PIL import Image
 import torchvision.transforms as transforms
 import torch.nn.functional as F
-import torchvision.models as models
 import time
 
 
@@ -21,22 +18,27 @@ class DynamicCornerDetector(nn.Module):
         # Initial Convolutional Block
         self.conv1 = nn.Sequential(
             nn.Conv2d(input_channels, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)  # Reduces spatial size by 2
+            nn.ReLU(inplace=True)
         )
         
-        # Intermediate Blocks
+        # Intermediate Block 1
         self.conv2 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)  # Reduces spatial size by 2
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # Strided conv reduces size by 2
+            nn.ReLU(inplace=True)
         )
         
+        # Intermediate Block 2
         self.conv3 = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
+            nn.ReLU(inplace=True)
+        )
+        
+        # Dilated Convolution Block
+        self.dilated_conv = nn.Sequential(
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=2, dilation=2),
+            nn.ReLU(inplace=True)
         )
         
         # Output Heatmap Head
@@ -44,15 +46,7 @@ class DynamicCornerDetector(nn.Module):
             nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(128, num_classes, kernel_size=1, stride=1, padding=0),  # Final heatmap
-            nn.Upsample(scale_factor=4, mode="bilinear", align_corners=False)  # Upsample to 4x
-        )
-        
-        # Output Offset Head
-        self.offset_head = nn.Sequential(
-            nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, 2, kernel_size=1, stride=1, padding=0),  # 2 channels: dx and dy
-            nn.Upsample(scale_factor=4, mode="bilinear", align_corners=False)  # Upsample to 4x
+            nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)  # Upsample to match input resolution
         )
 
     def forward(self, x):
@@ -60,12 +54,12 @@ class DynamicCornerDetector(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
+        x = self.dilated_conv(x)
 
         # Output heads
         heatmap = self.heatmap_head(x)
-        #offsets = self.offset_head(x)
 
-        return heatmap#, offsets
+        return heatmap
 
 class WeightedBCELoss(nn.Module):
     def __init__(self, weight_corner, weight_non_corner):
@@ -107,6 +101,7 @@ def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5
         model.train()
         total_heatmap_loss = 0.0
         total_offset_loss = 0.0
+        counter = 0
         
         for batch in dataloader:
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
@@ -138,6 +133,12 @@ def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5
             # Accumulate losses for logging
             total_heatmap_loss += heatmap_loss.item()
             #total_offset_loss += offset_loss.item()
+            
+            counter += 1
+            # Check the progress through the batch and print every 10 percent
+            if counter % (len(dataloader) // 20) == 0:
+                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1}")
+                
         
         # Update learning rate
         #scheduler.step()
@@ -266,8 +267,9 @@ def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
     plt.title("Predicted Corners")
     plt.show()
 # Paths
-model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
+#model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
 temp_model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/temp_detector.pth'
+model_path = temp_model_path
 image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/images/rgb'
 annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/annotations'
 temp_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/temp_dataset'
@@ -277,21 +279,22 @@ train_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_object
 validate_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate'
 
 just_visualize = True
-batch_size = 32
+batch_size = 8
+global_image_size = (500, 500)
 
 transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize(global_image_size),
         transforms.ToTensor()
     ])
 
 # Dataset and DataLoader
 print("Loading dataset...")
-train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform, sigma=0.3)
+train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), image_size=global_image_size,transform=transform, sigma=0.3)
 train_dataset.reduce_dataset_size(4000)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 #dataset.reduce_dataset_size(3000)
 
-val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform, sigma=0.3)
+val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform, sigma=0.3)
 val_dataset.reduce_dataset_size(500)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
@@ -319,7 +322,7 @@ torch.save(model.state_dict(), model_path)
 #validate_model(model, val_dataloader)
 # Create a loop that goes through the dataset and visualizes the predictions at the press of a button
 for batch in val_dataset:
-    visualize_predictions(batch["image"], model, threshold=0.5, image_size=(224, 224))
+    visualize_predictions(batch["image"], model, threshold=0.3, image_size=global_image_size)
     if input("Press 'q' to quit, or any other key to continue: ") == 'q':
         break
     else:

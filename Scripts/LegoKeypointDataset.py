@@ -111,7 +111,7 @@ class LegoKeypointDataset(Dataset):
 # image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/images/rgb'
 # annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
 # # Get the first element from the dataset
-# dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(224, 224), sigma=0.3)
+# dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
 # sample = dataset[1]
 # #show the image
 # image = sample["image"]
