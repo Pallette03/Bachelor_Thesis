@@ -1,4 +1,5 @@
 import os
+import cv2
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -197,7 +198,7 @@ def validate_model(model, dataloader):
     return total_heatmap_loss / len(dataloader)
 
 # Visualize Predictions
-def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
+def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224), save_path=None):
     """
     Visualizes the predicted corners on the input image.
     
@@ -238,7 +239,6 @@ def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
     
     
     
-    
     # Apply thresholding to detect keypoints
     keypoints = np.argwhere(heatmap > threshold)  # [y, x] positions
     keypoints = keypoints[:, [1, 0]]  # Convert to [x, y]
@@ -250,6 +250,8 @@ def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
     
     # Convert image to displayable format
     original_image = np.array(original_image)
+    
+    
     
     # Show the image without keypoints
     plt.figure(figsize=(8, 8))
@@ -266,6 +268,13 @@ def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224)):
     plt.axis("off")
     plt.title("Predicted Corners")
     plt.show()
+    
+    if save_path is not None:
+        keypoint_image = original_image.copy()
+        for keypoint in keypoints:
+            coordinates = tuple(keypoint.astype(int))
+            cv2.circle(keypoint_image, coordinates, 5, (0, 255, 0), -1)
+        cv2.imwrite(save_path, keypoint_image)
 # Paths
 #model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
 temp_model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/temp_detector.pth'
@@ -277,8 +286,9 @@ cropped_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_obje
 annotation_cropped_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
 train_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/train'
 validate_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate'
+result_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/results'
 
-just_visualize = True
+just_visualize = False
 batch_size = 8
 global_image_size = (500, 500)
 
@@ -322,7 +332,7 @@ torch.save(model.state_dict(), model_path)
 #validate_model(model, val_dataloader)
 # Create a loop that goes through the dataset and visualizes the predictions at the press of a button
 for batch in val_dataset:
-    visualize_predictions(batch["image"], model, threshold=0.3, image_size=global_image_size)
+    visualize_predictions(batch["image"], model, threshold=0.3, image_size=global_image_size, save_path=os.path.join(result_dir, f"{time.time()}.jpg"))
     if input("Press 'q' to quit, or any other key to continue: ") == 'q':
         break
     else:

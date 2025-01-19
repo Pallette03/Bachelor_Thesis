@@ -1,13 +1,9 @@
 import json
-from matplotlib import pyplot as plt
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
 import os
-import cv2
 import numpy as np
-from torchvision import transforms
-from torchvision.transforms import functional as F
 
 class LegoKeypointDataset(Dataset):
     def __init__(self, annotations_folder, img_dir, image_size=(224,224), sigma=2, transform=None):
