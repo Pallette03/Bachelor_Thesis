@@ -1,15 +1,10 @@
 import os
-import cv2
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import numpy as np
-import matplotlib.pyplot as plt
 from LegoKeypointDataset import LegoKeypointDataset
-from PIL import Image
 import torchvision.transforms as transforms
-import torch.nn.functional as F
 import time
 
 
@@ -78,30 +73,19 @@ class WeightedBCELoss(nn.Module):
 def weighted_mse_loss(predicted, target, weight):
     return ((predicted - target) ** 2 * weight).mean()
 
-def heatmap_loss(predicted_heatmaps, target_heatmaps):
-    return nn.MSELoss()(predicted_heatmaps, target_heatmaps)
-
-def offset_loss(predicted_offsets, target_offsets, mask):
-    # Mask ensures loss is only computed for valid corner locations
-    return nn.MSELoss()(predicted_offsets * mask, target_offsets * mask)
-
 # Training Loop
-def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5, lr=1e-3):
+def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-
-    # Loss functions
-    heatmap_criterion = nn.MSELoss()
-    offset_criterion = nn.MSELoss()
     
     for epoch in range(num_epochs):
         start_time = time.time()
+        batch_start_time = time.time()
         model.train()
         total_heatmap_loss = 0.0
-        total_offset_loss = 0.0
         counter = 0
         
         for batch in dataloader:
@@ -117,14 +101,13 @@ def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5
             negative_weight = 1.0   # Weight for background regions
 
             # Compute weights based on target heatmap values
-            weight = torch.where(target_heatmaps > 0.1, positive_weight, negative_weight)
+            weight = torch.where(target_heatmaps > 0.3, positive_weight, negative_weight)
             
             
             heatmap_loss = weighted_mse_loss(predicted_heatmaps, target_heatmaps, weight)
-            #offset_loss = offset_criterion(predicted_offsets * mask, target_offsets * mask)
             
             # Total loss
-            total_loss = heatmap_loss# + offset_loss
+            total_loss = heatmap_loss
             
             # Backward pass
             optimizer.zero_grad()
@@ -133,16 +116,12 @@ def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5
             
             # Accumulate losses for logging
             total_heatmap_loss += heatmap_loss.item()
-            #total_offset_loss += offset_loss.item()
-            
+          
             counter += 1
-            # Check the progress through the batch and print every 10 percent
+            # Check the progress through the batch and print every 5 percent
             if counter % (len(dataloader) // 20) == 0:
-                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1}")
-                
-        
-        # Update learning rate
-        #scheduler.step()
+                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint")
+                batch_start_time = time.time()
 
 
         validate_model(model, val_dataloader)
@@ -153,23 +132,15 @@ def train_model(model, dataloader, val_dataloader, temp_model_path, num_epochs=5
             f"Heatmap Loss: {total_heatmap_loss / len(dataloader):.4f}")
         
         # Save model after each epoch
-        print(f"Saving model to {temp_model_path}")
-        torch.save(model.state_dict(), temp_model_path)
+        print(f"Saving model to {epoch_model_path}")
+        torch.save(model.state_dict(), epoch_model_path)
     return model
-
-def convert_tensor_to_image(tensor):
-    tensor = tensor.cpu().detach()
-    to_pil = transforms.ToPILImage()
-    return to_pil(tensor)
 
 def validate_model(model, dataloader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Validating on {device}")
     model.eval()
     total_heatmap_loss = 0.0
-    total_offset_loss = 0.0
-    
-    heatmap_criterion = nn.MSELoss()
     
     for batch in dataloader:
         images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
@@ -184,112 +155,26 @@ def validate_model(model, dataloader):
         negative_weight = 1.0   # Weight for background regions
 
         # Compute weights based on target heatmap values
-        weight = torch.where(target_heatmaps > 0.1, positive_weight, negative_weight)
+        weight = torch.where(target_heatmaps > 0.3, positive_weight, negative_weight)
         
         heatmap_loss = weighted_mse_loss(predicted_heatmaps, target_heatmaps, weight)
-        #offset_loss = offset_criterion(predicted_offsets * mask, target_offsets * mask)
         
         # Accumulate losses for logging
         total_heatmap_loss += heatmap_loss.item()
-        #total_offset_loss += offset_loss.item()
     
     print(f"Validation Loss: {total_heatmap_loss / len(dataloader):.4f}")
     
     return total_heatmap_loss / len(dataloader)
 
-# Visualize Predictions
-def visualize_predictions(image, model, threshold=0.5, image_size=(224, 224), save_path=None):
-    """
-    Visualizes the predicted corners on the input image.
-    
-    Args:
-        image (PIL.Image or tensor): The input image.
-        model (torch.nn.Module): The trained corner detection model.
-        threshold (float): Heatmap threshold to filter corner predictions.
-        image_size (tuple): The size to resize the input image.
-        
-    Returns:
-        None: Displays the image with predictions.
-    """
-    # Ensure model is in evaluation mode
-    model.eval()
-    
-    # Transform and preprocess the image
-    if isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
-    if isinstance(image, Image.Image):
-        original_image = image.copy()
-        image = F.resize(image, image_size)
-        image_tensor = F.to_tensor(image).unsqueeze(0).to(next(model.parameters()).device)  # Add batch dim
-    if isinstance(image, torch.Tensor):
-        image_tensor = image.clone().detach().unsqueeze(0).to(next(model.parameters()).device)
-        original_image = convert_tensor_to_image(image)
-    else:
-        raise ValueError(f"Unsupported image type. Provide a PIL.Image or NumPy array. Got {type(image)}.")
-    
-    # Forward pass to get predictions
-    with torch.no_grad():
-        predicted_heatmaps = model(image_tensor)
-    
-    # Process the heatmaps
-    predicted_heatmaps = predicted_heatmaps.squeeze(0).cpu().numpy()  # Shape: [1, H, W]
-    heatmap = predicted_heatmaps[0]  # Extract single channel heatmap
-    
-    print(f"Max value: {heatmap.max()}")
-    
-    
-    
-    # Apply thresholding to detect keypoints
-    keypoints = np.argwhere(heatmap > threshold)  # [y, x] positions
-    keypoints = keypoints[:, [1, 0]]  # Convert to [x, y]
-    
-    
-    # Rescale keypoints back to the original image size
-    keypoints = keypoints * np.array(original_image.size) / np.array(heatmap.shape)
-    
-    
-    # Convert image to displayable format
-    original_image = np.array(original_image)
-    
-    
-    
-    # Show the image without keypoints
-    plt.figure(figsize=(8, 8))
-    plt.imshow(original_image)
-    plt.axis("off")
-    plt.title("Original Image")
-    plt.show()
-    
-    # Plot the image and overlay keypoints
-    plt.figure(figsize=(8, 8))
-    plt.imshow(original_image)
-    plt.scatter(keypoints[:, 0], keypoints[:, 1], c="red", s=50, label="Predicted Corners")
-    plt.legend()
-    plt.axis("off")
-    plt.title("Predicted Corners")
-    plt.show()
-    
-    if save_path is not None:
-        keypoint_image = original_image.copy()
-        for keypoint in keypoints:
-            coordinates = tuple(keypoint.astype(int))
-            cv2.circle(keypoint_image, coordinates, 5, (0, 255, 0), -1)
-        cv2.imwrite(save_path, keypoint_image)
 # Paths
-#model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/detector.pth'
-temp_model_path = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/temp_detector.pth'
-model_path = temp_model_path
-image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/images/rgb'
-annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/object_detection/annotations'
-temp_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/temp_dataset'
-cropped_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/images/rgb'
-annotation_cropped_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
-train_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/train'
-validate_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate'
-result_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/output/results'
+model_path = os.path.join(os.path.dirname(__file__), 'output', 'dynamic_corner_detector.pth')
+epoch_model_path = os.path.join(os.path.dirname(__file__), 'output', 'dynamic_corner_detector_epoch.pth')
+train_dir = os.path.join(os.path.dirname(__file__), 'train')
+validate_dir = os.path.join(os.path.dirname(__file__), 'validate')
 
-just_visualize = False
-batch_size = 8
+print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
+
+batch_size = 32
 global_image_size = (500, 500)
 
 transform = transforms.Compose([
@@ -300,41 +185,21 @@ transform = transforms.Compose([
 # Dataset and DataLoader
 print("Loading dataset...")
 train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), image_size=global_image_size,transform=transform, sigma=0.3)
-train_dataset.reduce_dataset_size(4000)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 #dataset.reduce_dataset_size(3000)
 
 val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform, sigma=0.3)
-val_dataset.reduce_dataset_size(500)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 # Model, Optimizer, and Loss
 model = DynamicCornerDetector()
 
-if not just_visualize:
-    # Train the model
-    print("Training the model...")
-    model = train_model(model, train_dataloader, val_dataloader, temp_model_path, num_epochs=5, lr=1e-3)
-else:
-    # Load the model
-    print("Loading the model...")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-    model.load_state_dict(torch.load(model_path))
-    
+# Train the model
+print("Training the model...")
+model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3)
 
 # Save the model
 print("Saving the model...")
 torch.save(model.state_dict(), model_path)
 
-# Visualize results on an image
-#image, _ = dataset[0]
-#validate_model(model, val_dataloader)
-# Create a loop that goes through the dataset and visualizes the predictions at the press of a button
-for batch in val_dataset:
-    visualize_predictions(batch["image"], model, threshold=0.3, image_size=global_image_size, save_path=os.path.join(result_dir, f"{time.time()}.jpg"))
-    if input("Press 'q' to quit, or any other key to continue: ") == 'q':
-        break
-    else:
-        plt.close()
         

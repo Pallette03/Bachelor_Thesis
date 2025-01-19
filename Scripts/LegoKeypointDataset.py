@@ -1,4 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
 import json
+import time
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
@@ -6,18 +8,62 @@ import os
 import numpy as np
 
 class LegoKeypointDataset(Dataset):
-    def __init__(self, annotations_folder, img_dir, image_size=(224,224), sigma=2, transform=None):
-        combined_annotations = []
-        for file in os.listdir(annotations_folder):
-            if file.endswith(".json"):
-                with open(os.path.join(annotations_folder, file), 'r') as f:
-                    annotations = json.load(f)
-                    combined_annotations.append(annotations)
-        self.annotations = combined_annotations
-        self.img_dir = img_dir
+    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), sigma=2, transform=None, num_workers=8):
         self.image_size = image_size
         self.sigma = sigma
         self.transform = transform
+        
+        def load_annotation(file):
+            with open(os.path.join(annotations_folder, file), 'r') as f:
+                return json.load(f)
+        
+        combined_annotations = []
+        # Use ThreadPoolExecutor with 8 workers
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            annotation_files = [file for file in os.listdir(annotations_folder) if file.endswith(".json")]
+            combined_annotations = list(executor.map(load_annotation, annotation_files))
+        
+        def process_annotation(annotation):
+            normalized_corners = []
+            for brick in annotation["annotations"]:
+                for corner_name, value in brick["normal_pixel_coordinates"].items():
+                    normalized_corners.append(value)
+            
+            normalized_corners = np.array(normalized_corners)
+            # Denormalize corner coordinates
+            img_width, img_height = self.image_size
+            denormalized_corners = self.denormalize_keypoints(normalized_corners, img_width, img_height)
+
+            # Generate heatmaps, offsets, and masks
+            heatmap = np.zeros((img_height, img_width), dtype=np.float32)
+
+            for corner in denormalized_corners:
+                x, y = int(corner[0]), int(corner[1])
+
+                # Skip invalid or out-of-bound corners
+                if x < 0 or x >= img_width or y < 0 or y >= img_height:
+                    print(f"Invalid corner: {corner}")
+                    continue
+
+                # Add Gaussian blob to the heatmap
+                heatmap += self.gaussian_2d((img_height, img_width), (x, y), self.sigma)
+
+            # Normalize heatmap to [0, 1]
+            heatmap = np.clip(heatmap, 0, 1)
+
+            # Convert to tensors
+            heatmap = torch.tensor(heatmap, dtype=torch.float32).unsqueeze(0)  # Add channel dimension
+            return annotation["image_id"], heatmap
+
+        # Use ThreadPoolExecutor to process annotations in parallel
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            results = list(executor.map(process_annotation, combined_annotations))
+        
+        heatmaps = {image_id: heatmap for image_id, heatmap in results}
+        
+        self.heatmaps = heatmaps
+        self.annotations = combined_annotations
+        self.img_dir = img_dir
 
     def __len__(self):
         return len(self.annotations)
@@ -42,99 +88,29 @@ class LegoKeypointDataset(Dataset):
 
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
-        camera_matrix = np.array(annotation["camera_matrix"])
         img_path = os.path.join(self.img_dir, annotation["image_id"]) + ".png"
         image = Image.open(img_path).convert("RGB")
         
         if self.image_size is not None:
             image = image.resize(self.image_size)
-        
-        normalized_corners = []
-        for brick in annotation["annotations"]:
-            for corner_name, value in brick["normal_pixel_coordinates"].items():
-                normalized_corners.append(value)
             
-        normalized_corners = np.array(normalized_corners)
-        # Denormalize corner coordinates
-        img_width, img_height = self.image_size
-        denormalized_corners = self.denormalize_keypoints(normalized_corners, img_width, img_height)
-
-        # Generate heatmaps, offsets, and masks
-        heatmap = np.zeros((img_height, img_width), dtype=np.float32)
-        offset = np.zeros((2, img_height, img_width), dtype=np.float32)
-        mask = np.zeros((img_height, img_width), dtype=np.float32)
-
-        radius = 30
-        
-        for corner in denormalized_corners:
-            x, y = int(corner[0]), int(corner[1])
-
-            # Skip invalid or out-of-bound corners
-            if x < 0 or x >= img_width or y < 0 or y >= img_height:
-                print(f"Invalid corner: {corner}")
-                continue
-
-            # Add Gaussian blob to the heatmap
-            heatmap += self.gaussian_2d((img_height, img_width), (x, y), self.sigma)
-
-            
-            for i in range(max(0, y - radius), min(img_height, y + radius + 1)):
-                for j in range(max(0, x - radius), min(img_width, x + radius + 1)):
-                    dx = corner[0] - j  # x-offset
-                    dy = corner[1] - i  # y-offset
-
-                    # Only update offset and mask if this pixel is within the radius
-                    if (dx**2 + dy**2) <= radius**2:  # Check if within the radius
-                        offset[0, i, j] = dx
-                        offset[1, i, j] = dy
-                        mask[i, j] = 1.0  # Mark as valid pixel
-
-        # Normalize heatmap to [0, 1]
-        heatmap = np.clip(heatmap, 0, 1)
-
         # Apply optional transformations to the image
         if self.transform:
             image = self.transform(image)
+            
+        heatmap = self.heatmaps[annotation["image_id"]]
 
-        # Convert to tensors
-        heatmap = torch.tensor(heatmap, dtype=torch.float32).unsqueeze(0)  # Add channel dimension
-        offset = torch.tensor(offset, dtype=torch.float32)
-        mask = torch.tensor(mask, dtype=torch.float32).unsqueeze(0)  # Add channel dimension
+        return {"image": image, "heatmaps": heatmap}
 
-        return {"image": image, "heatmaps": heatmap, "offsets": offset, "mask": mask}
+image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/images/rgb'
+annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
+# Get the first element from the dataset
+start_time = time.time()
+dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
+print(f"Time taken: {time.time() - start_time:.2f} seconds")
+print(f"Dataset size: {len(dataset)}")
 
-
-# image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/images/rgb'
-# annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
-# # Get the first element from the dataset
-# dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
-# sample = dataset[1]
-# #show the image
-# image = sample["image"]
-# image.show()
-# #show the heatmap
-# heatmap = sample["heatmaps"]
-# heatmap = heatmap.squeeze(0).numpy()
-# plt.imshow(heatmap, cmap="hot")
-# plt.axis("off")
-# plt.title("Heatmap")
-# plt.show()
-# #show the offsets
-# offsets = sample["offsets"]
-# offsets = offsets.squeeze(0).numpy()
-# plt.imshow(offsets[0], cmap="hot")
-# plt.axis("off")
-# plt.title("Offset X")
-# plt.show()
-# plt.imshow(offsets[1], cmap="hot")
-# plt.axis("off")
-# plt.title("Offset Y")
-# plt.show()
-# #show the mask
-# mask = sample["mask"]
-# mask = mask.squeeze(0).numpy()
-# plt.imshow(mask, cmap="gray")
-# plt.axis("off")
-# plt.title("Mask")
-# plt.show()
-
+start_time = time.time()
+sample = dataset[1]
+print(f"Time taken: {time.time() - start_time:.2f} seconds")
+print(sample["heatmaps"])
