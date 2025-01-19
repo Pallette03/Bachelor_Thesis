@@ -8,10 +8,8 @@ import os
 import numpy as np
 
 class LegoKeypointDataset(Dataset):
-    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), sigma=2, transform=None, num_workers=8):
-        self.image_size = image_size
-        self.sigma = sigma
-        self.transform = transform
+    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), sigma=2, transform=None, num_workers=4):
+        
         
         def load_annotation(file):
             with open(os.path.join(annotations_folder, file), 'r') as f:
@@ -22,8 +20,35 @@ class LegoKeypointDataset(Dataset):
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             annotation_files = [file for file in os.listdir(annotations_folder) if file.endswith(".json")]
             combined_annotations = list(executor.map(load_annotation, annotation_files))
-        
-        def process_annotation(annotation):
+            
+        self.image_size = image_size
+        self.sigma = sigma
+        self.transform = transform
+        self.annotations = combined_annotations
+        self.img_dir = img_dir
+
+    def __len__(self):
+        return len(self.annotations)
+    
+    def gaussian_2d(self, shape, center, sigma):
+        """Generate a 2D Gaussian heatmap."""
+        y, x = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")
+        dist_sq = (x - center[0]) ** 2 + (y - center[1]) ** 2
+        heatmap = np.exp(-dist_sq / (2 * sigma ** 2))
+        return heatmap
+
+    def denormalize_keypoints(self, keypoints, image_width, image_height):
+        denormalized_keypoints = []
+        for corner_vector in keypoints:
+            x = corner_vector[0] * image_width
+            y = corner_vector[1] * image_height
+            denormalized_keypoints.append([x, y])
+        return denormalized_keypoints
+
+    def reduce_dataset_size(self, size):
+        self.annotations = self.annotations[:size]
+
+    def process_annotation(self, annotation):
             normalized_corners = []
             for brick in annotation["annotations"]:
                 for corner_name, value in brick["normal_pixel_coordinates"].items():
@@ -54,38 +79,7 @@ class LegoKeypointDataset(Dataset):
             # Convert to tensors
             heatmap = torch.tensor(heatmap, dtype=torch.float32).unsqueeze(0)  # Add channel dimension
             return annotation["image_id"], heatmap
-
-        # Use ThreadPoolExecutor to process annotations in parallel
-        with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            results = list(executor.map(process_annotation, combined_annotations))
-        
-        heatmaps = {image_id: heatmap for image_id, heatmap in results}
-        
-        self.heatmaps = heatmaps
-        self.annotations = combined_annotations
-        self.img_dir = img_dir
-
-    def __len__(self):
-        return len(self.annotations)
     
-    def gaussian_2d(self, shape, center, sigma):
-        """Generate a 2D Gaussian heatmap."""
-        y, x = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")
-        dist_sq = (x - center[0]) ** 2 + (y - center[1]) ** 2
-        heatmap = np.exp(-dist_sq / (2 * sigma ** 2))
-        return heatmap
-
-    def denormalize_keypoints(self, keypoints, image_width, image_height):
-        denormalized_keypoints = []
-        for corner_vector in keypoints:
-            x = corner_vector[0] * image_width
-            y = corner_vector[1] * image_height
-            denormalized_keypoints.append([x, y])
-        return denormalized_keypoints
-
-    def reduce_dataset_size(self, size):
-        self.annotations = self.annotations[:size]
-
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
         img_path = os.path.join(self.img_dir, annotation["image_id"]) + ".png"
@@ -98,19 +92,22 @@ class LegoKeypointDataset(Dataset):
         if self.transform:
             image = self.transform(image)
             
-        heatmap = self.heatmaps[annotation["image_id"]]
+        _, heatmap = self.process_annotation(annotation)
 
         return {"image": image, "heatmaps": heatmap}
 
-image_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/images/rgb'
-annotation_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/annotations'
-# Get the first element from the dataset
-start_time = time.time()
-dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
-print(f"Time taken: {time.time() - start_time:.2f} seconds")
-print(f"Dataset size: {len(dataset)}")
+# #image_dir = os.path.join(os.path.dirname(__file__), 'validate', 'images')
+# #annotation_dir = os.path.join(os.path.dirname(__file__), 'validate', 'annotations')
+# image_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/images"
+# annotation_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/annotations"
+# # Get the first element from the dataset
+# start_time = time.time()
+# dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
+# print(f"Time taken: {time.time() - start_time:.2f} seconds")
+# print(f"Time per image: {(time.time() - start_time) / len(dataset):.4f} seconds")
+# print(f"Dataset size: {len(dataset)}")
 
-start_time = time.time()
-sample = dataset[1]
-print(f"Time taken: {time.time() - start_time:.2f} seconds")
-print(sample["heatmaps"])
+# start_time = time.time()
+# sample = dataset[1]
+# print(f"Time taken: {time.time() - start_time:.2f} seconds")
+# print(sample["heatmaps"])

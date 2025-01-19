@@ -1,3 +1,4 @@
+import time
 from PIL import Image
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -32,11 +33,13 @@ def validate_images_parallel(image_dir, num_workers=4):
     return corrupted_images
 
 # Specify your directory path and number of threads
-train_dir = os.path.join(os.path.dirname(__file__), 'train', 'images')
-validate_dir = os.path.join(os.path.dirname(__file__), 'validate', 'images')
+train_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/train/images"
+validate_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/images"
 num_workers = 8  # Adjust based on your CPU core count
+start_time = time.time()
 corrupted_images = validate_images_parallel(train_dir, num_workers)
 validate_corrupted_images = validate_images_parallel(validate_dir, num_workers)
+print(f"Time taken: {time.time() - start_time:.2f} seconds")
 
 print(f"Total corrupted images: {len(corrupted_images)}")
 print(f"Total corrupted images in validation set: {len(validate_corrupted_images)}")
