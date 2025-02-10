@@ -50,15 +50,15 @@ max_items = 10
 rendered_images_amount = 1
 
 # Set the render resolution
-bpy.context.scene.render.resolution_x = 2560
-bpy.context.scene.render.resolution_y = 1440
+bpy.context.scene.render.resolution_x = 600
+bpy.context.scene.render.resolution_y = 600
 
 # Set output file path and format
-will_render_image = True
+will_render_image = False
 draw_on_image = False
 fill_to_max_items = False
-render_images_folder = '//datasets/object_detection/images/rgb'
-annotations_folder = '//datasets/object_detection/annotations'
+render_images_folder = '//datasets/cropped_objects/images/rgb'
+annotations_folder = '//datasets/cropped_objects/annotations'
 hdri_folder = '//hdri'
 
 bpy.context.scene.use_nodes = True
@@ -84,7 +84,7 @@ to_be_removed = set()
 
 uf = util_functions.Util_functions()
 
-def main(file_name="rendered_image.png", fill_to_max_items=False):
+def main(collection, camera_collection, camera, line_collection, file_name="rendered_image.png", fill_to_max_items=False):
 
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
@@ -150,12 +150,27 @@ def main(file_name="rendered_image.png", fill_to_max_items=False):
     else:
         if not collection:
             print(f"Collection '{collection_name}' not found.")
+            # Create a new collection
+            collection = bpy.data.collections.new(collection_name)
+            bpy.context.scene.collection.children.link(collection)
+            
+            
         if not camera_collection:
             print(f"Collection '{camera_collection_name}' not found.")
+            # Create a new collection
+            camera_collection = bpy.data.collections.new(camera_collection_name)
+            bpy.context.scene.collection.children.link(camera_collection)
+            # Link the camera to the camera collection
+            camera_collection.objects.link(camera)
+            
         if not camera:
             print(f"Camera not found.")
         if not line_collection:
             print(f"Collection '{line_collection_name}' not found.")
+            # Create a new collection
+            line_collection = bpy.data.collections.new(line_collection_name)
+            bpy.context.scene.collection.children.link(line_collection)
+            
 
 def write_annotations_to_file(file_name):
 
@@ -221,7 +236,7 @@ start_time = time.time()
 for i in range(rendered_images_amount):
     time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
     image_name = time_for_name + '.png'
-    main(image_name, fill_to_max_items)
+    main(collection, camera_collection, camera, line_collection, image_name, fill_to_max_items)
     uf.remove_objects(to_be_removed, camera_collection)
     if will_render_image:
         if camera_collection.objects:
