@@ -12,3 +12,6 @@ viewpoint detection model trained solely on synthetic data -> https://ieeexplore
 
 Object Detection and Pose Estimation Based on Convolutional Neural Networks Trained with Synthetic Data
 	-> https://ieeexplore.ieee.org/document/8594379
+	
+heatmap because dynamic amount of keypoints
+

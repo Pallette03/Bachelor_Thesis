@@ -343,7 +343,7 @@ class Util_functions:
     
     def get_corners_of_object(self, obj):
         # Get the object's bounding box corners in world space and put them in a dictionary
-        corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
+        corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}# In the form: {"Corner_0": Vector((x, y, z)), ...}
         return corners
     
     def convert_coordinates(self, corner_name, vector, scene, camera):

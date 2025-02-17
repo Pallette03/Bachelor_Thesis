@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 class LegoKeypointDataset(Dataset):
-    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), sigma=2, transform=None, num_workers=4):
+    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), transform=None, num_workers=4):
         
         
         def load_annotation(file):
@@ -22,7 +22,6 @@ class LegoKeypointDataset(Dataset):
             combined_annotations = list(executor.map(load_annotation, annotation_files))
             
         self.image_size = image_size
-        self.sigma = sigma
         self.transform = transform
         self.annotations = combined_annotations
         self.img_dir = img_dir
@@ -30,12 +29,6 @@ class LegoKeypointDataset(Dataset):
     def __len__(self):
         return len(self.annotations)
     
-    def gaussian_2d(self, shape, center, sigma):
-        """Generate a 2D Gaussian heatmap."""
-        y, x = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")
-        dist_sq = (x - center[0]) ** 2 + (y - center[1]) ** 2
-        heatmap = np.exp(-dist_sq / (2 * sigma ** 2))
-        return heatmap
 
     def denormalize_keypoints(self, keypoints, image_width, image_height):
         denormalized_keypoints = []
@@ -55,30 +48,22 @@ class LegoKeypointDataset(Dataset):
                     normalized_corners.append(value)
             
             normalized_corners = np.array(normalized_corners)
-            # Denormalize corner coordinates
-            img_width, img_height = self.image_size
-            denormalized_corners = self.denormalize_keypoints(normalized_corners, img_width, img_height)
 
-            # Generate heatmaps, offsets, and masks
-            heatmap = np.zeros((img_height, img_width), dtype=np.float32)
 
-            for corner in denormalized_corners:
-                x, y = int(corner[0]), int(corner[1])
+            # # Denormalize corner coordinates
+            # img_width, img_height = self.image_size
+            # denormalized_corners = self.denormalize_keypoints(normalized_corners, img_width, img_height)
 
-                # Skip invalid or out-of-bound corners
-                if x < 0 or x >= img_width or y < 0 or y >= img_height:
-                    print(f"Invalid corner: {corner}")
-                    continue
 
-                # Add Gaussian blob to the heatmap
-                heatmap += self.gaussian_2d((img_height, img_width), (x, y), self.sigma)
+            # for corner in denormalized_corners:
+            #     x, y = int(corner[0]), int(corner[1])
 
-            # Normalize heatmap to [0, 1]
-            heatmap = np.clip(heatmap, 0, 1)
+            #     # Skip invalid or out-of-bound corners
+            #     if x < 0 or x >= img_width or y < 0 or y >= img_height:
+            #         print(f"Invalid corner: {corner}")
+            #         continue
 
-            # Convert to tensors
-            heatmap = torch.tensor(heatmap, dtype=torch.float32).unsqueeze(0)  # Add channel dimension
-            return annotation["image_id"], heatmap
+            return normalized_corners
     
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
@@ -92,9 +77,9 @@ class LegoKeypointDataset(Dataset):
         if self.transform:
             image = self.transform(image)
             
-        _, heatmap = self.process_annotation(annotation)
+        normalized_corners = self.process_annotation(annotation)
 
-        return {"image": image, "heatmaps": heatmap}
+        return {"image": image, "norm_corners": normalized_corners}
 
 # #image_dir = os.path.join(os.path.dirname(__file__), 'validate', 'images')
 # #annotation_dir = os.path.join(os.path.dirname(__file__), 'validate', 'annotations')

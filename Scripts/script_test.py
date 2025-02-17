@@ -3,10 +3,7 @@ import bpy_extras # type: ignore
 import random
 import os
 import mathutils
-import numpy as np
-import cv2
 import math
-import uuid
 import time
 import json
 import sys
@@ -59,7 +56,7 @@ draw_on_image = False
 fill_to_max_items = False
 render_images_folder = '//datasets/cropped_objects/images/rgb'
 annotations_folder = '//datasets/cropped_objects/annotations'
-hdri_folder = '//hdri'
+hdri_folder = '//HDRI'
 
 bpy.context.scene.use_nodes = True
 
@@ -232,6 +229,8 @@ def write_annotations_to_file(file_name):
     print(f"Annotations written to file {file_name}.json")
 
 start_time = time.time()
+bpy.context.preferences.edit.use_global_undo = False
+
 
 for i in range(rendered_images_amount):
     time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
@@ -243,6 +242,8 @@ for i in range(rendered_images_amount):
             write_annotations_to_file(time_for_name)
             print(f"Rendering image {i+1}/{rendered_images_amount}")
             bpy.ops.render.render(write_still=True, use_viewport=True)
+
+            bpy.data.orphans_purge()  # Purges unused data
             if draw_on_image:
                 uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, time_for_name, annotations_folder)
         else:
