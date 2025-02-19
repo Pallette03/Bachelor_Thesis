@@ -1,4 +1,5 @@
 import os
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
@@ -8,82 +9,91 @@ from LegoKeypointDataset import LegoKeypointDataset
 import torchvision.transforms as transforms
 import time
 import torch.nn.functional as F
-
-os.environ['PYTORCH_HIP_ALLOC_CONF'] = 'expandable_segments:True'
+import matplotlib.pyplot as plt
 
 class DynamicCornerDetector(nn.Module):
-    def __init__(self):
+    def __init__(self, heatmap_size=128, input_size=500):
         super(DynamicCornerDetector, self).__init__()
+        self.heatmap_size = heatmap_size  # Predicts a smaller heatmap
+        self.input_size = input_size  # Original image size
+        
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # 500 → 250
+
             nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # 250 → 125
+
             nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # 125 → 62
+
             nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
         )
-        
-        # Heatmap output (1 channel for corner probability)
+
+        # Predict a smaller heatmap (e.g., 128×128)
         self.corner_head = nn.Conv2d(512, 1, kernel_size=1)
 
     def forward(self, x):
-        x = self.features(x)
-        heatmap = self.corner_head(x)  # Output shape: (batch, 1, 31, 31)
-        return heatmap
+        x = self.features(x)  # Extract features
+        heatmap = self.corner_head(x)  # Output a smaller heatmap (e.g., 128×128)
+        heatmap = nn.functional.interpolate(heatmap, size=(self.input_size, self.input_size), mode="bilinear", align_corners=False)  
+        return heatmap  # Final output is (batch, 1, 500, 500)
 
 
 
-def keypoints_to_heatmap(keypoints, heatmap_size=31, image_size=500, sigma=1.5, device="cpu"):
+def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0, device='cpu'):
     """
-    Converts a list of keypoints into a heatmap representation.
-
-    keypoints: List of (x, y) coordinates (scaled for the original image size).
-    heatmap_size: Size of the output heatmap.
-    image_size: Original image size before downsampling.
-    sigma: Spread of the Gaussian response.
-
-    Returns:
-    - target_heatmap: A tensor of shape (1, heatmap_size, heatmap_size)
+    Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
+    The heatmap will be upsampled to match the input image size (500×500).
     """
-    target_heatmap = torch.zeros((1, heatmap_size, heatmap_size))
+    target_heatmap = torch.zeros((1, heatmap_size, heatmap_size)).to(device)
+    scale = heatmap_size / image_size  # Scale down factor (e.g., 128/500)
 
-    scale = heatmap_size / image_size  # Downscale factor (e.g., 31/500)
     for (x, y) in keypoints:
-        x, y = int(x * scale), int(y * scale)  # Scale to heatmap size
+        x = x * image_size
+        y = y * image_size
+        x, y = int(x * scale), int(y * scale)  # Scale keypoints
         if 0 <= x < heatmap_size and 0 <= y < heatmap_size:
-            # Create a small Gaussian response around the keypoint
-            for i in range(-3, 4):  # Gaussian spread in a 7x7 window
-                for j in range(-3, 4):
+            for i in range(-2, 3):  # Small 5×5 Gaussian
+                for j in range(-2, 3):
                     xi, yj = x + i, y + j
                     if 0 <= xi < heatmap_size and 0 <= yj < heatmap_size:
-                        target_heatmap[0, yj, xi] += torch.exp(torch.tensor(-((i**2 + j**2) / (2 * sigma**2))))
+                        exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32).to(device)
+                        target_heatmap[0, yj, xi] += torch.exp(exponent).to(device)
 
+    return target_heatmap.clamp(0, 1)  # Keep values in [0,1]
 
-    return target_heatmap.clamp(0, 1).to(device) # Clamp to 0-1 range
+def heatmap_loss(pred_heatmaps, keypoints_list, heatmap_size=500, image_size=500, device='cpu', threshold=0.2):
 
-def heatmap_loss(pred_heatmap, keypoints_list, heatmap_size=31, image_size=500, device='cpu'):
-    """
-    Computes loss between predicted heatmap and target heatmap.
+    target_heatmaps = torch.stack([keypoints_to_heatmap(kp, heatmap_size=heatmap_size, image_size=image_size, device=device) for kp in keypoints_list]).to(device)
 
-    pred_heatmap: Tensor of shape (batch, 1, heatmap_size, heatmap_size)
-    keypoints_list: List of keypoints for each image in batch (batch_size lists)
+    total_loss = torch.tensor(0.0).to(device)
+    for pred_heatmap, target_heatmap in zip(pred_heatmaps, target_heatmaps):
+        pred_heatmap = pred_heatmap.squeeze(0)
+        target_heatmap = target_heatmap.squeeze(0)
+        
+        pred_points = torch.nonzero(pred_heatmap > threshold)
+        target_points = torch.nonzero(target_heatmap > threshold)
+        
+        if len(target_points) == 0:
+            continue
 
-    Returns:
-    - BCE Loss between predicted and ground truth heatmaps
-    """
-    batch_size = pred_heatmap.shape[0]
-    target_heatmaps = torch.stack([keypoints_to_heatmap(kp, heatmap_size, image_size, device=device) for kp in keypoints_list])
-    
-    # Compute Binary Cross-Entropy loss
-    loss = F.binary_cross_entropy(pred_heatmap, target_heatmaps)
-    
-    return loss
+        if len(pred_points) == 0:
+            # Add a penalty for not predicting any corners
+            total_loss += 1.0
+            continue
+        
+        distances = torch.cdist(pred_points.float(), target_points.float(), p=2)
+        min_distances, _ = torch.min(distances, dim=1)
+        
+        total_loss += torch.mean(min_distances)
+
+    total_loss.requires_grad = True
+    return total_loss.to(device)
 
 def extract_coordinates(heatmap, threshold=0.5):
     heatmap = heatmap.squeeze().detach().cpu().numpy()  # Remove batch & channel dims
@@ -106,7 +116,7 @@ def collate_fn(batch):
 
 
     images = torch.stack(images)
-    corners_list = torch.tensor(corners_list, dtype=torch.float32)
+    corners_list = torch.stack([torch.tensor(corners, dtype=torch.float32) for corners in corners_list])
 
     return {"image": images, "norm_corners": corners_list}
 
@@ -188,40 +198,41 @@ def validate_model(model, dataloader, global_image_size):
     
     return total_corner_loss / len(dataloader)
 
-# Paths
-model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
-epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
-train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
-validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
+if __name__ == "__main__":
+    # Paths
+    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
+    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
+    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
+    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
+    print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
-batch_size = 25
-global_image_size = (500, 500)
+    batch_size = 20
+    global_image_size = (500, 500)
 
-transform = transforms.Compose([
-        transforms.Resize(global_image_size),
-        transforms.ToTensor()
-    ])
+    transform = transforms.Compose([
+            transforms.Resize(global_image_size),
+            transforms.ToTensor()
+        ])
 
-# Dataset and DataLoader
-print("Loading dataset...")
-train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), image_size=global_image_size,transform=transform)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-#dataset.reduce_dataset_size(3000)
+    # Dataset and DataLoader
+    print("Loading dataset...")
+    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), image_size=global_image_size,transform=transform)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    #dataset.reduce_dataset_size(3000)
 
-val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform)
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
-# Model, Optimizer, and Loss
-model = DynamicCornerDetector()
+    # Model, Optimizer, and Loss
+    model = DynamicCornerDetector()
 
-# Train the model
-print("Training the model...")
-model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size)
+    # Train the model
+    print("Training the model...")
+    model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size)
 
-# Save the model
-print("Saving the model...")
-torch.save(model.state_dict(), model_path)
+    # Save the model
+    print("Saving the model...")
+    torch.save(model.state_dict(), model_path)
 
         

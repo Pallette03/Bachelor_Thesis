@@ -15,3 +15,5 @@ Object Detection and Pose Estimation Based on Convolutional Neural Networks Trai
 	
 heatmap because dynamic amount of keypoints
 
+
+distance to correct point is loss

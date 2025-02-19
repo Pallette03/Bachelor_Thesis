@@ -1,74 +1,98 @@
 import os
 import json
 import numpy as np
-import cv2
+import matplotlib.pyplot as plt
+import torch
+import torchvision
 from LegoKeypointDataset import LegoKeypointDataset
+from KeypointDetector import DynamicCornerDetector
 
-annotations_folder = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/annotations'
-img_dir = 'C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb'
+annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'annotations')
+img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'images')
+model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
 
-# Harris Corner Detector
-def harris_corner_detector(image, threshold=0.01):
-    # Convert PIL image to OpenCV image
-    image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = np.float32(gray)
-    dst = cv2.cornerHarris(gray, 2, 3, 0.04)
-    dst = cv2.dilate(dst, None)
-    image[dst > threshold * dst.max()] = [0, 0, 255]
-    return image
+def collate_fn(batch):
+    images = [item["image"] for item in batch]
+    corners_list = [item["norm_corners"] for item in batch]
+    max_corner_amount = max([norm_corners.shape[0] for norm_corners in corners_list])
 
-def denormalize_keypoints(keypoints, image_width, image_height):
-    denormalized_keypoints = {}
-    for corner_name, corner_vector in keypoints.items():
-        x = corner_vector[0] * image_width
-        y = corner_vector[1] * image_height
-        denormalized_keypoints[corner_name] = [x, y]
-    return denormalized_keypoints
-
-def draw_points_on_rendered_image(file_name):
-    
-    # Get the annotations
-    annotations_file_path = os.path.join(os.path.abspath(annotations_folder), f"{file_name}.json")
-    with open(annotations_file_path, mode='r') as file:
-        data = json.load(file)
-        annotations = data['annotations']
-        camera_matrix = data['camera_matrix']
-        # in the form of [[-1.0, 0.0, -8.742277657347586e-08], [0.0, 1.0, 0.0], [8.742277657347586e-08, 0.0, -1.0], [0.0, 0.0, 0.0]] convert to numpy matrix
-        camera_matrix = np.array(camera_matrix)
-        image = cv2.imread(f"C:/Users/paulb/Documents/TUDresden/Bachelor/dataset/images/rgb/{file_name}.png")
+    # Pad the corners
+    for i in range(len(corners_list)):
+        corners = corners_list[i]
+        pad_amount = max_corner_amount - corners.shape[0]
+        pad = np.zeros((pad_amount, 2))
+        corners_list[i] = np.concatenate((corners, pad), axis=0)
         
-        for annotation in annotations:
-            obj_name = annotation['brick_type']
-            corners = annotation['keypoints']
-            normal_pixel_coordinates = annotation['normal_pixel_coordinates']
-            denormalized_keypoints = denormalize_keypoints(normal_pixel_coordinates, image.shape[1], image.shape[0])
-            color = annotation['color']
-            
-            heatmap = np.zeros((image.shape[0], image.shape[1]), dtype=np.float32)
-            for corner_name, corner_vector in denormalized_keypoints.items():
-                x, y = corner_vector
-                x, y = int(x), int(y)
-                heatmap[y, x] = 1.0
-                # Draw a circle on the heatmap
-                cv2.circle(image, (x, y), radius=3, color=(255, 0, 0), thickness=-1)
-                
-                
-            # Show the heatmap
-            cv2.imshow("Heatmap", heatmap)
-            cv2.imshow("Image", image)
-            cv2.waitKey(0)
-            
-            
-dataset = LegoKeypointDataset(annotations_folder, img_dir)
 
-image, _ = dataset[0]
 
-for img, _ in dataset:
-    harris = harris_corner_detector(img)
-    cv2.imshow("Harris", harris)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-   
-#draw_points_on_rendered_image("04012025-005453-98")
+    images = torch.stack(images)
+    corners_list = torch.stack([torch.tensor(corners, dtype=torch.float32) for corners in corners_list])
+
+    return {"image": images, "norm_corners": corners_list}
+
+def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0):
+    """
+    Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
+    The heatmap will be upsampled to match the input image size (500×500).
+    """
+    target_heatmap = torch.zeros((1, heatmap_size, heatmap_size))
+    scale = heatmap_size / image_size  # Scale down factor (e.g., 128/500)
+
+    for (x, y) in keypoints:
+        x = x * image_size
+        y = y * image_size
+        x, y = int(x * scale), int(y * scale)  # Scale keypoints
+        if 0 <= x < heatmap_size and 0 <= y < heatmap_size:
+            for i in range(-2, 3):  # Small 5×5 Gaussian
+                for j in range(-2, 3):
+                    xi, yj = x + i, y + j
+                    if 0 <= xi < heatmap_size and 0 <= yj < heatmap_size:
+                        exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32)
+                        target_heatmap[0, yj, xi] += torch.exp(exponent)
+
+    return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
+
+def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
+    # for every value in the heatmap, if it is greater than the threshold, set it to 1, else 0
+    pred_heatmap[pred_heatmap > threshold] = 1
+    pred_heatmap[pred_heatmap <= threshold] = 0
+    return pred_heatmap
+
+# Load the model
+model = DynamicCornerDetector()
+model.load_state_dict(torch.load(model_path))
+model.eval()
+
+transforms = torchvision.transforms.Compose([
+    torchvision.transforms.ToTensor(),
+])
+
+# Load the dataset
+dataset = LegoKeypointDataset(annotations_folder, img_dir, image_size=(500, 500), transform=transforms)
+
+dataset_length = len(dataset)
+rand_index = np.random.randint(0, dataset_length)
+sample = dataset[rand_index]
+model_input = sample['image'].unsqueeze(0)
+
+# Predict the keypoints
+pred_heatmap = model(model_input)
+pred_heatmap = pred_heatmap.squeeze(0).squeeze(0).detach().cpu().numpy()
+pred_heatmap = convert_pred_to_heatmap(pred_heatmap)
+
+
+target_heatmap = keypoints_to_heatmap(sample['norm_corners']).squeeze(0)
+
+# Plot the heatmaps
+
+
+plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
+plt.title("Predicted Heatmap")
+plt.savefig("predicted_heatmap.png")
+
+plt.imshow(target_heatmap, cmap='hot', interpolation='nearest')
+plt.title("Target Heatmap")
+plt.savefig("target_heatmap.png")
+
+
+
