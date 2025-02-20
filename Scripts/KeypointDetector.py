@@ -10,38 +10,7 @@ import torchvision.transforms as transforms
 import time
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-
-class DynamicCornerDetector(nn.Module):
-    def __init__(self, heatmap_size=128, input_size=500):
-        super(DynamicCornerDetector, self).__init__()
-        self.heatmap_size = heatmap_size  # Predicts a smaller heatmap
-        self.input_size = input_size  # Original image size
-        
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 500 → 250
-
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 250 → 125
-
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 125 → 62
-
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-        )
-
-        # Predict a smaller heatmap (e.g., 128×128)
-        self.corner_head = nn.Conv2d(512, 1, kernel_size=1)
-
-    def forward(self, x):
-        x = self.features(x)  # Extract features
-        heatmap = self.corner_head(x)  # Output a smaller heatmap (e.g., 128×128)
-        heatmap = nn.functional.interpolate(heatmap, size=(self.input_size, self.input_size), mode="bilinear", align_corners=False)  
-        return heatmap  # Final output is (batch, 1, 500, 500)
+from unet_model import UNet
 
 
 
@@ -57,6 +26,9 @@ def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0,
         x = x * image_size
         y = y * image_size
         x, y = int(x * scale), int(y * scale)  # Scale keypoints
+
+        #target_heatmap[0, y, x] = 1
+
         if 0 <= x < heatmap_size and 0 <= y < heatmap_size:
             for i in range(-2, 3):  # Small 5×5 Gaussian
                 for j in range(-2, 3):
@@ -67,33 +39,12 @@ def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0,
 
     return target_heatmap.clamp(0, 1)  # Keep values in [0,1]
 
-def heatmap_loss(pred_heatmaps, keypoints_list, heatmap_size=500, image_size=500, device='cpu', threshold=0.2):
+def heatmap_loss(pred_heatmaps, keypoints_list, heatmap_size=500, image_size=500, device='cpu', critereon=None):
 
     target_heatmaps = torch.stack([keypoints_to_heatmap(kp, heatmap_size=heatmap_size, image_size=image_size, device=device) for kp in keypoints_list]).to(device)
 
-    total_loss = torch.tensor(0.0).to(device)
-    for pred_heatmap, target_heatmap in zip(pred_heatmaps, target_heatmaps):
-        pred_heatmap = pred_heatmap.squeeze(0)
-        target_heatmap = target_heatmap.squeeze(0)
-        
-        pred_points = torch.nonzero(pred_heatmap > threshold)
-        target_points = torch.nonzero(target_heatmap > threshold)
-        
-        if len(target_points) == 0:
-            continue
-
-        if len(pred_points) == 0:
-            # Add a penalty for not predicting any corners
-            total_loss += 1.0
-            continue
-        
-        distances = torch.cdist(pred_points.float(), target_points.float(), p=2)
-        min_distances, _ = torch.min(distances, dim=1)
-        
-        total_loss += torch.mean(min_distances)
-
-    total_loss.requires_grad = True
-    return total_loss.to(device)
+    loss = critereon(pred_heatmaps, target_heatmaps)
+    return loss
 
 def extract_coordinates(heatmap, threshold=0.5):
     heatmap = heatmap.squeeze().detach().cpu().numpy()  # Remove batch & channel dims
@@ -126,6 +77,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
     print(f"Training on {device}")
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    critereon = nn.BCEWithLogitsLoss()
     #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     
     for epoch in range(num_epochs):
@@ -141,7 +93,8 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
 
             predicted_corners = model(images)
             
-            corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
+            corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon)
+            #corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
             last_loss = corner_loss.item()
 
 
@@ -163,7 +116,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
         #Clear vram memory before validation
         torch.cuda.empty_cache()
 
-        validate_model(model, val_dataloader, global_image_size)
+        #validate_model(model, val_dataloader, global_image_size, critereon=critereon)
 
         # Log epoch stats
         print(f"Took {time.time() - start_time:.2f} seconds for epoch {epoch + 1}")
@@ -175,12 +128,15 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
         torch.save(model.state_dict(), epoch_model_path)
     return model
 
-def validate_model(model, dataloader, global_image_size):
+def validate_model(model, dataloader, global_image_size, critereon=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Validating on {device}")
     model.eval()
+    model = model.to(device)
     total_corner_loss = 0.0
-    
+    val_counter = 0
+    val_batch_start_time = time.time()
+
     for batch in dataloader:
         images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
         target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, 1, H, W]
@@ -189,10 +145,17 @@ def validate_model(model, dataloader, global_image_size):
         predicted_corners = model(images)#, predicted_offsets
         
         # Use normal MSE loss for now but ignore 0
-        corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
+        corner_loss = corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon)
+        val_last_loss = corner_loss.item()
         
         # Accumulate losses for logging
         total_corner_loss += corner_loss.item()
+
+        val_counter += 1
+        # Check the progress through the batch and print every 5 percent
+        if val_counter % (len(dataloader) // 20) == 0:
+            print(f"At Batch {val_counter}/{len(dataloader)} for Validation taking {time.time() - val_batch_start_time:.2f} seconds since last checkpoint. Last Loss: {val_last_loss:.4f}")
+            val_batch_start_time = time.time()
     
     print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}")
     
@@ -205,9 +168,12 @@ if __name__ == "__main__":
     train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
     validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
+    only_validate = True
+
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
-    batch_size = 20
+    batch_size = 8
+    val_batch_size = 4
     global_image_size = (500, 500)
 
     transform = transforms.Compose([
@@ -222,14 +188,18 @@ if __name__ == "__main__":
     #dataset.reduce_dataset_size(3000)
 
     val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform)
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
 
     # Model, Optimizer, and Loss
-    model = DynamicCornerDetector()
+    model = UNet(n_channels=3, n_classes=1)
 
     # Train the model
     print("Training the model...")
-    model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size)
+    if not only_validate:
+        model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size)
+    else:
+        model.load_state_dict(torch.load(epoch_model_path))
+        validate_model(model, val_dataloader, global_image_size, critereon=nn.BCEWithLogitsLoss())
 
     # Save the model
     print("Saving the model...")

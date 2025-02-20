@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 import torchvision
 from LegoKeypointDataset import LegoKeypointDataset
-from KeypointDetector import DynamicCornerDetector
+from KeypointDetector import UNet
 
 annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'annotations')
 img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'images')
@@ -53,13 +53,22 @@ def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0)
     return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
 
 def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
+    #Output max value of the heatmap
+    min_value = np.min(pred_heatmap)
+    max_value = np.max(pred_heatmap)
+    middle_value = -(abs(min_value) - abs(max_value)) / 2
+    middle_value = middle_value / 2
+
+    print(f"Min value: {min_value}, Max value: {max_value}, Middle value: {middle_value}")
+    print(f"Pixel Number above middle: {np.sum(pred_heatmap > middle_value)}, Pixel Number below middle: {np.sum(pred_heatmap < middle_value)}")
+    
     # for every value in the heatmap, if it is greater than the threshold, set it to 1, else 0
-    pred_heatmap[pred_heatmap > threshold] = 1
-    pred_heatmap[pred_heatmap <= threshold] = 0
+    pred_heatmap[pred_heatmap > middle_value] = 1
+    pred_heatmap[pred_heatmap <= middle_value] = 0
     return pred_heatmap
 
 # Load the model
-model = DynamicCornerDetector()
+model = UNet(n_channels=3, n_classes=1)
 model.load_state_dict(torch.load(model_path))
 model.eval()
 

@@ -51,4 +51,4 @@ dataset_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'c
 train_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
 validate_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.8)
+split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.9)
