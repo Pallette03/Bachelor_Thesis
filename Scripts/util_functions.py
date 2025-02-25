@@ -24,9 +24,9 @@ class Util_functions:
 
         for obj in camera_collection.objects:
             # Get the object's bounding box corners in world space
-            corners = self.get_corners_of_object(obj)
-            for corner in corners.values():
-                if self.is_point_in_camera_view(camera, corner):
+            corners = self.get_corners_of_object(obj, camera, camera_collection)
+            for corner_data in corners.values():
+                if self.is_point_in_camera_view(camera, corner_data[0]):
                     continue
                 else:
                     to_be_removed.add(obj)
@@ -85,10 +85,10 @@ class Util_functions:
     
     def normalize_keypoints(self, keypoints, image_width, image_height):
         normalized_keypoints = {}
-        for corner_name, corner_vector in keypoints.items():
-            x = corner_vector[0] / image_width
-            y = corner_vector[1] / image_height
-            normalized_keypoints[corner_name] = [x, y]
+        for corner_name, corner_data in keypoints.items():
+            x = corner_data[0][0] / image_width
+            y = corner_data[0][1] / image_height
+            normalized_keypoints[corner_name] = ([x, y], corner_data[1])
         return normalized_keypoints
     
     def normalize_coordinate(self, coord, image_width, image_height):
@@ -120,15 +120,18 @@ class Util_functions:
         
     def denormalize_keypoints(self, keypoints, image_width, image_height):
         denormalized_keypoints = {}
-        for corner_name, corner_vector in keypoints.items():
-            x = corner_vector[0] * image_width
-            y = corner_vector[1] * image_height
-            denormalized_keypoints[corner_name] = [x, y]
+        for corner_name, corner_data in keypoints.items():
+            x = corner_data[0][0] * image_width
+            y = corner_data[0][1] * image_height
+            denormalized_keypoints[corner_name] = ([x, y], corner_data[1])
         return denormalized_keypoints
     
-    def draw_corners(self, obj, line_collection):
+    def draw_corners(self, obj, line_collection, camera_collection):
         # Get the object's bounding box corners in world space
-        corners = self.get_corners_of_object(obj)
+        corners = self.get_corners_of_object(obj, bpy.context.scene.camera, camera_collection)
+
+        for corner_name, corner_data in corners.items():
+            corners[corner_name] = corner_data[0]
 
         # Create a new mesh object for the corners
         mesh = bpy.data.meshes.new("Corners")
@@ -268,7 +271,14 @@ class Util_functions:
     def get_occluding_objects(self, camera, target, camera_collection, line_collection, draw_line=False):
         # Get the position of the camera and target
         cam_location = camera.location
-        target_location = target.location
+        obj_flag = False
+
+        if not isinstance(target, mathutils.Vector):
+            target_location = target.location
+            obj_flag = True
+        else:
+            target_location = target
+            obj_flag = False
 
         # Vector from camera to target
         cam_to_target_vec = target_location - cam_location
@@ -280,7 +290,9 @@ class Util_functions:
         # Loop through all objects in the scene
         for obj in camera_collection.objects:
             # Ignore the camera and target itself
-            if obj == camera or obj == target:
+            if obj == camera:
+                continue
+            if obj == target and obj_flag:
                 continue
 
             # Vector from camera to the current object
@@ -341,17 +353,27 @@ class Util_functions:
         relative_position = camera.matrix_world.inverted() @ obj.location
         return relative_position
     
-    def get_corners_of_object(self, obj):
+    def get_corners_of_object(self, obj, camera, camera_collection):
         # Get the object's bounding box corners in world space and put them in a dictionary
         corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}# In the form: {"Corner_0": Vector((x, y, z)), ...}
+
+        # Check the visibility of the corners
+        for corner_name, corner_vector in corners.items():
+            # Cast a ray from the camera to the corner
+            is_visible = self.is_visible(camera, corner_vector)
+            # Check if the ray intersected with any object
+            if is_visible:
+                corners[corner_name] = (corner_vector, True)
+            else:
+                corners[corner_name] = (corner_vector, False)
+
         return corners
     
-    def convert_coordinates(self, corner_name, vector, scene, camera):
+    def convert_coordinates(self, corner_name, vector, scene, camera, visible=None):
 
-        # Convert the world coordinates to camera view coordinates
+        # Convert the world coordinates to camera view coordinatesget_occluding_objects(camera, corner_vector, camera_collection, None, draw_line=False)
 
         co_2d = bpy_extras.object_utils.world_to_camera_view(scene, camera, vector)
-
         # Convert the normalized coordinates to pixel coordinates
         x = co_2d.x * scene.render.resolution_x
         y = co_2d.y * scene.render.resolution_y
@@ -359,11 +381,19 @@ class Util_functions:
         # Flip the y coordinate
         y = scene.render.resolution_y - y
 
-        return {corner_name: (x, y)}
+        if visible is not None:
+            return {corner_name: ((x, y), visible)}
+        else:
+            return {corner_name: (x, y)}
     
-    def get_2d_bound_box(self, obj, scene, camera):
+    def get_2d_bound_box(self, obj, scene, camera, camera_collection):
         # Get the object's bounding box corners in world space
-        corners = self.get_corners_of_object(obj)
+        corners = self.get_corners_of_object(obj, camera, camera_collection)
+
+        for corner_name, corner_data in corners.items():
+            corner_vector, visible = corner_data
+            corners[corner_name] = corner_vector
+
         # Convert the corners to camera view coordinates
         corners_2d = {corner_name: self.convert_coordinates(corner_name, corner_vector, scene, camera)[corner_name] for corner_name, corner_vector in corners.items()}
         
@@ -372,13 +402,15 @@ class Util_functions:
         bottom_right = max(corners_2d.values(), key=lambda x: x[0])[0], min(corners_2d.values(), key=lambda x: x[1])[1]
         return top_left, bottom_right
     
-    def draw_points_on_rendered_image(self, image_path, file_name, annotations_folder):
+    def draw_points_on_rendered_image(self, image_path, annotations_folder):
         # Load the image
         img_cv2 = cv2.imread(image_path)
         img = bpy.data.images.load(image_path)
 
         #img height
         img_height = img.size[1]
+
+        file_name = image_path.split("/")[-1].split(".")[0]
 
         # Get the annotations
         annotations_file_path = os.path.join(bpy.path.abspath(annotations_folder), f"{file_name}.json")
@@ -387,19 +419,22 @@ class Util_functions:
             annotations = data['annotations']
             for annotation in annotations:
                 obj_name = annotation['brick_type']
-                corners = annotation['keypoints']
+                corners = annotation['normal_pixel_coordinates']
                 color = annotation['color']
 
                 denormalized_corners = self.denormalize_keypoints(corners, img.size[0], img.size[1])
 
-                for corner_name, corner_vector in denormalized_corners.items():
-                    x, y = corner_vector
-                    cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 255, 0), -1)
+                for corner_name, corner_data in denormalized_corners.items():
+                    x, y = corner_data[0]
+                    if corner_data[1]:
+                        cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 255, 0), -1)
+                    else:
+                        cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 0, 255), -1)
 
                 #lowest x and highest y
-                top_left_corner = (int(min(denormalized_corners.values(), key=lambda x: x[0])[0]), int(max(denormalized_corners.values(), key=lambda x: x[1])[1]))
+                top_left_corner = (int(min(denormalized_corners.values(), key=lambda x: x[0][0])[0]), int(max(denormalized_corners.values(), key=lambda x: x[0][1])[1]))
                 #highest x and lowest y
-                bottom_right_corner = (int(max(denormalized_corners.values(), key=lambda x: x[0])[0]), int(min(denormalized_corners.values(), key=lambda x: x[1])[1]))
+                bottom_right_corner = (int(max(denormalized_corners.values(), key=lambda x: x[0][0])[0]), int(min(denormalized_corners.values(), key=lambda x: x[0][1])[1]))
 
                 # Draw the object's name
                 # Get the center of the bounding box
@@ -452,5 +487,32 @@ class Util_functions:
         cv2.imwrite(image_path, cropped_image)
         
         #cv2.imwrite(image_path, cropped_image)
+
+    def is_visible(self, camera, target, exclude_objects=[]):
+        """
+        Checks if there are any objects between the camera and the target point.
+        
+        :param camera: The camera object
+        :param target: A mathutils.Vector representing the target point
+        :param exclude_objects: A list of objects to ignore in the occlusion check
+        :return: True if there is an occlusion, False otherwise
+        """
+        scene = bpy.context.scene
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        
+        # Get camera world position
+        camera_location = camera.location
+        
+        # Direction vector from camera to target
+        direction = (target - camera_location).normalized()
+        
+        # Perform ray casting
+        result, location, normal, index, obj, matrix = scene.ray_cast(depsgraph, camera_location, direction)
+        
+        # If we hit an object, check if it's in the exclude list
+        if result and obj not in exclude_objects:
+            return False  # There is an occlusion
+        
+        return True  # No occlusion found
         
         

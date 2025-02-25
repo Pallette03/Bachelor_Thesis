@@ -47,8 +47,8 @@ max_items = 10
 rendered_images_amount = 1
 
 # Set the render resolution
-bpy.context.scene.render.resolution_x = 600
-bpy.context.scene.render.resolution_y = 600
+bpy.context.scene.render.resolution_x = 1000
+bpy.context.scene.render.resolution_y = 1000
 
 # Set output file path and format
 will_render_image = False
@@ -185,7 +185,7 @@ def write_annotations_to_file(file_name):
         json_file.write('"annotations": [\n')
 
         for obj in camera_collection.objects:
-            corners = uf.get_corners_of_object(obj)
+            corners = uf.get_corners_of_object(obj, camera, camera_collection)
             brick_type = obj.name.split('.')[0]
             color = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value
 
@@ -193,10 +193,10 @@ def write_annotations_to_file(file_name):
 
             serialized_corners = {}
             camera_corners = {}
-            for corner_name, corner_vector in corners.items():
-                serialized_corners.update(uf.convert_coordinates(corner_name, corner_vector, bpy.context.scene, camera))
+            for corner_name, corner_data in corners.items():
+                serialized_corners.update(uf.convert_coordinates(corner_name, corner_data[0], bpy.context.scene, camera, corner_data[1]))
                 temp_tuple = ()
-                for val in uf.world_to_camera_coords(camera, corner_vector):
+                for val in uf.world_to_camera_coords(camera, corner_data[0]):
                     temp_tuple += (val,)
                 camera_corners[corner_name] = temp_tuple
             
@@ -215,7 +215,7 @@ def write_annotations_to_file(file_name):
             json_file.write(',\n')
             
             json_file.write('"bb_box": ')
-            top_left, bottom_right = uf.get_2d_bound_box(obj, bpy.context.scene, camera)
+            top_left, bottom_right = uf.get_2d_bound_box(obj, bpy.context.scene, camera, camera_collection)
             json.dump({"top_left": uf.normalize_coordinate(top_left, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y), "bottom_right": uf.normalize_coordinate(bottom_right, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)}, json_file)
             
             if obj == camera_collection.objects[-1]:
@@ -245,7 +245,7 @@ for i in range(rendered_images_amount):
 
             bpy.data.orphans_purge()  # Purges unused data
             if draw_on_image:
-                uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, time_for_name, annotations_folder)
+                uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)
         else:
             print(f"No objects in camera collection. Not saving image.")
 end_time = time.time()

@@ -34,15 +34,23 @@ def split_dataset(dataset_path, train_output_path, validate_output_path, split_r
         os.makedirs(os.path.join(validate_output_path, 'annotations'))
     
     print(f"Copying files to training and validation sets...")
+    progress = 0
     for filename in train_set:
         annotation_name = filename.replace('.png', '.json')
         shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(train_output_path, 'images', filename))
         shutil.copy(os.path.join(dataset_path, 'annotations', annotation_name), os.path.join(train_output_path, 'annotations', annotation_name))
-        
+        progress += 1
+        if progress % (len(train_set) % 20) == 0:
+            print(f"Progress: {progress}/{len(train_set)}")
+
+    progress = 0
     for filename in validate_set:
         annotation_name = filename.replace('.png', '.json')
         shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(validate_output_path, 'images', filename))
         shutil.copy(os.path.join(dataset_path, 'annotations', annotation_name), os.path.join(validate_output_path, 'annotations', annotation_name))
+        progress += 1
+        if progress % (len(validate_set) % 20) == 0:
+            print(f"Progress: {progress}/{len(validate_set)}")
         
         
     print(f"Dataset split into training and validation sets. Training set: {len(train_set)} samples, Validation set: {len(validate_set)} samples.")
@@ -51,4 +59,4 @@ dataset_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'c
 train_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
 validate_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.9)
+split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.95)

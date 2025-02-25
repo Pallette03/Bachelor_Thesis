@@ -13,35 +13,44 @@ import matplotlib.pyplot as plt
 from unet_model import UNet
 
 
-
-def keypoints_to_heatmap(keypoints, heatmap_size=500, image_size=500, sigma=1.0, device='cpu'):
+def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=False, device='cpu'):
     """
     Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
     The heatmap will be upsampled to match the input image size (500×500).
     """
-    target_heatmap = torch.zeros((1, heatmap_size, heatmap_size)).to(device)
-    scale = heatmap_size / image_size  # Scale down factor (e.g., 128/500)
+    target_heatmap = torch.zeros((1, image_size, image_size)).to(device)
 
     for (x, y) in keypoints:
         x = x * image_size
         y = y * image_size
-        x, y = int(x * scale), int(y * scale)  # Scale keypoints
+        x, y = int(x), int(y)  # Scale keypoints
+        
+        if gaussian_blur:
+            if 0 <= x < image_size and 0 <= y < image_size:
+                for i in range(-4, 5):  # Small 5×5 Gaussian
+                    for j in range(-4, 5):
+                        xi, yj = x + i, y + j
+                        if 0 <= xi < image_size and 0 <= yj < image_size:
+                            exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32).to(device)
+                            target_heatmap[0, yj, xi] += torch.exp(exponent).to(device)
+        else:
+            target_heatmap[0, y, x] = 1
 
-        #target_heatmap[0, y, x] = 1
+    
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), os.pardir, 'heatmap.png')):
+        heatmap = target_heatmap.squeeze().detach().cpu().numpy()
+        plt.imshow(heatmap, cmap='Reds', interpolation='nearest')
+        plt.title("Predicted Heatmap (Black to Red)")
+        plt.colorbar()
+        plt.savefig("heatmap.png")
+        plt.close()
 
-        if 0 <= x < heatmap_size and 0 <= y < heatmap_size:
-            for i in range(-2, 3):  # Small 5×5 Gaussian
-                for j in range(-2, 3):
-                    xi, yj = x + i, y + j
-                    if 0 <= xi < heatmap_size and 0 <= yj < heatmap_size:
-                        exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32).to(device)
-                        target_heatmap[0, yj, xi] += torch.exp(exponent).to(device)
+    return target_heatmap
 
-    return target_heatmap.clamp(0, 1)  # Keep values in [0,1]
 
-def heatmap_loss(pred_heatmaps, keypoints_list, heatmap_size=500, image_size=500, device='cpu', critereon=None):
+def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', critereon=None, gaussian_blur=False):
 
-    target_heatmaps = torch.stack([keypoints_to_heatmap(kp, heatmap_size=heatmap_size, image_size=image_size, device=device) for kp in keypoints_list]).to(device)
+    target_heatmaps = torch.stack([keypoints_to_heatmap(kp, image_size=image_size, device=device, gaussian_blur=gaussian_blur) for kp in keypoints_list]).to(device)
 
     loss = critereon(pred_heatmaps, target_heatmaps)
     return loss
@@ -72,7 +81,7 @@ def collate_fn(batch):
     return {"image": images, "norm_corners": corners_list}
 
 # Training Loop
-def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500)):
+def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     model = model.to(device)
@@ -93,7 +102,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
 
             predicted_corners = model(images)
             
-            corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon)
+            corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
             #corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
             last_loss = corner_loss.item()
 
@@ -109,7 +118,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
             counter += 1
             # Check the progress through the batch and print every 5 percent
             if counter % (len(dataloader) // 20) == 0:
-                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}")
+                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%")
                 batch_start_time = time.time()
 
 
@@ -126,9 +135,10 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
         # Save model after each epoch
         print(f"Saving model to {epoch_model_path}")
         torch.save(model.state_dict(), epoch_model_path)
+        print(f"Saved model to {epoch_model_path}")
     return model
 
-def validate_model(model, dataloader, global_image_size, critereon=None):
+def validate_model(model, dataloader, global_image_size, critereon=None, gaussian_blur=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Validating on {device}")
     model.eval()
@@ -145,7 +155,7 @@ def validate_model(model, dataloader, global_image_size, critereon=None):
         predicted_corners = model(images)#, predicted_offsets
         
         # Use normal MSE loss for now but ignore 0
-        corner_loss = corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon)
+        corner_loss = corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
         val_last_loss = corner_loss.item()
         
         # Accumulate losses for logging
@@ -162,19 +172,25 @@ def validate_model(model, dataloader, global_image_size, critereon=None):
     return total_corner_loss / len(dataloader)
 
 if __name__ == "__main__":
+
+    #Clear vram memory
+    torch.cuda.empty_cache()
+
+
     # Paths
     model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
     epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
     train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
     validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-    only_validate = True
+    only_validate = False
+    gaussian_blur = True
 
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
-    batch_size = 8
+    batch_size = 4
     val_batch_size = 4
-    global_image_size = (500, 500)
+    global_image_size = (800, 800)
 
     transform = transforms.Compose([
             transforms.Resize(global_image_size),
@@ -194,12 +210,14 @@ if __name__ == "__main__":
     model = UNet(n_channels=3, n_classes=1)
 
     # Train the model
-    print("Training the model...")
+    
     if not only_validate:
-        model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size)
+        print("Training the model...")
+        model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size, gaussian_blur=gaussian_blur)
     else:
+        print("Validating the model...")
         model.load_state_dict(torch.load(epoch_model_path))
-        validate_model(model, val_dataloader, global_image_size, critereon=nn.BCEWithLogitsLoss())
+        validate_model(model, val_dataloader, global_image_size, critereon=nn.BCEWithLogitsLoss(), gaussian_blur=gaussian_blur)
 
     # Save the model
     print("Saving the model...")
