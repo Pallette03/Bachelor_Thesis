@@ -13,7 +13,41 @@ import matplotlib.pyplot as plt
 from unet_model import UNet
 
 
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2.0):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
 
+    def forward(self, pred, target):
+        pred_prob = torch.sigmoid(pred)  # Convert logits to probabilities
+        target = target.float()
+        
+        # Compute focal weight
+        focal_weight = self.alpha * (1 - pred_prob) ** self.gamma * target + (1 - self.alpha) * pred_prob ** self.gamma * (1 - target)
+        
+        # Compute BCE loss
+        bce_loss = nn.functional.binary_cross_entropy_with_logits(pred, target, reduction="none")
+        
+        # Apply focal weighting
+        focal_loss = focal_weight * bce_loss
+        return focal_loss.mean()
+    
+class CombinedLoss(nn.Module):
+    def __init__(self, lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0):
+        super().__init__()
+        self.bce_loss = nn.BCEWithLogitsLoss()
+        self.mse_loss = nn.MSELoss()
+        self.focal_loss = FocalLoss(alpha, gamma)
+        self.lambda_bce = lambda_bce
+        self.lambda_mse = lambda_mse
+        self.lambda_focal = lambda_focal
+
+    def forward(self, pred, target):
+        bce = self.bce_loss(pred, target)
+        mse = self.mse_loss(torch.sigmoid(pred), target)
+        focal = self.focal_loss(pred, target)
+        return self.lambda_bce * bce + self.lambda_mse * mse + self.lambda_focal * focal
 
 def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=False, device='cpu'):
     """
@@ -56,7 +90,7 @@ def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', cr
 
     loss = critereon(pred_heatmaps, target_heatmaps)
 
-    loss = torch.abs(loss)
+    #loss = torch.abs(loss)
 
     return loss
 
@@ -91,16 +125,17 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
     print(f"Training on {device}")
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    critereon = nn.BCEWithLogitsLoss()
+    critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
     #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-    train_start_time = time.time()
+    
     for epoch in range(num_epochs):
         start_time = time.time()
         batch_start_time = time.time()
         model.train()
         total_corner_loss = 0.0
         counter = 0
-        
+        epoch_start_time = time.time()
+
         for batch in dataloader:
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, num_corners_in_batch, 2]
@@ -110,7 +145,6 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
             batch_len = len(images)
             
             corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
-            #corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
             last_loss = corner_loss.item()
 
 
@@ -124,8 +158,11 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
           
             counter += 1
             # Check the progress through the batch and print every 5 percent
+            time_since_start = time.time() - epoch_start_time
+            remaining_time = (time_since_start / (counter / len(dataloader))) - time_since_start
+
             if counter % (len(dataloader) // 20) == 0:
-                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {((time.time() - batch_start_time) * batch_len):.2f} seconds")
+                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {remaining_time:.2f} seconds")
                 batch_start_time = time.time()
 
 
@@ -145,12 +182,13 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
         print(f"Saved model to {epoch_model_path}")
     return model
 
-def validate_model(model, dataloader, global_image_size, critereon=None, gaussian_blur=False):
+def validate_model(model, dataloader, global_image_size, gaussian_blur=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Validating on {device}")
     model.eval()
     model = model.to(device)
     total_corner_loss = 0.0
+    critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
     val_counter = 0
     val_batch_start_time = time.time()
 
@@ -224,7 +262,7 @@ if __name__ == "__main__":
     else:
         print("Validating the model...")
         model.load_state_dict(torch.load(epoch_model_path))
-        validate_model(model, val_dataloader, global_image_size, critereon=nn.BCEWithLogitsLoss(), gaussian_blur=gaussian_blur)
+        validate_model(model, val_dataloader, global_image_size, gaussian_blur=gaussian_blur)
 
     # Save the model
     print("Saving the model...")
