@@ -7,7 +7,7 @@ import json
 annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'annotations')
 img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'images', 'rgb')
 
-img_path = os.path.join(img_dir, '25022025-112724-189.png')
+img_path = os.path.join(img_dir, '26022025-123822-502.png')
 
 def denormalize_keypoints(keypoints, image_width, image_height):
         denormalized_keypoints = {}
@@ -42,9 +42,9 @@ def draw_points_on_rendered_image(image_path, annotations_folder):
                 for corner_name, corner_data in denormalized_corners.items():
                     x, y = corner_data[0]
                     if corner_data[1]:
-                        cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 255, 0), -1)
+                        cv2.circle(img_cv2, (int(x), int(y)), 1, (0, 255, 0), -1)
                     else:
-                        cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 0, 255), -1)
+                        cv2.circle(img_cv2, (int(x), int(y)), 1, (0, 0, 255), -1)
 
         # Save the image
         cv2.imwrite(image_path, img_cv2)

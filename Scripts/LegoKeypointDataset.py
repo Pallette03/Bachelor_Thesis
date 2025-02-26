@@ -44,8 +44,9 @@ class LegoKeypointDataset(Dataset):
     def process_annotation(self, annotation):
             normalized_corners = []
             for brick in annotation["annotations"]:
-                for corner_name, value in brick["normal_pixel_coordinates"].items():
-                    normalized_corners.append(value)
+                for corner_name, data in brick["normal_pixel_coordinates"].items():
+                    if data[1]:
+                        normalized_corners.append(data[0])
             
             normalized_corners = np.array(normalized_corners)
 

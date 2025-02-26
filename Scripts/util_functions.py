@@ -511,7 +511,10 @@ class Util_functions:
         
         # If we hit an object, check if it's in the exclude list
         if result and obj not in exclude_objects:
-            return False  # There is an occlusion
+            # Check if target is between camera and hit object
+            target_distance = (target - camera_location).length
+            hit_distance = (location - camera_location).length
+            return hit_distance >= target_distance
         
         return True  # No occlusion found
         

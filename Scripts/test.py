@@ -12,7 +12,7 @@ annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'dataset
 img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'images')
 model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
 
-global_image_size = (1000, 1000)
+global_image_size = (650, 650)
 
 def collate_fn(batch):
     images = [item["image"] for item in batch]
@@ -82,7 +82,7 @@ transforms = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
 ])
 
-use_external_image = True
+use_external_image = False
 
 if not use_external_image:
     # Load the dataset

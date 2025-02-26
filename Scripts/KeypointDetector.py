@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from unet_model import UNet
 
 
+
+
 def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=False, device='cpu'):
     """
     Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
@@ -27,8 +29,8 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
         
         if gaussian_blur:
             if 0 <= x < image_size and 0 <= y < image_size:
-                for i in range(-4, 5):  # Small 5×5 Gaussian
-                    for j in range(-4, 5):
+                for i in range(-1, 2):  # Small 5×5 Gaussian
+                    for j in range(-1, 2):
                         xi, yj = x + i, y + j
                         if 0 <= xi < image_size and 0 <= yj < image_size:
                             exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32).to(device)
@@ -37,13 +39,13 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
             target_heatmap[0, y, x] = 1
 
     
-    if not os.path.exists(os.path.join(os.path.dirname(__file__), os.pardir, 'heatmap.png')):
-        heatmap = target_heatmap.squeeze().detach().cpu().numpy()
-        plt.imshow(heatmap, cmap='Reds', interpolation='nearest')
-        plt.title("Predicted Heatmap (Black to Red)")
-        plt.colorbar()
-        plt.savefig("heatmap.png")
-        plt.close()
+    # if not os.path.exists(os.path.join(os.path.dirname(__file__), os.pardir, 'heatmap.png')):
+    #     heatmap = target_heatmap.squeeze().detach().cpu().numpy()
+    #     plt.imshow(heatmap, cmap='Reds', interpolation='nearest')
+    #     plt.title("Target Heatmap (Black to Red)")
+    #     plt.colorbar()
+    #     plt.savefig("heatmap.png")
+    #     plt.close()
 
     return target_heatmap
 
@@ -53,6 +55,9 @@ def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', cr
     target_heatmaps = torch.stack([keypoints_to_heatmap(kp, image_size=image_size, device=device, gaussian_blur=gaussian_blur) for kp in keypoints_list]).to(device)
 
     loss = critereon(pred_heatmaps, target_heatmaps)
+
+    loss = torch.abs(loss)
+
     return loss
 
 def extract_coordinates(heatmap, threshold=0.5):
@@ -88,7 +93,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
     optimizer = optim.Adam(model.parameters(), lr=lr)
     critereon = nn.BCEWithLogitsLoss()
     #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-    
+    train_start_time = time.time()
     for epoch in range(num_epochs):
         start_time = time.time()
         batch_start_time = time.time()
@@ -101,6 +106,8 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, num_corners_in_batch, 2]
 
             predicted_corners = model(images)
+
+            batch_len = len(images)
             
             corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
             #corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device)
@@ -118,7 +125,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
             counter += 1
             # Check the progress through the batch and print every 5 percent
             if counter % (len(dataloader) // 20) == 0:
-                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%")
+                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {((time.time() - batch_start_time) * batch_len):.2f} seconds")
                 batch_start_time = time.time()
 
 
@@ -188,9 +195,9 @@ if __name__ == "__main__":
 
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
-    batch_size = 4
+    batch_size = 6
     val_batch_size = 4
-    global_image_size = (800, 800)
+    global_image_size = (650, 650)
 
     transform = transforms.Compose([
             transforms.Resize(global_image_size),
