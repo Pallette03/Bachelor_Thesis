@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 class LegoKeypointDataset(Dataset):
-    def __init__(self, annotations_folder, img_dir, image_size=(224, 224), transform=None, num_workers=4):
+    def __init__(self, annotations_folder, img_dir, transform=None, num_workers=4):
         
         
         def load_annotation(file):
@@ -21,7 +21,6 @@ class LegoKeypointDataset(Dataset):
             annotation_files = [file for file in os.listdir(annotations_folder) if file.endswith(".json")]
             combined_annotations = list(executor.map(load_annotation, annotation_files))
             
-        self.image_size = image_size
         self.transform = transform
         self.annotations = combined_annotations
         self.img_dir = img_dir
@@ -70,9 +69,6 @@ class LegoKeypointDataset(Dataset):
         annotation = self.annotations[idx]
         img_path = os.path.join(self.img_dir, annotation["image_id"]) + ".png"
         image = Image.open(img_path).convert("RGB")
-        
-        if self.image_size is not None:
-            image = image.resize(self.image_size)
             
         # Apply optional transformations to the image
         if self.transform:

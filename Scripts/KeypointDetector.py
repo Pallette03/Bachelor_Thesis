@@ -1,3 +1,4 @@
+import datetime
 import os
 import cv2
 import numpy as np
@@ -119,8 +120,27 @@ def collate_fn(batch):
 
     return {"image": images, "norm_corners": corners_list}
 
+
+def get_mean_std(loader):
+    # Compute the mean and standard deviation of all pixels in the dataset
+    print("Computing mean and standard deviation of dataset...")
+    num_pixels = 0
+    mean = 0.0
+    std = 0.0
+    for batch in loader:
+        images = batch["image"]
+        batch_size, num_channels, height, width = images.shape
+        num_pixels += batch_size * height * width
+        mean += images.mean(axis=(0, 2, 3)).sum()
+        std += images.std(axis=(0, 2, 3)).sum()
+
+    mean /= num_pixels
+    std /= num_pixels
+
+    return mean, std
+
 # Training Loop
-def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False):
+def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     model = model.to(device)
@@ -162,7 +182,7 @@ def train_model(model, dataloader, val_dataloader, epoch_model_path, num_epochs=
             remaining_time = (time_since_start / (counter / len(dataloader))) - time_since_start
 
             if counter % (len(dataloader) // 20) == 0:
-                print(f"At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {remaining_time:.2f} seconds")
+                print(f"[{datetime.datetime.now()}] At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {remaining_time:.2f} seconds")
                 batch_start_time = time.time()
 
 
@@ -208,8 +228,8 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False):
 
         val_counter += 1
         # Check the progress through the batch and print every 5 percent
-        if val_counter % (len(dataloader) // 20) == 0:
-            print(f"At Batch {val_counter}/{len(dataloader)} for Validation taking {time.time() - val_batch_start_time:.2f} seconds since last checkpoint. Last Loss: {val_last_loss:.4f}")
+        if (val_counter % (len(dataloader) // 20) == 0) or (val_counter == len(dataloader)):
+            print(f"[{datetime.datetime.now()}] At Batch {val_counter}/{len(dataloader)} for Validation taking {time.time() - val_batch_start_time:.2f} seconds since last checkpoint. Last Loss: {val_last_loss:.4f}")
             val_batch_start_time = time.time()
     
     print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}")
@@ -234,22 +254,16 @@ if __name__ == "__main__":
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
     batch_size = 6
-    val_batch_size = 4
+    val_batch_size = 2
     global_image_size = (650, 650)
+    learning_rate = 1e-3
 
-    transform = transforms.Compose([
-            transforms.Resize(global_image_size),
-            transforms.ToTensor()
-        ])
+    transform_1 = transforms.Compose([
+        transforms.Resize(global_image_size),
+        transforms.ToTensor(),
+    ])
 
-    # Dataset and DataLoader
-    print("Loading dataset...")
-    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), image_size=global_image_size,transform=transform)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-    #dataset.reduce_dataset_size(3000)
-
-    val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), image_size=global_image_size, transform=transform)
-    val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
+    
 
     # Model, Optimizer, and Loss
     model = UNet(n_channels=3, n_classes=1)
@@ -257,9 +271,44 @@ if __name__ == "__main__":
     # Train the model
     
     if not only_validate:
+        # Dataset and DataLoader
+        print("Loading training dataset...")
+        train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_1)
+        train_dataset.reduce_dataset_size(len(train_dataset) // 10)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+
+        mean, std = get_mean_std(train_dataloader)
+
+        transform_2 = transforms.Compose([
+            transforms.Resize(global_image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+        ])
+
+        print("Loading normalized training dataset...")
+        train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_2)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+
         print("Training the model...")
-        model = train_model(model, train_dataloader, val_dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=global_image_size, gaussian_blur=gaussian_blur)
+        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=5, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur)
     else:
+        print("Loading validation dataset...")
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_1)
+        val_dataset.reduce_dataset_size(len(val_dataset) // 10)
+        val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
+
+        mean, std = get_mean_std(val_dataloader)
+
+        transform_2 = transforms.Compose([
+            transforms.Resize(global_image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+        ])
+
+        print("Loading normalized validation dataset...")
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_2)
+        val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
+
         print("Validating the model...")
         model.load_state_dict(torch.load(epoch_model_path))
         validate_model(model, val_dataloader, global_image_size, gaussian_blur=gaussian_blur)

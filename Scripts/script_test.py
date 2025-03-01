@@ -138,7 +138,7 @@ def main(collection, camera_collection, camera, line_collection, file_name="rend
                     new_obj.data = obj.data.copy()
                     camera_collection.objects.link(new_obj)
                     # Set the location of the new object within the camera's view frustum 
-                    uf.random_attributes_object(new_obj)
+                    uf.random_attributes_object(new_obj, camera, min_z, max_z)
 
                 bpy.context.view_layer.update()
                 

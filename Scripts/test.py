@@ -1,7 +1,9 @@
 import os
 import json
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
 import torch
 import torchvision
 from LegoKeypointDataset import LegoKeypointDataset
@@ -59,18 +61,12 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0):
     return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
 
 def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
-    #Output max value of the heatmap
-    min_value = np.min(pred_heatmap)
-    max_value = np.max(pred_heatmap)
-    middle_value = -(abs(min_value) - abs(max_value)) / 2
-    middle_value = middle_value
 
-    print(f"Min value: {min_value}, Max value: {max_value}, Middle value: {middle_value}")
-    print(f"Pixel Number above middle: {np.sum(pred_heatmap > middle_value)}, Pixel Number below middle: {np.sum(pred_heatmap < middle_value)}")
+    print(f"Pixel Number above threshold: {np.sum(pred_heatmap > threshold)}, Pixel Number below threshold: {np.sum(pred_heatmap < threshold)}")
     
     # for every value in the heatmap, if it is greater than the threshold, set it to 1, else 0
-    pred_heatmap[pred_heatmap > middle_value] = 1
-    pred_heatmap[pred_heatmap <= middle_value] = 0
+    #pred_heatmap[pred_heatmap > threshold] = 1
+    pred_heatmap[pred_heatmap <= threshold] = 0
     return pred_heatmap
 
 # Load the model
@@ -83,6 +79,7 @@ transforms = torchvision.transforms.Compose([
 ])
 
 use_external_image = False
+threshold = 0.4
 
 if not use_external_image:
     # Load the dataset
@@ -93,25 +90,60 @@ if not use_external_image:
     sample = dataset[rand_index]
     model_input = sample['image'].unsqueeze(0)
     
+    input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
     
     # Predict the keypoints
     pred_heatmap = model(model_input)
     pred_heatmap = pred_heatmap.squeeze(0).squeeze(0).detach().cpu().numpy()
 
 
+    # Convert to probability using sigmoid
+    prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
+
     # Save a heatmap where every pixel gets a color from black to red according to its value
-    plt.imshow(pred_heatmap, cmap='Reds', interpolation='nearest')
+    plt.imshow(prob_heatmap, cmap='Reds', interpolation='nearest')
     plt.title("Predicted Heatmap (Black to Red)")
     plt.colorbar()
     plt.savefig("predicted_heatmap_black_to_red.png")
     plt.close()
 
 
+    
 
-    pred_heatmap = convert_pred_to_heatmap(pred_heatmap)
+
+    pred_heatmap = convert_pred_to_heatmap(prob_heatmap, threshold=threshold)
+
+    # Detect blobs in the heatmap and convert them to keypoints
+    binary_map = (pred_heatmap > threshold).astype(np.uint8)
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_map)
+
+    # Extract keypoint coordinates (ignore the background component at index 0)
+    keypoints = centroids[1:]
+
+    # Print keypoints
+    print("Detected Keypoints amount:", len(keypoints))
+
+    # Apply max filter to find local peaks
+    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+    peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
+
+    # Get peak coordinates
+    y_coords, x_coords = np.where(peaks)
+    keypoints = np.column_stack((x_coords, y_coords))
+
+    print("Filtered Keypoints amount:", len(keypoints))
+
+    plt.imshow(input_image, cmap="jet")
+    for x, y in keypoints:
+        circle = plt.Circle((x, y), radius=1, color="cyan", fill=False, linewidth=1.5)
+        plt.gca().add_patch(circle)
+    plt.title("Predicted Heatmap with Detected Keypoints")
+    plt.colorbar()
+    plt.savefig("predicted_heatmap_after_scipy.png")
+    plt.close()
 
 
-    target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
+    #target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
 
 
 
@@ -122,15 +154,10 @@ if not use_external_image:
     plt.title("Predicted Heatmap")
     plt.savefig("predicted_heatmap.png")
 
-    plt.imshow(target_heatmap, cmap='hot', interpolation='nearest')
-    plt.title("Target Heatmap")
-    plt.savefig("target_heatmap.png")
-
-
 
     # Overlay the predicted keypoints onto the input image
     pred_keypoints = np.argwhere(pred_heatmap == 1)
-    input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
+    
 
     plt.figure(figsize=(10, 10))
     plt.imshow(input_image)
@@ -142,20 +169,6 @@ if not use_external_image:
     plt.savefig("input_image_with_predicted_keypoints.png")
     plt.close()
 
-
-    # Overlay the target keypoints onto the input image
-    target_keypoints = np.argwhere(target_heatmap == 1)
-    tageet_image = sample['image'].permute(1, 2, 0).cpu().numpy()
-
-    plt.figure(figsize=(10, 10))
-    plt.imshow(tageet_image)
-
-    for (y, x) in target_keypoints:
-        plt.scatter(x, y, c='yellow', s=1)
-
-    plt.title("Input Image with Target Keypoints")
-    plt.savefig("input_image_with_target_keypoints.png")
-    plt.close()
 else:
     # Load an external image
     img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images', 'lego_brick.jpg')

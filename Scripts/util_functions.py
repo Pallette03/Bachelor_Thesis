@@ -355,23 +355,46 @@ class Util_functions:
     
     def get_corners_of_object(self, obj, camera, camera_collection):
         # Get the object's bounding box corners in world space and put them in a dictionary
-        corners = {f"Corner_{i}": obj.matrix_world @ mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}# In the form: {"Corner_0": Vector((x, y, z)), ...}
+        all_corners = {f"Corner_{i}": mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
 
+        stud_corrected_corners = {}
+        
+        min_z = min(c.z for c in all_corners.values())
+        max_z = max(c.z for c in all_corners.values())  # This includes studs
+
+        # Find the second-highest flat surface (excluding studs)
+        face_heights = [
+            (face.center).z
+            for face in obj.data.polygons
+            if len(face.vertices) == 4 and abs(face.normal.z) > 0.9  # Face normal near (0,0,1)
+        ]
+        
+        # Get the second-highest Z value to exclude studs
+        unique_heights = sorted(set(face_heights))
+        if len(unique_heights) > 1:
+            real_top_z = unique_heights[-1]  # Second-highest surface (likely top of brick body)
+        else:
+            real_top_z = max_z  # Fallback if no distinction found
+
+        for name, value in all_corners.items():
+            if value.z == max_z:
+                stud_corrected_corners[name] = obj.matrix_world @ mathutils.Vector((value.x, value.y, real_top_z))
+            else:
+                stud_corrected_corners[name] = obj.matrix_world @ value
+                    
         # Check the visibility of the corners
-        for corner_name, corner_vector in corners.items():
+        for corner_name, corner_vector in stud_corrected_corners.items():
             # Cast a ray from the camera to the corner
             is_visible = self.is_visible(camera, corner_vector)
             # Check if the ray intersected with any object
             if is_visible:
-                corners[corner_name] = (corner_vector, True)
+                stud_corrected_corners[corner_name] = (corner_vector, True)
             else:
-                corners[corner_name] = (corner_vector, False)
+                stud_corrected_corners[corner_name] = (corner_vector, False)
 
-        return corners
+        return stud_corrected_corners
     
     def convert_coordinates(self, corner_name, vector, scene, camera, visible=None):
-
-        # Convert the world coordinates to camera view coordinatesget_occluding_objects(camera, corner_vector, camera_collection, None, draw_line=False)
 
         co_2d = bpy_extras.object_utils.world_to_camera_view(scene, camera, vector)
         # Convert the normalized coordinates to pixel coordinates
@@ -473,7 +496,7 @@ class Util_functions:
         x1, y1 = bottom_left
         x2, y2 = top_right
         
-        # Ensure the coordinates are within the image bounds
+        # Ensure the coordinates are within the image boundsFalse
         x1 = max(0, x1)
         y1 = max(0, y1)
         x2 = min(image.shape[1], x2)

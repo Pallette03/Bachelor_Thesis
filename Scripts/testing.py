@@ -7,7 +7,7 @@ import json
 annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'annotations')
 img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'images', 'rgb')
 
-img_path = os.path.join(img_dir, '26022025-123822-502.png')
+img_path = os.path.join(img_dir, '28022025-142023-681.png')
 
 def denormalize_keypoints(keypoints, image_width, image_height):
         denormalized_keypoints = {}
