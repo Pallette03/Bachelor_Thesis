@@ -121,24 +121,6 @@ def collate_fn(batch):
     return {"image": images, "norm_corners": corners_list}
 
 
-def get_mean_std(loader):
-    # Compute the mean and standard deviation of all pixels in the dataset
-    print("Computing mean and standard deviation of dataset...")
-    num_pixels = 0
-    mean = 0.0
-    std = 0.0
-    for batch in loader:
-        images = batch["image"]
-        batch_size, num_channels, height, width = images.shape
-        num_pixels += batch_size * height * width
-        mean += images.mean(axis=(0, 2, 3)).sum()
-        std += images.std(axis=(0, 2, 3)).sum()
-
-    mean /= num_pixels
-    std /= num_pixels
-
-    return mean, std
-
 # Training Loop
 def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -256,11 +238,12 @@ if __name__ == "__main__":
     batch_size = 6
     val_batch_size = 2
     global_image_size = (650, 650)
-    learning_rate = 1e-3
+    learning_rate = 1e-4
 
     transform_1 = transforms.Compose([
         transforms.Resize(global_image_size),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     
@@ -274,19 +257,6 @@ if __name__ == "__main__":
         # Dataset and DataLoader
         print("Loading training dataset...")
         train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_1)
-        train_dataset.reduce_dataset_size(len(train_dataset) // 10)
-        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-
-        mean, std = get_mean_std(train_dataloader)
-
-        transform_2 = transforms.Compose([
-            transforms.Resize(global_image_size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-
-        print("Loading normalized training dataset...")
-        train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_2)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
         print("Training the model...")
@@ -294,19 +264,6 @@ if __name__ == "__main__":
     else:
         print("Loading validation dataset...")
         val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_1)
-        val_dataset.reduce_dataset_size(len(val_dataset) // 10)
-        val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
-
-        mean, std = get_mean_std(val_dataloader)
-
-        transform_2 = transforms.Compose([
-            transforms.Resize(global_image_size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-
-        print("Loading normalized validation dataset...")
-        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_2)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
 
         print("Validating the model...")

@@ -75,7 +75,12 @@ model.load_state_dict(torch.load(model_path))
 model.eval()
 
 transforms = torchvision.transforms.Compose([
+    torchvision.transforms.Resize(global_image_size),
     torchvision.transforms.ToTensor(),
+])
+
+norm_transforms = torchvision.transforms.Compose([
+    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 use_external_image = False
@@ -83,12 +88,13 @@ threshold = 0.4
 
 if not use_external_image:
     # Load the dataset
-    dataset = LegoKeypointDataset(annotations_folder, img_dir, image_size=global_image_size, transform=transforms)
+    dataset = LegoKeypointDataset(annotations_folder, img_dir, transform=transforms)
 
     dataset_length = len(dataset)
     rand_index = np.random.randint(0, dataset_length)
     sample = dataset[rand_index]
     model_input = sample['image'].unsqueeze(0)
+    model_input = norm_transforms(model_input)
     
     input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
     
