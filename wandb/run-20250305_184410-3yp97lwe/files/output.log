@@ -1,0 +1,32 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Validating the model...
+Validating on cuda
+/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py:173: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).squeeze().numpy()
+/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py:173: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).squeeze().numpy()
+[2025-03-05 18:44:18.777046] At Batch 4/82 for Validation taking 3.30 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:44:21.544267] At Batch 8/82 for Validation taking 2.77 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:44:24.369163] At Batch 12/82 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 18:44:27.256790] At Batch 16/82 for Validation taking 2.89 seconds since last checkpoint. Last Loss: 0.0012
+[2025-03-05 18:44:30.134967] At Batch 20/82 for Validation taking 2.88 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 18:44:32.994307] At Batch 24/82 for Validation taking 2.86 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 18:44:35.914072] At Batch 28/82 for Validation taking 2.92 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 18:44:38.911473] At Batch 32/82 for Validation taking 3.00 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:44:41.988459] At Batch 36/82 for Validation taking 3.08 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 18:44:44.905960] At Batch 40/82 for Validation taking 2.92 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 18:44:47.696698] At Batch 44/82 for Validation taking 2.79 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 18:44:50.411914] At Batch 48/82 for Validation taking 2.71 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 18:44:53.266598] At Batch 52/82 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0012
+[2025-03-05 18:44:56.028379] At Batch 56/82 for Validation taking 2.76 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:44:58.749111] At Batch 60/82 for Validation taking 2.72 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 18:45:01.596843] At Batch 64/82 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:45:04.640391] At Batch 68/82 for Validation taking 3.04 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 18:45:07.434600] At Batch 72/82 for Validation taking 2.79 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 18:45:10.306303] At Batch 76/82 for Validation taking 2.87 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 18:45:13.074347] At Batch 80/82 for Validation taking 2.77 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 18:45:13.971143] At Batch 82/82 for Validation taking 0.90 seconds since last checkpoint. Last Loss: 0.0019
+Validation Loss: 0.0012
+Saving the model...

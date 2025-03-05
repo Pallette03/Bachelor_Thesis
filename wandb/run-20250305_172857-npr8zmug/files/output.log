@@ -1,0 +1,59 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-05 17:30:44.679037] At Batch 77/1541 for Epoch 1 taking 102.55 seconds since last checkpoint. Last Loss: 0.3714. Progress: 5.00%. Approx. Time left: 1949.82 seconds
+[2025-03-05 17:32:27.051619] At Batch 154/1541 for Epoch 1 taking 102.37 seconds since last checkpoint. Last Loss: 0.3058. Progress: 9.99%. Approx. Time left: 1845.65 seconds
+[2025-03-05 17:34:09.596850] At Batch 231/1541 for Epoch 1 taking 102.54 seconds since last checkpoint. Last Loss: 0.2672. Progress: 14.99%. Approx. Time left: 1743.66 seconds
+[2025-03-05 17:35:52.301235] At Batch 308/1541 for Epoch 1 taking 102.70 seconds since last checkpoint. Last Loss: 0.2334. Progress: 19.99%. Approx. Time left: 1642.03 seconds
+[2025-03-05 17:37:34.785485] At Batch 385/1541 for Epoch 1 taking 102.48 seconds since last checkpoint. Last Loss: 0.2073. Progress: 24.98%. Approx. Time left: 1539.31 seconds
+[2025-03-05 17:39:17.636705] At Batch 462/1541 for Epoch 1 taking 102.85 seconds since last checkpoint. Last Loss: 0.1834. Progress: 29.98%. Approx. Time left: 1437.52 seconds
+[2025-03-05 17:41:00.275904] At Batch 539/1541 for Epoch 1 taking 102.64 seconds since last checkpoint. Last Loss: 0.1618. Progress: 34.98%. Approx. Time left: 1335.04 seconds
+[2025-03-05 17:42:42.839370] At Batch 616/1541 for Epoch 1 taking 102.56 seconds since last checkpoint. Last Loss: 0.1432. Progress: 39.97%. Approx. Time left: 1232.40 seconds
+[2025-03-05 17:44:25.493854] At Batch 693/1541 for Epoch 1 taking 102.65 seconds since last checkpoint. Last Loss: 0.1275. Progress: 44.97%. Approx. Time left: 1129.89 seconds
+[2025-03-05 17:46:08.204996] At Batch 770/1541 for Epoch 1 taking 102.71 seconds since last checkpoint. Last Loss: 0.1143. Progress: 49.97%. Approx. Time left: 1027.41 seconds
+[2025-03-05 17:47:51.383332] At Batch 847/1541 for Epoch 1 taking 103.18 seconds since last checkpoint. Last Loss: 0.1020. Progress: 54.96%. Approx. Time left: 925.27 seconds
+[2025-03-05 17:49:34.259934] At Batch 924/1541 for Epoch 1 taking 102.88 seconds since last checkpoint. Last Loss: 0.0926. Progress: 59.96%. Approx. Time left: 822.76 seconds
+[2025-03-05 17:51:16.902080] At Batch 1001/1541 for Epoch 1 taking 102.64 seconds since last checkpoint. Last Loss: 0.0838. Progress: 64.96%. Approx. Time left: 720.06 seconds
+[2025-03-05 17:52:59.401521] At Batch 1078/1541 for Epoch 1 taking 102.50 seconds since last checkpoint. Last Loss: 0.0755. Progress: 69.95%. Approx. Time left: 617.31 seconds
+[2025-03-05 17:54:41.625913] At Batch 1155/1541 for Epoch 1 taking 102.22 seconds since last checkpoint. Last Loss: 0.0724. Progress: 74.95%. Approx. Time left: 514.50 seconds
+[2025-03-05 17:56:24.210859] At Batch 1232/1541 for Epoch 1 taking 102.58 seconds since last checkpoint. Last Loss: 0.0632. Progress: 79.95%. Approx. Time left: 411.85 seconds
+[2025-03-05 17:58:06.926437] At Batch 1309/1541 for Epoch 1 taking 102.72 seconds since last checkpoint. Last Loss: 0.0577. Progress: 84.94%. Approx. Time left: 309.24 seconds
+[2025-03-05 17:59:49.511110] At Batch 1386/1541 for Epoch 1 taking 102.58 seconds since last checkpoint. Last Loss: 0.0526. Progress: 89.94%. Approx. Time left: 206.60 seconds
+[2025-03-05 18:01:32.224140] At Batch 1463/1541 for Epoch 1 taking 102.71 seconds since last checkpoint. Last Loss: 0.0483. Progress: 94.94%. Approx. Time left: 103.97 seconds
+[2025-03-05 18:03:14.893285] At Batch 1540/1541 for Epoch 1 taking 102.67 seconds since last checkpoint. Last Loss: 0.0463. Progress: 99.94%. Approx. Time left: 1.33 seconds
+Took 2053.86 seconds for epoch 1
+Epoch [1/10], Heatmap Loss: 0.1539
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Validating on cuda
+/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py:169: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap))
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 381, in <module>
+    model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=validataion_params)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 248, in train_model
+    validate_model(model, **validataion_params)
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 283, in validate_model
+    batch_average_distance, batch_accuracy = calculate_accuracy(get_keypoints_from_predictions(predicted_corners, threshold=threshold), target_corners, distance_threshold, global_image_size)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 171, in get_keypoints_from_predictions
+    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/scipy/ndimage/_filters.py", line 1486, in maximum_filter
+    return _min_or_max_filter(input, size, footprint, None, output, mode,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/scipy/ndimage/_filters.py", line 1330, in _min_or_max_filter
+    input = np.asarray(input)
+            ^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/torch/_tensor.py", line 1194, in __array__
+    return self.numpy()
+           ^^^^^^^^^^^^
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Exception ignored in: <module 'threading' from '/usr/lib/python3.12/threading.py'>
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1622, in _shutdown
+    lock.acquire()
+KeyboardInterrupt:

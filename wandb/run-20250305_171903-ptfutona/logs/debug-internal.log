@@ -1,0 +1,16 @@
+{"time":"2025-03-05T17:19:03.134358878+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250305_171903-ptfutona/logs/debug-core.log"}
+{"time":"2025-03-05T17:19:03.343503037+01:00","level":"INFO","msg":"created new stream","id":"ptfutona"}
+{"time":"2025-03-05T17:19:03.343538543+01:00","level":"INFO","msg":"stream: started","id":"ptfutona"}
+{"time":"2025-03-05T17:19:03.343578458+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:19:03.343592093+01:00","level":"INFO","msg":"sender: started","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:19:03.343620386+01:00","level":"INFO","msg":"handler: started","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:19:03.628337094+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-05T17:22:02.779082494+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-05T17:22:02.779838685+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-05T17:22:03.530305821+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-05T17:22:03.740642816+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading summary","runtime_seconds":0.210236247}],"total_operations":1}}
+{"time":"2025-03-05T17:22:04.77834315+01:00","level":"INFO","msg":"stream: closing","id":"ptfutona"}
+{"time":"2025-03-05T17:22:04.778374869+01:00","level":"INFO","msg":"handler: closed","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:22:04.778394326+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:22:04.778407059+01:00","level":"INFO","msg":"sender: closed","stream_id":"ptfutona"}
+{"time":"2025-03-05T17:22:04.778498159+01:00","level":"INFO","msg":"stream: closed","id":"ptfutona"}

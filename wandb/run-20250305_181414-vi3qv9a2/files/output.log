@@ -1,0 +1,17 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Validating the model...
+Validating on cuda
+/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py:169: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap))
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 382, in <module>
+    validate_model(model, **validataion_params)
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 283, in validate_model
+    batch_average_distance, batch_accuracy = calculate_accuracy(get_keypoints_from_predictions(predicted_corners.cpu(), threshold=threshold), target_corners.cpu(), distance_threshold, global_image_size)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 175, in get_keypoints_from_predictions
+    y_coords, x_coords = np.where(peaks)
+    ^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2)

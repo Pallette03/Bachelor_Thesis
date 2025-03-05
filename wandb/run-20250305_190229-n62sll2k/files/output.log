@@ -1,0 +1,28 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Validating the model...
+Validating on cuda
+[2025-03-05 19:02:38.093251] At Batch 4/82 for Validation taking 3.35 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:02:40.914838] At Batch 8/82 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:02:43.618664] At Batch 12/82 for Validation taking 2.70 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 19:02:46.358959] At Batch 16/82 for Validation taking 2.74 seconds since last checkpoint. Last Loss: 0.0012
+[2025-03-05 19:02:49.045594] At Batch 20/82 for Validation taking 2.69 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 19:02:51.768456] At Batch 24/82 for Validation taking 2.72 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 19:02:54.588728] At Batch 28/82 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 19:02:57.320432] At Batch 32/82 for Validation taking 2.73 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:03:00.147097] At Batch 36/82 for Validation taking 2.83 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 19:03:03.002138] At Batch 40/82 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 19:03:05.715577] At Batch 44/82 for Validation taking 2.71 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 19:03:08.443116] At Batch 48/82 for Validation taking 2.73 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 19:03:11.360037] At Batch 52/82 for Validation taking 2.92 seconds since last checkpoint. Last Loss: 0.0012
+[2025-03-05 19:03:14.111695] At Batch 56/82 for Validation taking 2.75 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:03:16.855011] At Batch 60/82 for Validation taking 2.74 seconds since last checkpoint. Last Loss: 0.0010
+[2025-03-05 19:03:19.728950] At Batch 64/82 for Validation taking 2.87 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:03:22.682374] At Batch 68/82 for Validation taking 2.95 seconds since last checkpoint. Last Loss: 0.0011
+[2025-03-05 19:03:25.424748] At Batch 72/82 for Validation taking 2.74 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 19:03:28.232501] At Batch 76/82 for Validation taking 2.81 seconds since last checkpoint. Last Loss: 0.0014
+[2025-03-05 19:03:30.968621] At Batch 80/82 for Validation taking 2.74 seconds since last checkpoint. Last Loss: 0.0013
+[2025-03-05 19:03:31.878201] At Batch 82/82 for Validation taking 0.91 seconds since last checkpoint. Last Loss: 0.0019
+Validation Loss: 0.0012
+Saving the model...

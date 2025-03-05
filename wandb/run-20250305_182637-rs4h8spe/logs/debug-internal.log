@@ -1,0 +1,7 @@
+{"time":"2025-03-05T18:26:37.207394972+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250305_182637-rs4h8spe/logs/debug-core.log"}
+{"time":"2025-03-05T18:26:37.417460963+01:00","level":"INFO","msg":"created new stream","id":"rs4h8spe"}
+{"time":"2025-03-05T18:26:37.417501749+01:00","level":"INFO","msg":"stream: started","id":"rs4h8spe"}
+{"time":"2025-03-05T18:26:37.417537987+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"rs4h8spe"}
+{"time":"2025-03-05T18:26:37.417595244+01:00","level":"INFO","msg":"sender: started","stream_id":"rs4h8spe"}
+{"time":"2025-03-05T18:26:37.417624198+01:00","level":"INFO","msg":"handler: started","stream_id":"rs4h8spe"}
+{"time":"2025-03-05T18:26:37.730464322+01:00","level":"INFO","msg":"Starting system monitor"}

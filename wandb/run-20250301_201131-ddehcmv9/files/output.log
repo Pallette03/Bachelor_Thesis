@@ -1,0 +1,8 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Training the model...
+Training on cuda
+[2025-03-01 20:13:18.563588] At Batch 77/1541 for Epoch 1 taking 102.03 seconds since last checkpoint. Last Loss: 0.3085. Progress: 5.00%. Approx. Time left: 1939.86 seconds
+[2025-03-01 20:15:00.495257] At Batch 154/1541 for Epoch 1 taking 101.93 seconds since last checkpoint. Last Loss: 0.2475. Progress: 9.99%. Approx. Time left: 1836.96 seconds
+[2025-03-01 20:16:44.038324] At Batch 231/1541 for Epoch 1 taking 103.54 seconds since last checkpoint. Last Loss: 0.2079. Progress: 14.99%. Approx. Time left: 1743.85 seconds
+[2025-03-01 20:18:27.006731] At Batch 308/1541 for Epoch 1 taking 102.97 seconds since last checkpoint. Last Loss: 0.1769. Progress: 19.99%. Approx. Time left: 1643.22 seconds
