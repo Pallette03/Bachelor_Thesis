@@ -1,0 +1,7 @@
+{"time":"2025-03-08T15:37:20.89497163+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250308_153720-toldlti9/logs/debug-core.log"}
+{"time":"2025-03-08T15:37:21.103629441+01:00","level":"INFO","msg":"created new stream","id":"toldlti9"}
+{"time":"2025-03-08T15:37:21.103662061+01:00","level":"INFO","msg":"stream: started","id":"toldlti9"}
+{"time":"2025-03-08T15:37:21.103711594+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"toldlti9"}
+{"time":"2025-03-08T15:37:21.103726001+01:00","level":"INFO","msg":"sender: started","stream_id":"toldlti9"}
+{"time":"2025-03-08T15:37:21.103813324+01:00","level":"INFO","msg":"handler: started","stream_id":"toldlti9"}
+{"time":"2025-03-08T15:37:21.376427205+01:00","level":"INFO","msg":"Starting system monitor"}

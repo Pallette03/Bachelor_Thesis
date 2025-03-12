@@ -1,0 +1,16 @@
+{"time":"2025-03-10T17:55:30.016563048+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250310_175530-vchjiqge/logs/debug-core.log"}
+{"time":"2025-03-10T17:55:30.22612935+01:00","level":"INFO","msg":"created new stream","id":"vchjiqge"}
+{"time":"2025-03-10T17:55:30.226168513+01:00","level":"INFO","msg":"stream: started","id":"vchjiqge"}
+{"time":"2025-03-10T17:55:30.22622586+01:00","level":"INFO","msg":"sender: started","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:55:30.226220831+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:55:30.226228776+01:00","level":"INFO","msg":"handler: started","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:55:30.575032883+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-10T17:59:44.658745229+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-10T17:59:44.659427202+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-10T17:59:45.395570397+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-10T17:59:45.617956082+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-03-10T17:59:46.621786191+01:00","level":"INFO","msg":"stream: closing","id":"vchjiqge"}
+{"time":"2025-03-10T17:59:46.621809003+01:00","level":"INFO","msg":"handler: closed","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:59:46.621830433+01:00","level":"INFO","msg":"sender: closed","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:59:46.621822759+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"vchjiqge"}
+{"time":"2025-03-10T17:59:46.62192518+01:00","level":"INFO","msg":"stream: closed","id":"vchjiqge"}

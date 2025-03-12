@@ -1,0 +1,46 @@
+{
+  "os":  "Linux-6.11.0-19-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.12.3",
+  "startedAt":  "2025-03-11T15:41:57.833995Z",
+  "program":  "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py",
+  "codePath":  "Scripts/KeypointDetector.py",
+  "git":  {
+    "remote":  "https://github.com/Pallette03/Bachelor.git",
+    "commit":  "b2909076383f3069ac91a98759ee0f5493f7045f"
+  },
+  "email":  "paul.boebinger@gmail.com",
+  "root":  "/home/pallette/Documents/GitHub/Bachelor",
+  "host":  "pallette-Ubuntu",
+  "executable":  "/home/pallette/Documents/GitHub/Bachelor/.venv/bin/python",
+  "codePathLocal":  "Scripts/KeypointDetector.py",
+  "cpu_count":  8,
+  "cpu_count_logical":  16,
+  "gpu":  "Navi 32 [Radeon RX 7700 XT / 7800 XT]",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "209130135552",
+      "used":  "164213624832"
+    }
+  },
+  "memory":  {
+    "total":  "33558093824"
+  },
+  "cpu":  {
+    "count":  8,
+    "countLogical":  16
+  },
+  "gpu_amd":  [
+    {
+      "id":  "0",
+      "uniqueId":  "0x9abb678601a3600a",
+      "vbiosVersion":  "113-APM6771OC-58A2",
+      "performanceLevel":  "auto",
+      "maxPower":  "236.0",
+      "series":  "Navi 32 [Radeon RX 7700 XT / 7800 XT]",
+      "model":  "0x747e",
+      "vendor":  "Advanced Micro Devices, Inc. [AMD/ATI]",
+      "sku":  "APM6771OC"
+    }
+  ]
+}

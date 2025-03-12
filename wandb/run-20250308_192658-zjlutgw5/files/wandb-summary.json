@@ -1,0 +1,1 @@
+{"_runtime":4669.209020575,"_step":42,"Last Loss":0.0373183973133564,"Progress":4.99675535366645,"Validation Accuracy":-1,"Time since last checkpoint":111.27352499961853,"_wandb":{"runtime":4737},"Approx. Time left":2115.634769365385,"Batch Progress":"77/1541","_timestamp":1.7414630875781994e+09,"Validation Loss":0.03146181257850513,"Validation Average Distance":-1,"Recall":0}

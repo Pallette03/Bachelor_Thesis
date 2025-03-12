@@ -1,0 +1,142 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-08 18:21:12.485983] At Batch 77/1541 for Epoch 1 taking 111.09 seconds since last checkpoint. Last Loss: 0.0186. Progress: 5.00%. Approx. Time left: 2112.12 seconds
+[2025-03-08 18:23:02.307079] At Batch 154/1541 for Epoch 1 taking 109.82 seconds since last checkpoint. Last Loss: 0.0194. Progress: 9.99%. Approx. Time left: 1989.62 seconds
+[2025-03-08 18:24:52.766951] At Batch 231/1541 for Epoch 1 taking 110.46 seconds since last checkpoint. Last Loss: 0.0175. Progress: 14.99%. Approx. Time left: 1879.19 seconds
+[2025-03-08 18:26:42.702259] At Batch 308/1541 for Epoch 1 taking 109.93 seconds since last checkpoint. Last Loss: 0.0189. Progress: 19.99%. Approx. Time left: 1766.65 seconds
+[2025-03-08 18:28:33.367242] At Batch 385/1541 for Epoch 1 taking 110.66 seconds since last checkpoint. Last Loss: 0.0176. Progress: 24.98%. Approx. Time left: 1657.34 seconds
+[2025-03-08 18:30:24.103980] At Batch 462/1541 for Epoch 1 taking 110.74 seconds since last checkpoint. Last Loss: 0.0180. Progress: 29.98%. Approx. Time left: 1547.75 seconds
+[2025-03-08 18:32:15.881617] At Batch 539/1541 for Epoch 1 taking 111.78 seconds since last checkpoint. Last Loss: 0.0206. Progress: 34.98%. Approx. Time left: 1439.76 seconds
+[2025-03-08 18:34:06.721751] At Batch 616/1541 for Epoch 1 taking 110.84 seconds since last checkpoint. Last Loss: 0.0181. Progress: 39.97%. Approx. Time left: 1329.42 seconds
+[2025-03-08 18:35:58.145853] At Batch 693/1541 for Epoch 1 taking 111.42 seconds since last checkpoint. Last Loss: 0.0191. Progress: 44.97%. Approx. Time left: 1219.69 seconds
+[2025-03-08 18:37:49.674361] At Batch 770/1541 for Epoch 1 taking 111.53 seconds since last checkpoint. Last Loss: 0.0184. Progress: 49.97%. Approx. Time left: 1109.72 seconds
+[2025-03-08 18:39:40.174981] At Batch 847/1541 for Epoch 1 taking 110.50 seconds since last checkpoint. Last Loss: 0.0187. Progress: 54.96%. Approx. Time left: 998.62 seconds
+[2025-03-08 18:41:35.292730] At Batch 924/1541 for Epoch 1 taking 115.12 seconds since last checkpoint. Last Loss: 0.0192. Progress: 59.96%. Approx. Time left: 890.71 seconds
+[2025-03-08 18:43:24.624354] At Batch 1001/1541 for Epoch 1 taking 109.33 seconds since last checkpoint. Last Loss: 0.0185. Progress: 64.96%. Approx. Time left: 778.56 seconds
+[2025-03-08 18:45:12.410564] At Batch 1078/1541 for Epoch 1 taking 107.79 seconds since last checkpoint. Last Loss: 0.0177. Progress: 69.95%. Approx. Time left: 666.16 seconds
+[2025-03-08 18:47:01.370649] At Batch 1155/1541 for Epoch 1 taking 108.96 seconds since last checkpoint. Last Loss: 0.0186. Progress: 74.95%. Approx. Time left: 554.76 seconds
+[2025-03-08 18:48:49.446748] At Batch 1232/1541 for Epoch 1 taking 108.08 seconds since last checkpoint. Last Loss: 0.0185. Progress: 79.95%. Approx. Time left: 443.45 seconds
+[2025-03-08 18:50:37.079591] At Batch 1309/1541 for Epoch 1 taking 107.63 seconds since last checkpoint. Last Loss: 0.0183. Progress: 84.94%. Approx. Time left: 332.44 seconds
+[2025-03-08 18:52:25.467970] At Batch 1386/1541 for Epoch 1 taking 108.39 seconds since last checkpoint. Last Loss: 0.0184. Progress: 89.94%. Approx. Time left: 221.88 seconds
+[2025-03-08 18:54:12.798207] At Batch 1463/1541 for Epoch 1 taking 107.33 seconds since last checkpoint. Last Loss: 0.0180. Progress: 94.94%. Approx. Time left: 111.50 seconds
+[2025-03-08 18:55:59.969658] At Batch 1540/1541 for Epoch 1 taking 107.17 seconds since last checkpoint. Last Loss: 0.0179. Progress: 99.94%. Approx. Time left: 1.43 seconds
+Took 2199.72 seconds for epoch 1
+Epoch [1/20], Heatmap Loss: 0.0214
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Validating on cuda
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:04.582008] At Batch 4/82 for Validation taking 3.03 seconds since last checkpoint. Last Loss: 0.0184
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:07.488690] At Batch 8/82 for Validation taking 2.91 seconds since last checkpoint. Last Loss: 0.0186
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:10.303829] At Batch 12/82 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0190
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:13.222674] At Batch 16/82 for Validation taking 2.92 seconds since last checkpoint. Last Loss: 0.0173
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:16.066616] At Batch 20/82 for Validation taking 2.84 seconds since last checkpoint. Last Loss: 0.0180
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:18.957753] At Batch 24/82 for Validation taking 2.89 seconds since last checkpoint. Last Loss: 0.0181
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:21.897003] At Batch 28/82 for Validation taking 2.94 seconds since last checkpoint. Last Loss: 0.0187
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:24.882956] At Batch 32/82 for Validation taking 2.99 seconds since last checkpoint. Last Loss: 0.0183
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:27.960084] At Batch 36/82 for Validation taking 3.08 seconds since last checkpoint. Last Loss: 0.0192
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:30.917548] At Batch 40/82 for Validation taking 2.96 seconds since last checkpoint. Last Loss: 0.0194
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:33.819559] At Batch 44/82 for Validation taking 2.90 seconds since last checkpoint. Last Loss: 0.0181
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:36.603009] At Batch 48/82 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0183
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:39.579473] At Batch 52/82 for Validation taking 2.98 seconds since last checkpoint. Last Loss: 0.0183
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:42.435233] At Batch 56/82 for Validation taking 2.86 seconds since last checkpoint. Last Loss: 0.0190
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:45.245183] At Batch 60/82 for Validation taking 2.81 seconds since last checkpoint. Last Loss: 0.0185
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:48.144673] At Batch 64/82 for Validation taking 2.90 seconds since last checkpoint. Last Loss: 0.0187
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:51.219232] At Batch 68/82 for Validation taking 3.07 seconds since last checkpoint. Last Loss: 0.0184
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:54.039870] At Batch 72/82 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0178
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:57.028706] At Batch 76/82 for Validation taking 2.99 seconds since last checkpoint. Last Loss: 0.0188
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:56:59.809485] At Batch 80/82 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0196
+No keypoints found. Very bad.
+No keypoints found. Very bad.
+[2025-03-08 18:57:00.693790] At Batch 82/82 for Validation taking 0.88 seconds since last checkpoint. Last Loss: 0.0221
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 400, in <module>
+    model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=validataion_params)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 256, in train_model
+    validate_model(model, **validataion_params)
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 307, in validate_model
+    average_distance /= (len(dataloader) - no_points_detected)
+ZeroDivisionError: division by zero

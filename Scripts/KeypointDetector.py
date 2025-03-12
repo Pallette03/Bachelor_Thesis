@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+from matplotlib import pyplot as plt
 import numpy as np
 import scipy
 import torch
@@ -11,6 +12,8 @@ from LegoKeypointDataset import LegoKeypointDataset
 import torchvision.transforms as transforms
 import time
 from unet_model import UNet
+from models.hourglass.posenet import PoseNet
+from models.KeyNet.keynet import KeyNet
 import wandb
 import threading
 
@@ -192,7 +195,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
-    #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    #scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95 ** epoch)
     
     for epoch in range(num_epochs):
         start_time = time.time()
@@ -221,6 +224,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
             optimizer.zero_grad()
             corner_loss.backward()
             optimizer.step()
+            #scheduler.step()
             
             # Accumulate losses for logging
             total_corner_loss += corner_loss.item()
@@ -231,6 +235,20 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
             remaining_time = (time_since_start / (counter / len(dataloader))) - time_since_start
             
             if counter % (len(dataloader) // 20) == 0:
+
+                # pred_heatmap = predicted_corners[-1].squeeze(0).detach().cpu().numpy()
+
+
+                # # Convert to probability using sigmoid
+                # prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
+
+                # # Save a heatmap where every pixel gets a color from black to red according to its value
+                # plt.imshow(prob_heatmap, cmap='Reds', interpolation='nearest')
+                # plt.title("Predicted Heatmap (Black to Red)")
+                # plt.colorbar()
+                # plt.savefig("predicted_heatmap_black_to_red.png")
+                # plt.close()
+
                 log_string = f"[{datetime.datetime.now()}] At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {remaining_time:.2f} seconds"
                 run_handler.log({"Batch Progress": f"{counter}/{len(dataloader)}", "Time since last checkpoint": (time.time() - batch_start_time), "Last Loss": last_loss, "Progress": (counter / len(dataloader) * 100), "Approx. Time left": remaining_time})
                 print(log_string)
@@ -302,8 +320,13 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
                 print(f"[{datetime.datetime.now()}] At Batch {val_counter}/{len(dataloader)} for Validation taking {time.time() - val_batch_start_time:.2f} seconds since last checkpoint. Last Loss: {val_last_loss:.4f}")
                 val_batch_start_time = time.time()
         
-        average_distance /= (len(dataloader) - no_points_detected)
-        accuracy /= (len(dataloader) - no_points_detected)
+        if no_points_detected == len(dataloader):
+            print("No keypoints detected in any of the images. Very bad.")
+            average_distance = -1
+            accuracy = -1
+        else: 
+            average_distance /= (len(dataloader) - no_points_detected)
+            accuracy /= (len(dataloader) - no_points_detected)
         recall /= (len(dataloader))
         run_handler.log({"Validation Loss": total_corner_loss / len(dataloader), "Validation Average Distance": average_distance, "Validation Accuracy": accuracy, "Recall": recall})
         print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}")
@@ -318,13 +341,14 @@ if __name__ == "__main__":
         entity='pallette-personal', 
         job_type='train',
         config={
-            "model": "UNet",
+            "model": "KeyNet",
             "dataset": "cropped_objects",
-            "batch_size": 6,
-            "val_batch_size": 6,
-            "learning_rate": 1e-4,
-            "global_image_size": (650, 650),
-            "num_epochs": 10,
+            "batch_size": 24,
+            "val_batch_size": 24,
+            "learning_rate": 1e-3,
+            "global_image_size": (700, 700),
+            "num_epochs": 20,
+            "num_channels": 3,
             "gaussian_blur": True,
             "post_processing_threshold": 0.5,
             "distance_threshold": 10
@@ -355,17 +379,25 @@ if __name__ == "__main__":
     gaussian_blur = run.config["gaussian_blur"]
     threshold = run.config["post_processing_threshold"]
     distance_threshold = run.config["distance_threshold"]
+    num_channels = run.config["num_channels"]
 
-    transform_1 = transforms.Compose([
-        transforms.Resize(global_image_size),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    
+    if num_channels == 1:
+        transform_1 = transforms.Compose([
+            transforms.Resize(global_image_size),
+            transforms.Grayscale(num_output_channels=1),
+            transforms.ToTensor()
+        ])
+    else:
+        transform_1 = transforms.Compose([
+            transforms.Resize(global_image_size),
+            transforms.ToTensor()
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
 
     # Model, Optimizer, and Loss
-    model = UNet(n_channels=3, n_classes=1)
+    #model = UNet(n_channels=3, n_classes=1)
+    #model = PoseNet(nstack=1, inp_dim=global_image_size[0], oup_dim=1, bn=False, increase=0)
+    model = KeyNet(num_filters=8, num_levels=3, kernel_size=5, in_channels=num_channels)
 
     # Train the model
     
@@ -390,11 +422,11 @@ if __name__ == "__main__":
             "run_handler": run
         }
         
-        print("Validating the model...")
-        model.load_state_dict(torch.load(epoch_model_path))
-        validate_model(model, **validataion_params)
-        # print("Training the model...")
-        # model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=validataion_params)
+        # print("Validating the model...")
+        # model.load_state_dict(torch.load(epoch_model_path))
+        # validate_model(model, **validataion_params)
+        print("Training the model...")
+        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=validataion_params)
     
     else:
         print("Training the model...")

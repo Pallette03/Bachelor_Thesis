@@ -1,0 +1,12 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-08 18:05:35.973194] At Batch 77/1541 for Epoch 1 taking 108.53 seconds since last checkpoint. Last Loss: 0.2513. Progress: 5.00%. Approx. Time left: 2063.48 seconds
+[2025-03-08 18:07:21.800427] At Batch 154/1541 for Epoch 1 taking 105.83 seconds since last checkpoint. Last Loss: 0.2458. Progress: 9.99%. Approx. Time left: 1930.61 seconds
+[2025-03-08 18:09:07.753326] At Batch 231/1541 for Epoch 1 taking 105.95 seconds since last checkpoint. Last Loss: 0.2460. Progress: 14.99%. Approx. Time left: 1816.48 seconds
+[2025-03-08 18:10:54.422805] At Batch 308/1541 for Epoch 1 taking 106.67 seconds since last checkpoint. Last Loss: 0.2435. Progress: 19.99%. Approx. Time left: 1709.30 seconds
+[2025-03-08 18:12:40.688450] At Batch 385/1541 for Epoch 1 taking 106.27 seconds since last checkpoint. Last Loss: 0.2591. Progress: 24.98%. Approx. Time left: 1601.12 seconds
+[2025-03-08 18:14:26.759079] At Batch 462/1541 for Epoch 1 taking 106.07 seconds since last checkpoint. Last Loss: 0.2425. Progress: 29.98%. Approx. Time left: 1493.12 seconds
+[2025-03-08 18:16:12.816689] At Batch 539/1541 for Epoch 1 taking 106.06 seconds since last checkpoint. Last Loss: 0.2431. Progress: 34.98%. Approx. Time left: 1385.65 seconds

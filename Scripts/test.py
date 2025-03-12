@@ -10,11 +10,13 @@ from LegoKeypointDataset import LegoKeypointDataset
 from KeypointDetector import UNet
 from PIL import Image
 
-annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'annotations')
-img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate', 'images')
+from models.KeyNet.keynet import KeyNet
+
+annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'test', 'annotations')
+img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'test', 'images')
 model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
 
-global_image_size = (650, 650)
+global_image_size = (1000, 1000)
 
 def collate_fn(batch):
     images = [item["image"] for item in batch]
@@ -69,22 +71,30 @@ def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
     pred_heatmap[pred_heatmap <= threshold] = 0
     return pred_heatmap
 
-# Load the model
-model = UNet(n_channels=3, n_classes=1)
-model.load_state_dict(torch.load(model_path))
-model.eval()
-
-transforms = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(global_image_size),
-    torchvision.transforms.ToTensor(),
-])
-
-norm_transforms = torchvision.transforms.Compose([
-    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
 
 use_external_image = False
 threshold = 0.4
+num_channels = 3
+
+# Load the model
+#model = UNet(n_channels=3, n_classes=1)
+model = KeyNet(num_filters=8, num_levels=3, kernel_size=5, in_channels=num_channels)
+model.load_state_dict(torch.load(model_path))
+model.eval()
+
+if num_channels == 1:
+    transforms = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(global_image_size),
+        torchvision.transforms.Grayscale(num_output_channels=1),
+        torchvision.transforms.ToTensor()
+    ])
+else:
+    transforms = torchvision.transforms.Compose([
+    torchvision.transforms.Resize(global_image_size),
+    torchvision.transforms.ToTensor()
+    #torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
 
 if not use_external_image:
     # Load the dataset
@@ -94,7 +104,6 @@ if not use_external_image:
     rand_index = np.random.randint(0, dataset_length)
     sample = dataset[rand_index]
     model_input = sample['image'].unsqueeze(0)
-    model_input = norm_transforms(model_input)
     
     input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
     
@@ -159,25 +168,18 @@ if not use_external_image:
     plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
     plt.title("Predicted Heatmap")
     plt.savefig("predicted_heatmap.png")
-
-
-    # Overlay the predicted keypoints onto the input image
-    pred_keypoints = np.argwhere(pred_heatmap == 1)
     
 
     plt.figure(figsize=(10, 10))
     plt.imshow(input_image)
 
-    for (y, x) in pred_keypoints:
-        plt.scatter(x, y, c='yellow', s=1)
-
     plt.title("Input Image with Predicted Keypoints")
-    plt.savefig("input_image_with_predicted_keypoints.png")
+    plt.savefig("model_input_image.png")
     plt.close()
 
 else:
     # Load an external image
-    img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images', 'lego_brick.jpg')
+    img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images', 'lego_brick_3.jpg')
     image = Image.open(img_path).convert("RGB")
     image = image.resize(global_image_size)
 

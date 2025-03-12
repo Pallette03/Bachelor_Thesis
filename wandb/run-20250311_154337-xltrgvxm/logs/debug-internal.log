@@ -1,0 +1,7 @@
+{"time":"2025-03-11T15:43:37.913384894+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250311_154337-xltrgvxm/logs/debug-core.log"}
+{"time":"2025-03-11T15:43:38.123154968+01:00","level":"INFO","msg":"created new stream","id":"xltrgvxm"}
+{"time":"2025-03-11T15:43:38.123222765+01:00","level":"INFO","msg":"stream: started","id":"xltrgvxm"}
+{"time":"2025-03-11T15:43:38.123260496+01:00","level":"INFO","msg":"handler: started","stream_id":"xltrgvxm"}
+{"time":"2025-03-11T15:43:38.123261507+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"xltrgvxm"}
+{"time":"2025-03-11T15:43:38.123335445+01:00","level":"INFO","msg":"sender: started","stream_id":"xltrgvxm"}
+{"time":"2025-03-11T15:43:38.493125207+01:00","level":"INFO","msg":"Starting system monitor"}

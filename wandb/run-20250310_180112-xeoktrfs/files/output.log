@@ -1,0 +1,14 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-10 18:06:13.986887] At Batch 28/578 for Epoch 1 taking 296.76 seconds since last checkpoint. Last Loss: 0.8483. Progress: 4.84%. Approx. Time left: 5829.15 seconds
+[2025-03-10 18:08:39.614012] At Batch 56/578 for Epoch 1 taking 145.63 seconds since last checkpoint. Last Loss: 0.8483. Progress: 9.69%. Approx. Time left: 4123.65 seconds
+[2025-03-10 18:11:05.397477] At Batch 84/578 for Epoch 1 taking 145.78 seconds since last checkpoint. Last Loss: 0.8483. Progress: 14.53%. Approx. Time left: 3458.98 seconds
+[2025-03-10 18:13:31.211101] At Batch 112/578 for Epoch 1 taking 145.81 seconds since last checkpoint. Last Loss: 0.8483. Progress: 19.38%. Approx. Time left: 3053.88 seconds
+[2025-03-10 18:15:57.059849] At Batch 140/578 for Epoch 1 taking 145.85 seconds since last checkpoint. Last Loss: 0.8483. Progress: 24.22%. Approx. Time left: 2752.61 seconds
+[2025-03-10 18:18:22.349393] At Batch 168/578 for Epoch 1 taking 145.29 seconds since last checkpoint. Last Loss: 0.8482. Progress: 29.07%. Approx. Time left: 2501.78 seconds
+[2025-03-10 18:20:48.231897] At Batch 196/578 for Epoch 1 taking 145.88 seconds since last checkpoint. Last Loss: 0.8481. Progress: 33.91%. Approx. Time left: 2282.26 seconds
+[2025-03-10 18:23:14.598686] At Batch 224/578 for Epoch 1 taking 146.37 seconds since last checkpoint. Last Loss: 0.8482. Progress: 38.75%. Approx. Time left: 2081.91 seconds
+[2025-03-10 18:25:40.416742] At Batch 252/578 for Epoch 1 taking 145.82 seconds since last checkpoint. Last Loss: 0.8483. Progress: 43.60%. Approx. Time left: 1892.85 seconds

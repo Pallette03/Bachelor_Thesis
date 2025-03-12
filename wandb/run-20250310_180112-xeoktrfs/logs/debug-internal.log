@@ -1,0 +1,16 @@
+{"time":"2025-03-10T18:01:12.283473953+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250310_180112-xeoktrfs/logs/debug-core.log"}
+{"time":"2025-03-10T18:01:12.491576994+01:00","level":"INFO","msg":"created new stream","id":"xeoktrfs"}
+{"time":"2025-03-10T18:01:12.491637487+01:00","level":"INFO","msg":"stream: started","id":"xeoktrfs"}
+{"time":"2025-03-10T18:01:12.491644941+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:01:12.491688923+01:00","level":"INFO","msg":"handler: started","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:01:12.491690115+01:00","level":"INFO","msg":"sender: started","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:01:12.787446318+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-10T18:26:17.167726828+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-10T18:26:17.168388906+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-10T18:26:17.921392825+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-10T18:26:18.130564609+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading summary","runtime_seconds":0.209027655}],"total_operations":1}}
+{"time":"2025-03-10T18:26:19.164809846+01:00","level":"INFO","msg":"stream: closing","id":"xeoktrfs"}
+{"time":"2025-03-10T18:26:19.164839091+01:00","level":"INFO","msg":"handler: closed","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:26:19.164859078+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:26:19.164877453+01:00","level":"INFO","msg":"sender: closed","stream_id":"xeoktrfs"}
+{"time":"2025-03-10T18:26:19.164965938+01:00","level":"INFO","msg":"stream: closed","id":"xeoktrfs"}

@@ -1,0 +1,7 @@
+{"time":"2025-03-10T18:29:07.393896824+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250310_182907-ix5un2hz/logs/debug-core.log"}
+{"time":"2025-03-10T18:29:07.603276362+01:00","level":"INFO","msg":"created new stream","id":"ix5un2hz"}
+{"time":"2025-03-10T18:29:07.603321245+01:00","level":"INFO","msg":"stream: started","id":"ix5un2hz"}
+{"time":"2025-03-10T18:29:07.603373633+01:00","level":"INFO","msg":"handler: started","stream_id":"ix5un2hz"}
+{"time":"2025-03-10T18:29:07.603354287+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"ix5un2hz"}
+{"time":"2025-03-10T18:29:07.603375196+01:00","level":"INFO","msg":"sender: started","stream_id":"ix5un2hz"}
+{"time":"2025-03-10T18:29:07.887439858+01:00","level":"INFO","msg":"Starting system monitor"}
