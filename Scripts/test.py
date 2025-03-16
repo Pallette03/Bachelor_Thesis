@@ -78,8 +78,8 @@ num_channels = 3
 
 # Load the model
 #model = UNet(n_channels=3, n_classes=1)
-model = KeyNet(num_filters=8, num_levels=3, kernel_size=5, in_channels=num_channels)
-model.load_state_dict(torch.load(model_path))
+model = KeyNet(num_filters=8, num_levels=5, kernel_size=5, in_channels=num_channels)
+model.load_state_dict(torch.load(model_path)) 
 model.eval()
 
 if num_channels == 1:
@@ -114,6 +114,9 @@ if not use_external_image:
 
     # Convert to probability using sigmoid
     prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
+
+    # Normalize the heatmap to the range [0, 1]
+    prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
 
     # Save a heatmap where every pixel gets a color from black to red according to its value
     plt.imshow(prob_heatmap, cmap='Reds', interpolation='nearest')

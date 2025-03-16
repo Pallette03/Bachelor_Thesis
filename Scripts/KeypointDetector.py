@@ -54,6 +54,15 @@ class CombinedLoss(nn.Module):
         focal = self.focal_loss(pred, target)
         return self.lambda_bce * bce + self.lambda_mse * mse + self.lambda_focal * focal
 
+class PixelEuclideanLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, pred, target):
+        # Compute pixel-wise Euclidean distance
+        euclidean_loss = torch.sqrt(torch.sum((torch.sigmoid(pred) - target) ** 2, dim=1))
+        return euclidean_loss.mean()
+
 def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=False, device='cpu'):
     """
     Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
@@ -195,6 +204,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
+    #critereon = PixelEuclideanLoss()
     #scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95 ** epoch)
     
     for epoch in range(num_epochs):
@@ -268,8 +278,14 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
         torch.save(model.state_dict(), epoch_model_path)
         print(f"Saved model to {epoch_model_path}")
 
+
+        artifact = wandb.Artifact('epoch_model', type='model')
+        artifact.add_file(epoch_model_path)
+        run_handler.log_artifact(artifact)
+
         if validataion_params:
             validate_model(model, **validataion_params)
+            torch.cuda.empty_cache()
 
     return model
 
@@ -351,7 +367,8 @@ if __name__ == "__main__":
             "num_channels": 3,
             "gaussian_blur": True,
             "post_processing_threshold": 0.5,
-            "distance_threshold": 10
+            "distance_threshold": 10,
+            "feature_extractor_lvl_amount": 5
             }
         )
 
@@ -367,7 +384,7 @@ if __name__ == "__main__":
     train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
     validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-    with_validate = True
+    with_validate = False
 
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
@@ -380,6 +397,7 @@ if __name__ == "__main__":
     threshold = run.config["post_processing_threshold"]
     distance_threshold = run.config["distance_threshold"]
     num_channels = run.config["num_channels"]
+    num_levels = run.config["feature_extractor_lvl_amount"]
 
     if num_channels == 1:
         transform_1 = transforms.Compose([
@@ -397,7 +415,7 @@ if __name__ == "__main__":
     # Model, Optimizer, and Loss
     #model = UNet(n_channels=3, n_classes=1)
     #model = PoseNet(nstack=1, inp_dim=global_image_size[0], oup_dim=1, bn=False, increase=0)
-    model = KeyNet(num_filters=8, num_levels=3, kernel_size=5, in_channels=num_channels)
+    model = KeyNet(num_filters=8, num_levels=num_levels, kernel_size=5, in_channels=num_channels)
 
     # Train the model
     

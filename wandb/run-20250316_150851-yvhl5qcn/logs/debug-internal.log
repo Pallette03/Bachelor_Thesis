@@ -1,0 +1,16 @@
+{"time":"2025-03-16T15:08:51.040914032+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250316_150851-yvhl5qcn/logs/debug-core.log"}
+{"time":"2025-03-16T15:08:51.250233309+01:00","level":"INFO","msg":"created new stream","id":"yvhl5qcn"}
+{"time":"2025-03-16T15:08:51.250268886+01:00","level":"INFO","msg":"stream: started","id":"yvhl5qcn"}
+{"time":"2025-03-16T15:08:51.250286098+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:08:51.250310414+01:00","level":"INFO","msg":"handler: started","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:08:51.250332094+01:00","level":"INFO","msg":"sender: started","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:08:51.609289646+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-16T15:18:20.78182513+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-16T15:18:20.782471269+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-16T15:18:21.492250271+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-16T15:18:21.74273397+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading summary","runtime_seconds":0.250341273}],"total_operations":1}}
+{"time":"2025-03-16T15:18:22.804326723+01:00","level":"INFO","msg":"stream: closing","id":"yvhl5qcn"}
+{"time":"2025-03-16T15:18:22.804351499+01:00","level":"INFO","msg":"handler: closed","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:18:22.804364894+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:18:22.804381335+01:00","level":"INFO","msg":"sender: closed","stream_id":"yvhl5qcn"}
+{"time":"2025-03-16T15:18:22.80444838+01:00","level":"INFO","msg":"stream: closed","id":"yvhl5qcn"}

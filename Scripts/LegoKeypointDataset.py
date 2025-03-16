@@ -76,7 +76,7 @@ class LegoKeypointDataset(Dataset):
             
         normalized_corners = self.process_annotation(annotation)
 
-        return {"image": image, "norm_corners": normalized_corners}
+        return {"image": image, "norm_corners": normalized_corners, "image_path": img_path}
 
 # #image_dir = os.path.join(os.path.dirname(__file__), 'validate', 'images')
 # #annotation_dir = os.path.join(os.path.dirname(__file__), 'validate', 'annotations')
