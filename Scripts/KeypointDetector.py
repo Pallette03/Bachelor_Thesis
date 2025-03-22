@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from LegoKeypointDataset import LegoKeypointDataset
 import torchvision.transforms as transforms
 import time
+from models.simpleModel.simple_model import SimpleModel
 from unet_model import UNet
 from models.hourglass.posenet import PoseNet
 from models.KeyNet.keynet import KeyNet
@@ -139,21 +140,22 @@ def wait_for_termination(run_handler):
             run_handler.finish()
             break
 
-def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=10, global_image_size=(500, 500)):
+def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
     # Compare batchsize number of predicted keypoints to target keypoints
-    if len(pred_keypoints) != len(target_keypoints):
-        raise ValueError("Batch sizes of predicted and target keypoints do not match")
     
     denormalized_target_keypoints = []
     target_kp_amount = 0
+    correct_points = 0
+    total_distance = 0
     for batch_keypoints in target_keypoints:
-        batch_keypoints = [kp * global_image_size[0] for kp in batch_keypoints]
+        batch_keypoints = [kp.cpu().numpy() * global_image_size[0] for kp in batch_keypoints]
         denormalized_target_keypoints.append(batch_keypoints)
         target_kp_amount += len(batch_keypoints)
     
-    pred_target_distances = []
+    num_pred_points = 0
     for i in range(len(pred_keypoints)):
-        for pred_point in pred_keypoints[i]:
+        num_pred_points += len(pred_keypoints[i])
+        for idx, pred_point in enumerate(pred_keypoints[i]):
             # Find the closest target point
             closest_target_point = None
             closest_distance = float("inf")
@@ -163,21 +165,23 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=10, 
                     closest_distance = distance
                     closest_target_point = target_point
 
-            pred_target_distances.append(closest_distance)
+            if closest_distance < distance_threshold:
+                correct_points += 1
+                denormalized_target_keypoints[i] = [
+                        kp for kp in denormalized_target_keypoints[i]
+                        if not np.array_equal(kp, closest_target_point)
+                    ]
+                if len(denormalized_target_keypoints[i]) == 0:
+                    break
+            
+            total_distance += closest_distance
 
-    if len(pred_target_distances) == 0:
+    if num_pred_points == 0:
         print("No keypoints found. Very bad.")
         return -1, -1, 0
+        
 
-    # Calculate the average distance between the predicted and target points
-    total_distance = 0
-    correct_points = 0
-    for distance in pred_target_distances:
-        total_distance += distance
-        if distance < distance_threshold:
-            correct_points += 1 
-
-    return (total_distance / len(pred_target_distances)), (correct_points / len(pred_target_distances)), (correct_points / target_kp_amount)
+    return (total_distance / num_pred_points), (correct_points / num_pred_points), (correct_points / target_kp_amount)
         
 
 
@@ -203,7 +207,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
     print(f"Training on {device}")
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
+    critereon = CombinedLoss()
     #critereon = PixelEuclideanLoss()
     #scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95 ** epoch)
     
@@ -221,6 +225,13 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
 
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, num_corners_in_batch, 2]
+
+            filtered_target_corners = []
+            for corners in target_corners:
+                zero_tensor = torch.tensor([0, 0], dtype=torch.float32).to(device)
+                filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
+                filtered_target_corners.append(filtered_corners)
+            target_corners = filtered_target_corners
 
             predicted_corners = model(images)
 
@@ -297,7 +308,7 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
     with torch.no_grad():
         model = model.to(device)
         total_corner_loss = 0.0
-        critereon = CombinedLoss(lambda_bce=1.0, lambda_mse=0.1, lambda_focal=1.0, alpha=0.25, gamma=2.0)
+        critereon = CombinedLoss()
         val_counter = 0
         val_batch_start_time = time.time()
         average_distance = 0
@@ -311,9 +322,15 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
             
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, 1, H, W]
-            #target_offsets = batch["offsets"].to(device)  # Shape: [batch_size, 2, H, W]
-            #mask = batch["mask"].to(device)  # Shape: [batch_size, 1, H, W], 1 for valid corner locations
-            predicted_corners = model(images)#, predicted_offsets
+
+            filtered_target_corners = []
+            for corners in target_corners:
+                zero_tensor = torch.tensor([0, 0], dtype=torch.float32).to(device)
+                filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
+                filtered_target_corners.append(filtered_corners)
+            target_corners = filtered_target_corners
+
+            predicted_corners = model(images)
             
             # Use normal MSE loss for now but ignore 0
             corner_loss = corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
@@ -322,7 +339,7 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
             # Accumulate losses for logging
             total_corner_loss += corner_loss.item()
 
-            batch_average_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(predicted_corners.detach().cpu(), threshold=threshold), target_corners.detach().cpu().numpy(), distance_threshold, global_image_size)
+            batch_average_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(predicted_corners.detach().cpu(), threshold=threshold), target_corners, distance_threshold, global_image_size)
             if batch_average_distance == -1:
                 no_points_detected += 1
             else:
@@ -345,7 +362,7 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
             accuracy /= (len(dataloader) - no_points_detected)
         recall /= (len(dataloader))
         run_handler.log({"Validation Loss": total_corner_loss / len(dataloader), "Validation Average Distance": average_distance, "Validation Accuracy": accuracy, "Recall": recall})
-        print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}")
+        print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}, Validation Average Distance: {average_distance:.4f}, Validation Accuracy: {accuracy:.4f}, Recall: {recall:.4f}")
     
     torch.cuda.empty_cache()
     return total_corner_loss / len(dataloader)
@@ -359,18 +376,22 @@ if __name__ == "__main__":
         config={
             "model": "KeyNet",
             "dataset": "cropped_objects",
-            "batch_size": 24,
-            "val_batch_size": 24,
+            "batch_size": 10,
+            "val_batch_size": 10,
             "learning_rate": 1e-3,
             "global_image_size": (700, 700),
             "num_epochs": 20,
             "num_channels": 3,
             "gaussian_blur": True,
             "post_processing_threshold": 0.5,
-            "distance_threshold": 10,
+            "distance_threshold": 5,
             "feature_extractor_lvl_amount": 5
             }
         )
+
+    with_validate = True
+    only_validate = False
+    start_from_checkpoint = False
 
     #Clear vram memory
     torch.cuda.empty_cache()
@@ -384,10 +405,11 @@ if __name__ == "__main__":
     train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
     validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-    with_validate = False
+    
 
     print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
 
+    architecture = run.config["model"]
     batch_size = run.config["batch_size"]
     val_batch_size = run.config["val_batch_size"]
     global_image_size = run.config["global_image_size"]
@@ -412,10 +434,20 @@ if __name__ == "__main__":
             #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
-    # Model, Optimizer, and Loss
-    #model = UNet(n_channels=3, n_classes=1)
-    #model = PoseNet(nstack=1, inp_dim=global_image_size[0], oup_dim=1, bn=False, increase=0)
-    model = KeyNet(num_filters=8, num_levels=num_levels, kernel_size=5, in_channels=num_channels)
+
+    if architecture == "UNet":
+        model = UNet(n_channels=num_channels, n_classes=1)
+    elif architecture == "PoseNet":
+        model = PoseNet(nstack=1, inp_dim=global_image_size[0], oup_dim=1, bn=False, increase=0)
+    elif architecture == "KeyNet":
+        model = KeyNet(num_filters=8, num_levels=num_levels, kernel_size=5, in_channels=num_channels)
+    elif architecture == "SimpleModel":
+        model = SimpleModel(in_channels=num_channels, out_channels=1)
+
+
+    if start_from_checkpoint:
+        print("Loading model from checkpoint...")
+        model.load_state_dict(torch.load(epoch_model_path))
 
     # Train the model
     
@@ -424,6 +456,27 @@ if __name__ == "__main__":
     print("Loading training dataset...")
     train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_1)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+
+    if only_validate:
+        print("Validating the model...")
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_1)
+        val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
+        
+        validataion_params = {
+            "dataloader": val_dataloader,
+            "global_image_size": global_image_size,
+            "gaussian_blur": gaussian_blur,
+            "threshold": threshold,
+            "distance_threshold": distance_threshold,
+            "termination_thread": termination_thread,
+            "run_handler": run
+        }
+        
+        print("Validating the model...")
+        model.load_state_dict(torch.load(epoch_model_path))
+        validate_model(model, **validataion_params)
+        run.finish()
+        sys.exit(0)
 
     if with_validate:
         print("Loading validation dataset...")

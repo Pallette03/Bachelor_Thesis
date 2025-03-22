@@ -1,0 +1,16 @@
+{"time":"2025-03-20T18:46:03.658275413+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250320_184603-ggfu30xs/logs/debug-core.log"}
+{"time":"2025-03-20T18:46:03.868898485+01:00","level":"INFO","msg":"created new stream","id":"ggfu30xs"}
+{"time":"2025-03-20T18:46:03.868946895+01:00","level":"INFO","msg":"stream: started","id":"ggfu30xs"}
+{"time":"2025-03-20T18:46:03.868968606+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T18:46:03.868983474+01:00","level":"INFO","msg":"handler: started","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T18:46:03.8690407+01:00","level":"INFO","msg":"sender: started","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T18:46:04.15872749+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-20T20:08:17.378947938+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-20T20:08:17.380093241+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-20T20:08:18.149786279+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-20T20:08:18.340624346+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading history steps 45-45, summary, console lines 171-171","runtime_seconds":0.190689445}],"total_operations":1}}
+{"time":"2025-03-20T20:08:19.373991164+01:00","level":"INFO","msg":"stream: closing","id":"ggfu30xs"}
+{"time":"2025-03-20T20:08:19.374029467+01:00","level":"INFO","msg":"handler: closed","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T20:08:19.374043554+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T20:08:19.374053282+01:00","level":"INFO","msg":"sender: closed","stream_id":"ggfu30xs"}
+{"time":"2025-03-20T20:08:19.374111182+01:00","level":"INFO","msg":"stream: closed","id":"ggfu30xs"}

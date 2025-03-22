@@ -1,0 +1,12 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Validating the model...
+Validating the model...
+Validating on cuda
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 471, in <module>
+    validate_model(model, **validataion_params)
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 342, in validate_model
+    batch_average_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(predicted_corners.detach().cpu(), threshold=threshold), target_corners.detach().cpu().numpy(), distance_threshold, global_image_size)
+                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'detach'

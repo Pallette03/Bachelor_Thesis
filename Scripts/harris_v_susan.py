@@ -1,4 +1,5 @@
 import os
+import scipy
 import torch.nn.functional as F
 import cv2
 import numpy as np
@@ -428,6 +429,37 @@ def good_features_to_track(input_tensor, max_corners=100, quality_level=0.1, min
 
     return all_responses.to(device)
 
+def harris_detector_batch(images, k=0.04, threshold=0.05, output_dir='corner_output'):
+        batch_size, channels, height, width = images.shape
+        corners_batch = np.zeros((batch_size, height, width), dtype=np.float32)
+
+        device = images.device
+
+        for batch_idx in range(batch_size):
+            image = images[batch_idx].to(torch.float32).cpu().numpy()
+            combined_corners = np.zeros((height, width), dtype=np.float32)
+
+            for channel_idx in range(channels):
+                gray = cv2.normalize(image[channel_idx], None, 0, 255, cv2.NORM_MINMAX).astype('uint8')
+                harris_corners = cv2.cornerHarris(gray, 2, 3, k)
+                harris_corners = cv2.dilate(harris_corners, None)
+                harris_corners = harris_corners > threshold * harris_corners.max()
+
+                combined_corners = np.maximum(combined_corners, harris_corners)
+
+            corners_batch[batch_idx] = combined_corners
+            #cv2.imwrite(os.path.join(output_dir, f'harris_laplace_corners_{batch_idx}.png'), (combined_corners * 255).astype(np.uint8))
+
+        #cv2.imwrite(os.path.join(output_dir, 'input_image_bat.png'), (images[-1].permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
+        #cv2.imwrite(os.path.join(output_dir, f'harris_corners_{batch_idx}.png'), (corners_batch[-1] * 255).astype(np.uint8))
+
+        # Convert to tensor and return
+        corners_batch = torch.from_numpy(corners_batch)
+        # add channel dimension
+        corners_batch = corners_batch.unsqueeze(1)
+
+        return corners_batch.to(device)
+
 def add_fast_keypoint_heatmap(tensor_image: torch.Tensor, sigma: float = 2.0):
     """
     Takes a PyTorch tensor image, extracts FAST keypoints using OpenCV,
@@ -471,46 +503,64 @@ def add_fast_keypoint_heatmap(tensor_image: torch.Tensor, sigma: float = 2.0):
     
     return output_tensor
 
-def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=10, global_image_size=(500, 500)):
-    
+def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
+    all_keypoints = []
+    for pred_heatmap in pred_heatmaps:
+        prob_heatmap = torch.sigmoid(pred_heatmap.clone()).squeeze().numpy()
 
-    denormalized_target_keypoints = [kp * global_image_size[0] for kp in target_keypoints]
-    target_kp_amount = len(denormalized_target_keypoints)
-    
-    reformated_pred_keypoints = []
-    for keypoint in pred_keypoints:
-        x, y = keypoint.pt
-        reformated_pred_keypoints.append([x, y])
-    pred_keypoints = reformated_pred_keypoints
+        local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+        peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
 
-    pred_target_distances = []
-    total_distance = 0
+        # Get peak coordinates
+        y_coords, x_coords = np.where(peaks)
+        keypoints = np.column_stack((x_coords, y_coords))
+
+        all_keypoints.append(keypoints)
+
+    return all_keypoints
+
+def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
+    # Compare batchsize number of predicted keypoints to target keypoints
+    
+    denormalized_target_keypoints = []
+    target_kp_amount = 0
     correct_points = 0
-    for pred_point in pred_keypoints:
-        # Find the closest target point
-        closest_target_point = None
-        closest_distance = float("inf")
-        for i in range(len(denormalized_target_keypoints)):
-            target_point = denormalized_target_keypoints[i]
-            distance = np.linalg.norm(pred_point - target_point)
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_target_point = i
+    total_distance = 0
+    for batch_keypoints in target_keypoints:
+        batch_keypoints = [kp.cpu().numpy() * global_image_size[0] for kp in batch_keypoints]
+        denormalized_target_keypoints.append(batch_keypoints)
+        target_kp_amount += len(batch_keypoints)
+    
+    num_pred_points = 0
+    for i in range(len(pred_keypoints)):
+        num_pred_points += len(pred_keypoints[i])
+        for idx, pred_point in enumerate(pred_keypoints[i]):
+            # Find the closest target point
+            closest_target_point = None
+            closest_distance = float("inf")
+            for target_point in denormalized_target_keypoints[i]:
+                distance = np.linalg.norm(pred_point - target_point)
+                if distance < closest_distance:
+                    closest_distance = distance
+                    closest_target_point = target_point
 
-        total_distance += distance
-        if closest_distance < distance_threshold:
-            correct_points += 1
-            denormalized_target_keypoints.pop(closest_target_point)
+            if closest_distance < distance_threshold:
+                correct_points += 1
+                denormalized_target_keypoints[i] = [
+                        kp for kp in denormalized_target_keypoints[i]
+                        if not np.array_equal(kp, closest_target_point)
+                    ]
+                if len(denormalized_target_keypoints[i]) == 0:
+                    break
+            
+            total_distance += closest_distance
 
-
-        pred_target_distances.append(closest_distance)
-
-    if len(pred_target_distances) == 0:
+    if num_pred_points == 0:
         print("No keypoints found. Very bad.")
         return -1, -1, 0
-            
-    # Distance, Accuracy, Recall
-    return (total_distance / len(pred_target_distances)), (correct_points / len(pred_target_distances)), (correct_points / target_kp_amount)
+        
+
+    return (total_distance / num_pred_points), (correct_points / num_pred_points), (correct_points / target_kp_amount)
 
 def test_detectors(dataset, output_dir, fast_threshold=10):
     dataset_length = len(dataset)
@@ -555,20 +605,47 @@ print("Loading dataset...")
 dataset = LegoKeypointDataset(annotations_folder, img_dir, transform=transforms)
 output_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'corner_output')
 
-test_size = 1
+test_size = 20
 
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=test_size, shuffle=True, collate_fn=collate_fn)
+
+total_distance = 0
+total_accuracy = 0
+total_recall = 0
+val_counter = 0
 
 for i, batch in enumerate(dataloader):
     #print("Computing harris-laplace corners...")
     batch_images = batch['image']
+    target_corners = batch['norm_corners']
+    # Filter target keypoints by removing (0, 0)
+    filtered_target_corners = []
+    for corners in target_corners:
+        zero_tensor = torch.tensor([0, 0], dtype=torch.float32)
+        filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
+        filtered_target_corners.append(filtered_corners)
+    target_corners = filtered_target_corners
     #harris_laplace_corners = harris_laplace_detector_batch(batch_images, output_dir=output_dir)
     #print("Computing harris-laplace corners with GPU...")
     #harris_laplace_corners_gpu = harris_laplace_detector_gpu(batch_images.to('cuda'), output_dir=output_dir)
     #canny_harris_response = canny_into_harris(batch_images, output_dir=output_dir)
     #susan = susan_corner_detector(batch_images, output_dir=output_dir)
-    good_features = good_features_to_track(batch_images, output_dir=output_dir)
-    break
+    #good_features = good_features_to_track(batch_images, output_dir=output_dir)
+    harris = harris_detector_batch(batch_images, output_dir=output_dir)
+    batch_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(harris.detach().cpu(), threshold=0.5), target_corners, 5, global_image_size)
+    print(f"Batch distance: {batch_distance}, Batch accuracy: {batch_accuracy}, Batch recall: {batch_recall}")
+
+    if batch_distance == -1:
+        no_points_detected += 1
+    else:
+        total_distance += batch_distance
+        total_accuracy += batch_accuracy
+        total_recall += batch_recall
+
+    val_counter += 1
+
+print(f"Average distance: {total_distance / val_counter}, Average accuracy: {total_accuracy / val_counter}, Average recall: {total_recall / val_counter}")
+
 
 total_recall = 0
 for i in range(test_size):

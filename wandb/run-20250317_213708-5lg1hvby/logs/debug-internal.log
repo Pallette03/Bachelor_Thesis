@@ -1,0 +1,17 @@
+{"time":"2025-03-17T21:37:08.04272858+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250317_213708-5lg1hvby/logs/debug-core.log"}
+{"time":"2025-03-17T21:37:08.250550213+01:00","level":"INFO","msg":"created new stream","id":"5lg1hvby"}
+{"time":"2025-03-17T21:37:08.250584688+01:00","level":"INFO","msg":"stream: started","id":"5lg1hvby"}
+{"time":"2025-03-17T21:37:08.250624252+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T21:37:08.25065536+01:00","level":"INFO","msg":"handler: started","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T21:37:08.250681949+01:00","level":"INFO","msg":"sender: started","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T21:37:08.573115468+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-17T22:22:08.663876301+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-17T23:01:42.063826351+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-17T23:01:42.064834115+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-17T23:01:42.825555004+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-17T23:01:43.025572257+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading summary","runtime_seconds":0.199619799}],"total_operations":1}}
+{"time":"2025-03-17T23:01:44.070933607+01:00","level":"INFO","msg":"stream: closing","id":"5lg1hvby"}
+{"time":"2025-03-17T23:01:44.070959275+01:00","level":"INFO","msg":"handler: closed","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T23:01:44.070973602+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T23:01:44.070982689+01:00","level":"INFO","msg":"sender: closed","stream_id":"5lg1hvby"}
+{"time":"2025-03-17T23:01:44.071053391+01:00","level":"INFO","msg":"stream: closed","id":"5lg1hvby"}

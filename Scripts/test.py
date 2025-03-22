@@ -8,6 +8,7 @@ import torch
 import torchvision
 from LegoKeypointDataset import LegoKeypointDataset
 from KeypointDetector import UNet
+from models.simpleModel.simple_model import SimpleModel
 from PIL import Image
 
 from models.KeyNet.keynet import KeyNet
@@ -79,6 +80,7 @@ num_channels = 3
 # Load the model
 #model = UNet(n_channels=3, n_classes=1)
 model = KeyNet(num_filters=8, num_levels=5, kernel_size=5, in_channels=num_channels)
+#model = SimpleModel(in_channels=num_channels, out_channels=1)
 model.load_state_dict(torch.load(model_path)) 
 model.eval()
 
@@ -153,7 +155,7 @@ if not use_external_image:
 
     plt.imshow(input_image, cmap="jet")
     for x, y in keypoints:
-        circle = plt.Circle((x, y), radius=1, color="cyan", fill=False, linewidth=1.5)
+        circle = plt.Circle((x, y), radius=3, color="cyan", fill=False, linewidth=1.5)
         plt.gca().add_patch(circle)
     plt.title("Predicted Heatmap with Detected Keypoints")
     plt.colorbar()

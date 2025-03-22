@@ -1,0 +1,16 @@
+{
+  "os":  "Linux-6.11.0-19-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.12.3",
+  "startedAt":  "2025-03-17T15:28:13.817210Z",
+  "program":  "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py",
+  "codePath":  "Scripts/KeypointDetector.py",
+  "git":  {
+    "remote":  "https://github.com/Pallette03/Bachelor.git",
+    "commit":  "2293aae7a3711f7de9b3cc25896be07d9e482c57"
+  },
+  "email":  "paul.boebinger@gmail.com",
+  "root":  "/home/pallette/Documents/GitHub/Bachelor",
+  "host":  "pallette-Ubuntu",
+  "executable":  "/home/pallette/Documents/GitHub/Bachelor/.venv/bin/python",
+  "codePathLocal":  "Scripts/KeypointDetector.py"
+}
