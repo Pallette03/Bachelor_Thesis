@@ -1,0 +1,15 @@
+{"time":"2025-03-24T19:30:30.416562521+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250324_193030-7fe7xco9/logs/debug-core.log"}
+{"time":"2025-03-24T19:30:30.625706519+01:00","level":"INFO","msg":"created new stream","id":"7fe7xco9"}
+{"time":"2025-03-24T19:30:30.625740462+01:00","level":"INFO","msg":"stream: started","id":"7fe7xco9"}
+{"time":"2025-03-24T19:30:30.625789835+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:30:30.625791518+01:00","level":"INFO","msg":"handler: started","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:30:30.625848384+01:00","level":"INFO","msg":"sender: started","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:30:30.923898469+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-24T19:34:31.731885013+01:00","level":"INFO","msg":"stream: closing","id":"7fe7xco9"}
+{"time":"2025-03-24T19:34:31.731946007+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-24T19:34:31.73349551+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-24T19:34:32.351961751+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-24T19:34:32.602197497+01:00","level":"INFO","msg":"handler: closed","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:34:32.602228174+01:00","level":"INFO","msg":"sender: closed","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:34:32.602220109+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"7fe7xco9"}
+{"time":"2025-03-24T19:34:32.602371322+01:00","level":"INFO","msg":"stream: closed","id":"7fe7xco9"}

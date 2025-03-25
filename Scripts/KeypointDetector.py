@@ -378,7 +378,7 @@ if __name__ == "__main__":
             "dataset": "cropped_objects",
             "batch_size": 10,
             "val_batch_size": 10,
-            "learning_rate": 1e-3,
+            "learning_rate": 1e-4,
             "global_image_size": (700, 700),
             "num_epochs": 20,
             "num_channels": 3,

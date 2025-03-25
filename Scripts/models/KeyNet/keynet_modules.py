@@ -15,7 +15,7 @@ class feature_extractor(nn.Module):
         super(feature_extractor, self).__init__()
 
         self.hc_block = handcrafted_block()
-        self.lb_block = learnable_block(in_channels=(in_channels+2))
+        self.lb_block = learnable_block(in_channels=(in_channels+3))
 
     def forward(self, x):
         x_hc = self.hc_block(x)
@@ -198,7 +198,7 @@ class handcrafted_block(nn.Module):
 
         return all_responses.to(device)
 
-    def good_features_to_track(self, input_tensor, max_corners=100, quality_level=0.1, min_distance=5):
+    def good_features_to_track(self, input_tensor, max_corners=200, quality_level=0.01, min_distance=5):
         B, C, H, W = input_tensor.shape
         device = input_tensor.device
         all_responses = torch.zeros(B, 1, H, W, device='cpu')
@@ -210,6 +210,7 @@ class handcrafted_block(nn.Module):
                 # Split RGB channels and convert to grayscale
                 r, g, b = image_tensor[0], image_tensor[1], image_tensor[2]
                 gray = 0.299 * r + 0.587 * g + 0.114 * b
+                r = None
             else:
                 gray = image_tensor.squeeze(0)
 
@@ -347,10 +348,10 @@ class handcrafted_block(nn.Module):
         fast_keypoint_heatmap = self.add_fast_keypoint_heatmap(x)
         #harris_laplace_heatmap = self.harris_laplace_detector_batch(x)
         #canny_into_harris_heatmap = self.canny_into_harris(x)
-        #good_features_heatmap = self.good_features_to_track(x)
+        good_features_heatmap = self.good_features_to_track(x)
         harris_heatmap = self.harris_detector_batch(x)
 
-        x = torch.cat((x, fast_keypoint_heatmap, harris_heatmap), dim=1)
+        x = torch.cat((x, fast_keypoint_heatmap, harris_heatmap, good_features_heatmap), dim=1)
 
         return x
 

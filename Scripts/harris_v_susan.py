@@ -363,7 +363,7 @@ def canny_into_harris(input_tensor, output_dir='corner_output'):
     return all_responses.to(device)
 
 
-def good_features_to_track(input_tensor, max_corners=100, quality_level=0.1, min_distance=5, output_dir='corner_output'):
+def good_features_to_track(input_tensor, max_corners=200, quality_level=0.01, min_distance=5, output_dir='corner_output'):
     B, C, H, W = input_tensor.shape
     device = input_tensor.device
     all_responses = torch.zeros(B, 1, H, W, device=device)
@@ -375,6 +375,7 @@ def good_features_to_track(input_tensor, max_corners=100, quality_level=0.1, min
             # Split RGB channels and convert to grayscale
             r, g, b = image_tensor[0], image_tensor[1], image_tensor[2]
             gray = 0.299 * r + 0.587 * g + 0.114 * b
+            r = None
         else:
             gray = image_tensor.squeeze(0)
 
@@ -605,7 +606,7 @@ print("Loading dataset...")
 dataset = LegoKeypointDataset(annotations_folder, img_dir, transform=transforms)
 output_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'corner_output')
 
-test_size = 20
+test_size = 1
 
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=test_size, shuffle=True, collate_fn=collate_fn)
 
@@ -613,6 +614,7 @@ total_distance = 0
 total_accuracy = 0
 total_recall = 0
 val_counter = 0
+no_points_detected = 0
 
 for i, batch in enumerate(dataloader):
     #print("Computing harris-laplace corners...")
@@ -631,8 +633,9 @@ for i, batch in enumerate(dataloader):
     #canny_harris_response = canny_into_harris(batch_images, output_dir=output_dir)
     #susan = susan_corner_detector(batch_images, output_dir=output_dir)
     #good_features = good_features_to_track(batch_images, output_dir=output_dir)
-    harris = harris_detector_batch(batch_images, output_dir=output_dir)
-    batch_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(harris.detach().cpu(), threshold=0.5), target_corners, 5, global_image_size)
+    #harris = harris_detector_batch(batch_images, output_dir=output_dir)
+    good = good_features_to_track(batch_images, output_dir=output_dir)
+    batch_distance, batch_accuracy, batch_recall = calculate_accuracy(get_keypoints_from_predictions(good.detach().cpu(), threshold=0.5), target_corners, 5, global_image_size)
     print(f"Batch distance: {batch_distance}, Batch accuracy: {batch_accuracy}, Batch recall: {batch_recall}")
 
     if batch_distance == -1:
@@ -643,6 +646,9 @@ for i, batch in enumerate(dataloader):
         total_recall += batch_recall
 
     val_counter += 1
+
+    break
+    
 
 print(f"Average distance: {total_distance / val_counter}, Average accuracy: {total_accuracy / val_counter}, Average recall: {total_recall / val_counter}")
 
