@@ -11,9 +11,10 @@ from torch.utils.data import DataLoader
 from LegoKeypointDataset import LegoKeypointDataset
 import torchvision.transforms as transforms
 import time
+from models.hourglass.posenet import PoseNet
+from models.hourglass.hourglass import StackedHourglass
 from models.simpleModel.simple_model import SimpleModel
 from unet_model import UNet
-from models.hourglass.posenet import PoseNet
 from models.KeyNet.keynet import KeyNet
 import wandb
 import threading
@@ -190,6 +191,9 @@ def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
     for pred_heatmap in pred_heatmaps:
         prob_heatmap = torch.sigmoid(pred_heatmap.clone()).squeeze().numpy()
 
+        # Normalize heatmap to [0, 1]
+        prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
+
         local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
         peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
 
@@ -202,7 +206,7 @@ def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
     return all_keypoints
 
 # Training Loop
-def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False, run_handler=None, termination_thread=None, validataion_params=None):
+def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False, run_handler=None, validataion_params=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     model = model.to(device)
@@ -220,8 +224,6 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
         epoch_start_time = time.time()
 
         for batch in dataloader:
-            if termination_thread.is_alive() == False:
-                sys.exit(0)
 
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, num_corners_in_batch, 2]
@@ -300,7 +302,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
 
     return model
 
-def validate_model(model, dataloader, global_image_size, gaussian_blur=False, threshold=0.5, distance_threshold=10, termination_thread=None, run_handler=None):
+def validate_model(model, dataloader, global_image_size, gaussian_blur=False, threshold=0.5, distance_threshold=10, run_handler=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Validating on {device}")
     torch.cuda.empty_cache()
@@ -317,8 +319,6 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
         no_points_detected = 0
 
         for batch in dataloader:
-            if termination_thread.is_alive() == False:
-                sys.exit(0)
             
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
             target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, 1, H, W]
@@ -374,30 +374,29 @@ if __name__ == "__main__":
         entity='pallette-personal', 
         job_type='train',
         config={
-            "model": "KeyNet",
+            "model": "UNet",
             "dataset": "cropped_objects",
-            "batch_size": 10,
-            "val_batch_size": 10,
+            "batch_size": 4,
+            "val_batch_size": 4,
             "learning_rate": 1e-4,
             "global_image_size": (700, 700),
             "num_epochs": 20,
             "num_channels": 3,
             "gaussian_blur": True,
-            "post_processing_threshold": 0.5,
+            "start_from_checkpoint": False,
+            "post_processing_threshold": 0.4,
             "distance_threshold": 5,
-            "feature_extractor_lvl_amount": 5
+            "feature_extractor_lvl_amount": 5,
+            "hourglass_stacks": 4
             }
         )
 
     with_validate = True
     only_validate = False
-    start_from_checkpoint = False
 
     #Clear vram memory
     torch.cuda.empty_cache()
 
-    termination_thread = threading.Thread(target=wait_for_termination, args=(run,), daemon=True)
-    termination_thread.start()
 
     # Paths
     model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
@@ -420,6 +419,8 @@ if __name__ == "__main__":
     distance_threshold = run.config["distance_threshold"]
     num_channels = run.config["num_channels"]
     num_levels = run.config["feature_extractor_lvl_amount"]
+    start_from_checkpoint = run.config["start_from_checkpoint"]
+    num_stacks = run.config["hourglass_stacks"]
 
     if num_channels == 1:
         transform_1 = transforms.Compose([
@@ -437,12 +438,14 @@ if __name__ == "__main__":
 
     if architecture == "UNet":
         model = UNet(n_channels=num_channels, n_classes=1)
-    elif architecture == "PoseNet":
-        model = PoseNet(nstack=1, inp_dim=global_image_size[0], oup_dim=1, bn=False, increase=0)
     elif architecture == "KeyNet":
         model = KeyNet(num_filters=8, num_levels=num_levels, kernel_size=5, in_channels=num_channels)
     elif architecture == "SimpleModel":
         model = SimpleModel(in_channels=num_channels, out_channels=1)
+    elif architecture == "Hourglass":
+        model = StackedHourglass(num_stacks=2, num_channels=256)
+    elif architecture == "Hourglass_Github":
+        model = PoseNet(nstack=num_stacks, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
 
 
     if start_from_checkpoint:
@@ -468,7 +471,6 @@ if __name__ == "__main__":
             "gaussian_blur": gaussian_blur,
             "threshold": threshold,
             "distance_threshold": distance_threshold,
-            "termination_thread": termination_thread,
             "run_handler": run
         }
         
@@ -489,7 +491,6 @@ if __name__ == "__main__":
             "gaussian_blur": gaussian_blur,
             "threshold": threshold,
             "distance_threshold": distance_threshold,
-            "termination_thread": termination_thread,
             "run_handler": run
         }
         
@@ -497,11 +498,11 @@ if __name__ == "__main__":
         # model.load_state_dict(torch.load(epoch_model_path))
         # validate_model(model, **validataion_params)
         print("Training the model...")
-        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=validataion_params)
+        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
     
     else:
         print("Training the model...")
-        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, termination_thread=termination_thread, validataion_params=None)
+        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=None)
 
     # Save the model
     print("Saving the model...")

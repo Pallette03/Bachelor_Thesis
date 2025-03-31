@@ -1,0 +1,44 @@
+{"time":"2025-03-26T00:59:18.032441379+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250326_005918-7w54a44m/logs/debug-core.log"}
+{"time":"2025-03-26T00:59:18.240930566+01:00","level":"INFO","msg":"created new stream","id":"7w54a44m"}
+{"time":"2025-03-26T00:59:18.240972254+01:00","level":"INFO","msg":"stream: started","id":"7w54a44m"}
+{"time":"2025-03-26T00:59:18.241001659+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"7w54a44m"}
+{"time":"2025-03-26T00:59:18.241011587+01:00","level":"INFO","msg":"sender: started","stream_id":"7w54a44m"}
+{"time":"2025-03-26T00:59:18.24108767+01:00","level":"INFO","msg":"handler: started","stream_id":"7w54a44m"}
+{"time":"2025-03-26T00:59:18.558109958+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-26T05:42:03.825725559+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-26T05:42:36.266579546+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:43:11.22696301+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:43:50.359013567+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:44:37.734738048+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:45:47.515774677+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:47:17.516604059+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-26T05:48:47.517557269+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:50:17.518774499+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-26T05:51:33.82566718+01:00","level":"WARN","msg":"sender: taking a long time","seconds":600.000526673,"work":"WorkRecord(*service_go_proto.Request_StopStatus); Control(local:true  mailbox_slot:\"hu137znmoei5\"  connection_id:\"127.0.0.1:49504\")"}
+{"time":"2025-03-26T05:51:47.519566352+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-26T05:53:17.520818752+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:54:38.56094784+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.000891505,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:54:38.56308676+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.000333322,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:54:38.744977965+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.000614648,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:54:47.522294223+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-26T05:54:48.559766942+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.000934107,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:54:48.559766952+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.00095718,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:56:02.623332793+01:00","level":"WARN","msg":"runwork: taking a long time","seconds":600.001062687,"work":"WorkRecord(*service_go_proto.Request_PartialHistory); Control(local:true  connection_id:\"127.0.0.1:49504\")"}
+{"time":"2025-03-26T05:56:17.52346209+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-26T05:57:34.054515023+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": read tcp 192.168.178.155:46424->35.186.228.49:443: read: connection timed out"}
+{"time":"2025-03-26T05:58:34.352855018+01:00","level":"INFO","msg":"sender: succeeded after taking longer than expected","seconds":1020.527707177,"work":"WorkRecord(*service_go_proto.Request_StopStatus); Control(local:true  mailbox_slot:\"hu137znmoei5\"  connection_id:\"127.0.0.1:49504\")"}
+{"time":"2025-03-26T05:58:34.352924157+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":825.794142498,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:58:34.35292041+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":751.730665563,"work":"WorkRecord(*service_go_proto.Request_PartialHistory); Control(local:true  connection_id:\"127.0.0.1:49504\")"}
+{"time":"2025-03-26T05:58:34.352982566+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":835.608665877,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:58:34.352882069+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":835.792850309,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:58:34.352937432+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":825.794101331,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T05:58:34.352950266+01:00","level":"INFO","msg":"runwork: succeeded after taking longer than expected","seconds":835.790162415,"work":"WorkRecord(*service_go_proto.Record_Stats); Control(always_send:true)"}
+{"time":"2025-03-26T10:34:49.614635509+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-26T10:34:49.615304369+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-26T10:34:50.42466061+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-26T10:34:50.576442935+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading summary","runtime_seconds":0.151660337}],"total_operations":1}}
+{"time":"2025-03-26T10:34:51.63176093+01:00","level":"INFO","msg":"stream: closing","id":"7w54a44m"}
+{"time":"2025-03-26T10:34:51.631786417+01:00","level":"INFO","msg":"handler: closed","stream_id":"7w54a44m"}
+{"time":"2025-03-26T10:34:51.631799812+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"7w54a44m"}
+{"time":"2025-03-26T10:34:51.631807126+01:00","level":"INFO","msg":"sender: closed","stream_id":"7w54a44m"}
+{"time":"2025-03-26T10:34:51.63188413+01:00","level":"INFO","msg":"stream: closed","id":"7w54a44m"}

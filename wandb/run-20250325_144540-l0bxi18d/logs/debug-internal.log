@@ -1,0 +1,18 @@
+{"time":"2025-03-25T14:45:40.216278838+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250325_144540-l0bxi18d/logs/debug-core.log"}
+{"time":"2025-03-25T14:45:40.43050432+01:00","level":"INFO","msg":"created new stream","id":"l0bxi18d"}
+{"time":"2025-03-25T14:45:40.430544145+01:00","level":"INFO","msg":"stream: started","id":"l0bxi18d"}
+{"time":"2025-03-25T14:45:40.430575464+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T14:45:40.430598368+01:00","level":"INFO","msg":"handler: started","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T14:45:40.430624056+01:00","level":"INFO","msg":"sender: started","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T14:45:40.748320453+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-25T15:33:41.442475225+01:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/l0bxi18d/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2025-03-25T16:37:50.92940915+01:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/l0bxi18d/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2025-03-25T16:56:27.106831516+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-25T16:56:27.10741679+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-25T16:56:27.886942286+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-25T16:56:28.108201692+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading history steps 62-62, summary, console lines 293-307","runtime_seconds":0.2211065}],"total_operations":1}}
+{"time":"2025-03-25T16:56:29.255223346+01:00","level":"INFO","msg":"stream: closing","id":"l0bxi18d"}
+{"time":"2025-03-25T16:56:29.255265505+01:00","level":"INFO","msg":"handler: closed","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T16:56:29.255288137+01:00","level":"INFO","msg":"sender: closed","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T16:56:29.255278329+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"l0bxi18d"}
+{"time":"2025-03-25T16:56:29.255374919+01:00","level":"INFO","msg":"stream: closed","id":"l0bxi18d"}

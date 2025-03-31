@@ -15,7 +15,7 @@ class feature_extractor(nn.Module):
         super(feature_extractor, self).__init__()
 
         self.hc_block = handcrafted_block()
-        self.lb_block = learnable_block(in_channels=(in_channels+3))
+        self.lb_block = learnable_block(in_channels=(in_channels+2))
 
     def forward(self, x):
         x_hc = self.hc_block(x)
@@ -348,10 +348,10 @@ class handcrafted_block(nn.Module):
         fast_keypoint_heatmap = self.add_fast_keypoint_heatmap(x)
         #harris_laplace_heatmap = self.harris_laplace_detector_batch(x)
         #canny_into_harris_heatmap = self.canny_into_harris(x)
-        good_features_heatmap = self.good_features_to_track(x)
+        #good_features_heatmap = self.good_features_to_track(x)
         harris_heatmap = self.harris_detector_batch(x)
 
-        x = torch.cat((x, fast_keypoint_heatmap, harris_heatmap, good_features_heatmap), dim=1)
+        x = torch.cat((x, harris_heatmap, fast_keypoint_heatmap), dim=1)
 
         return x
 

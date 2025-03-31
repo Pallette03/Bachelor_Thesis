@@ -1,0 +1,15 @@
+{"time":"2025-03-27T12:06:05.859339712+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250327_120605-ryt50btl/logs/debug-core.log"}
+{"time":"2025-03-27T12:06:06.068783178+01:00","level":"INFO","msg":"created new stream","id":"ryt50btl"}
+{"time":"2025-03-27T12:06:06.068820238+01:00","level":"INFO","msg":"stream: started","id":"ryt50btl"}
+{"time":"2025-03-27T12:06:06.068876783+01:00","level":"INFO","msg":"sender: started","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:06.068867205+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:06.068899806+01:00","level":"INFO","msg":"handler: started","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:06.401422127+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-27T12:06:41.797753578+01:00","level":"INFO","msg":"stream: closing","id":"ryt50btl"}
+{"time":"2025-03-27T12:06:41.797810114+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-27T12:06:41.799078462+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-27T12:06:42.467440346+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-27T12:06:42.731177908+01:00","level":"INFO","msg":"handler: closed","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:42.73121626+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:42.731239273+01:00","level":"INFO","msg":"sender: closed","stream_id":"ryt50btl"}
+{"time":"2025-03-27T12:06:42.731312399+01:00","level":"INFO","msg":"stream: closed","id":"ryt50btl"}

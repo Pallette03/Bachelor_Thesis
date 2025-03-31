@@ -1,0 +1,15 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 499, in <module>
+    model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 210, in train_model
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py", line 129, in is_available
+    return torch._C._cuda_getDeviceCount() > 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

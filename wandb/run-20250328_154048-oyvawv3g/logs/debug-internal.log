@@ -1,0 +1,17 @@
+{"time":"2025-03-28T15:40:48.089206652+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250328_154048-oyvawv3g/logs/debug-core.log"}
+{"time":"2025-03-28T15:40:48.301197133+01:00","level":"INFO","msg":"created new stream","id":"oyvawv3g"}
+{"time":"2025-03-28T15:40:48.301229353+01:00","level":"INFO","msg":"stream: started","id":"oyvawv3g"}
+{"time":"2025-03-28T15:40:48.301279116+01:00","level":"INFO","msg":"handler: started","stream_id":"oyvawv3g"}
+{"time":"2025-03-28T15:40:48.301282683+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"oyvawv3g"}
+{"time":"2025-03-28T15:40:48.301310735+01:00","level":"INFO","msg":"sender: started","stream_id":"oyvawv3g"}
+{"time":"2025-03-28T15:40:48.600428482+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-28T21:07:08.765292429+01:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/oyvawv3g/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2025-03-29T04:40:14.293655115+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-29T04:40:14.294233366+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-29T04:40:15.295289725+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading wandb-summary.json","runtime_seconds":0.573240701,"progress":"436B/436B"},{"desc":"uploading config.yaml","runtime_seconds":0.442404179,"progress":"1021B/1021B"}],"total_operations":2}}
+{"time":"2025-03-29T04:40:15.414185206+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-29T04:40:16.687953618+01:00","level":"INFO","msg":"stream: closing","id":"oyvawv3g"}
+{"time":"2025-03-29T04:40:16.687980208+01:00","level":"INFO","msg":"handler: closed","stream_id":"oyvawv3g"}
+{"time":"2025-03-29T04:40:16.687994564+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"oyvawv3g"}
+{"time":"2025-03-29T04:40:16.688010745+01:00","level":"INFO","msg":"sender: closed","stream_id":"oyvawv3g"}
+{"time":"2025-03-29T04:40:16.688096124+01:00","level":"INFO","msg":"stream: closed","id":"oyvawv3g"}

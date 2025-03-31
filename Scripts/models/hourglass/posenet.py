@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 from models.hourglass.layers import Conv, Hourglass, Pool, Residual
 
 class UnFlatten(nn.Module):
@@ -15,10 +16,11 @@ class Merge(nn.Module):
         return self.conv(x)
     
 class PoseNet(nn.Module):
-    def __init__(self, nstack, inp_dim, oup_dim, bn=False, increase=0, **kwargs):
+    def __init__(self, nstack, inp_dim, oup_dim, bn=False, increase=0, input_image_size=500, **kwargs):
         super(PoseNet, self).__init__()
         
         self.nstack = nstack
+        self.input_image_size = input_image_size
         self.pre = nn.Sequential(
             Conv(3, 64, 7, 2, bn=True, relu=True),
             Residual(64, 128),
@@ -44,15 +46,14 @@ class PoseNet(nn.Module):
         self.nstack = nstack
 
     def forward(self, imgs):
-        ## our posenet
-        #x = imgs.permute(0, 3, 1, 2) #x of size 1,3,inpdim,inpdim
         x = self.pre(imgs)
-        combined_hm_preds = []
+        # Process through each hourglass stack but only keep the final output
         for i in range(self.nstack):
             hg = self.hgs[i](x)
             feature = self.features[i](hg)
             preds = self.outs[i](feature)
-            combined_hm_preds.append(preds)
             if i < self.nstack - 1:
                 x = x + self.merge_preds[i](preds) + self.merge_features[i](feature)
-        return torch.stack(combined_hm_preds, 1)
+        # Upsample the final prediction to the desired input_image_size
+        final_heatmap = F.interpolate(preds, size=(self.input_image_size, self.input_image_size), mode='bilinear', align_corners=False)
+        return final_heatmap

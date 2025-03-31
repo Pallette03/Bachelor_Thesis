@@ -1,0 +1,26 @@
+{"time":"2025-03-25T18:34:39.325891471+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250325_183439-h7vtdsab/logs/debug-core.log"}
+{"time":"2025-03-25T18:34:39.531863217+01:00","level":"INFO","msg":"created new stream","id":"h7vtdsab"}
+{"time":"2025-03-25T18:34:39.531899474+01:00","level":"INFO","msg":"stream: started","id":"h7vtdsab"}
+{"time":"2025-03-25T18:34:39.531943977+01:00","level":"INFO","msg":"handler: started","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T18:34:39.531935662+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T18:34:39.531969174+01:00","level":"INFO","msg":"sender: started","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T18:34:39.855960575+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-25T20:17:25.001937464+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-25T20:29:55.012435317+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-25T20:30:55.013909348+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-25T20:31:27.387312523+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-25T20:39:30.993206177+01:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/h7vtdsab/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2025-03-25T20:39:38.32051979+01:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/h7vtdsab/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2025-03-25T20:40:10.017914293+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2025-03-25T20:40:42.597847827+01:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/h7vtdsab/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2025-03-25T20:40:55.019090458+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2025-03-25T21:09:02.598716005+01:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/pallette-personal/lego-keypoint-detection/h7vtdsab/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2025-03-25T21:31:43.849474271+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-25T21:31:43.850066819+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-25T21:31:44.810004132+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading config.yaml","runtime_seconds":0.243541768,"progress":"952B/952B"}],"total_operations":1}}
+{"time":"2025-03-25T21:31:44.810401074+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-25T21:31:46.087825117+01:00","level":"INFO","msg":"stream: closing","id":"h7vtdsab"}
+{"time":"2025-03-25T21:31:46.087860884+01:00","level":"INFO","msg":"handler: closed","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T21:31:46.087915646+01:00","level":"INFO","msg":"sender: closed","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T21:31:46.087895208+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"h7vtdsab"}
+{"time":"2025-03-25T21:31:46.088042573+01:00","level":"INFO","msg":"stream: closed","id":"h7vtdsab"}

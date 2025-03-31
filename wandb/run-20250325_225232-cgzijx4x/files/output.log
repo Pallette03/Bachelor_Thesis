@@ -1,0 +1,112 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-25 22:55:19.486435] At Batch 46/925 for Epoch 1 taking 160.88 seconds since last checkpoint. Last Loss: 0.1491. Progress: 4.97%. Approx. Time left: 3074.26 seconds
+[2025-03-25 22:57:56.962106] At Batch 92/925 for Epoch 1 taking 157.48 seconds since last checkpoint. Last Loss: 0.0453. Progress: 9.95%. Approx. Time left: 2882.53 seconds
+[2025-03-25 23:00:33.228241] At Batch 138/925 for Epoch 1 taking 156.27 seconds since last checkpoint. Last Loss: 0.0264. Progress: 14.92%. Approx. Time left: 2706.74 seconds
+[2025-03-25 23:03:09.950503] At Batch 184/925 for Epoch 1 taking 156.72 seconds since last checkpoint. Last Loss: 0.0187. Progress: 19.89%. Approx. Time left: 2542.54 seconds
+[2025-03-25 23:05:46.285179] At Batch 230/925 for Epoch 1 taking 156.33 seconds since last checkpoint. Last Loss: 0.0143. Progress: 24.86%. Approx. Time left: 2380.17 seconds
+[2025-03-25 23:08:22.891592] At Batch 276/925 for Epoch 1 taking 156.61 seconds since last checkpoint. Last Loss: 0.0119. Progress: 29.84%. Approx. Time left: 2220.44 seconds
+[2025-03-25 23:10:59.850630] At Batch 322/925 for Epoch 1 taking 156.96 seconds since last checkpoint. Last Loss: 0.0087. Progress: 34.81%. Approx. Time left: 2062.27 seconds
+[2025-03-25 23:13:36.811223] At Batch 368/925 for Epoch 1 taking 156.96 seconds since last checkpoint. Last Loss: 0.0078. Progress: 39.78%. Approx. Time left: 1904.41 seconds
+[2025-03-25 23:16:13.744302] At Batch 414/925 for Epoch 1 taking 156.93 seconds since last checkpoint. Last Loss: 0.0066. Progress: 44.76%. Approx. Time left: 1746.71 seconds
+[2025-03-25 23:18:50.574809] At Batch 460/925 for Epoch 1 taking 156.83 seconds since last checkpoint. Last Loss: 0.0069. Progress: 49.73%. Approx. Time left: 1589.06 seconds
+[2025-03-25 23:21:26.955248] At Batch 506/925 for Epoch 1 taking 156.38 seconds since last checkpoint. Last Loss: 0.0052. Progress: 54.70%. Approx. Time left: 1431.18 seconds
+[2025-03-25 23:24:02.192471] At Batch 552/925 for Epoch 1 taking 155.24 seconds since last checkpoint. Last Loss: 0.0042. Progress: 59.68%. Approx. Time left: 1272.79 seconds
+[2025-03-25 23:26:37.820943] At Batch 598/925 for Epoch 1 taking 155.63 seconds since last checkpoint. Last Loss: 0.0045. Progress: 64.65%. Approx. Time left: 1115.09 seconds
+[2025-03-25 23:29:13.075398] At Batch 644/925 for Epoch 1 taking 155.25 seconds since last checkpoint. Last Loss: 0.0048. Progress: 69.62%. Approx. Time left: 957.53 seconds
+[2025-03-25 23:31:48.282122] At Batch 690/925 for Epoch 1 taking 155.21 seconds since last checkpoint. Last Loss: 0.0033. Progress: 74.59%. Approx. Time left: 800.25 seconds
+[2025-03-25 23:34:23.953449] At Batch 736/925 for Epoch 1 taking 155.67 seconds since last checkpoint. Last Loss: 0.0034. Progress: 79.57%. Approx. Time left: 643.36 seconds
+[2025-03-25 23:36:59.895759] At Batch 782/925 for Epoch 1 taking 155.94 seconds since last checkpoint. Last Loss: 0.0029. Progress: 84.54%. Approx. Time left: 486.66 seconds
+[2025-03-25 23:39:35.740955] At Batch 828/925 for Epoch 1 taking 155.84 seconds since last checkpoint. Last Loss: 0.0031. Progress: 89.51%. Approx. Time left: 330.03 seconds
+[2025-03-25 23:42:11.251068] At Batch 874/925 for Epoch 1 taking 155.51 seconds since last checkpoint. Last Loss: 0.0037. Progress: 94.49%. Approx. Time left: 173.46 seconds
+[2025-03-25 23:44:47.172605] At Batch 920/925 for Epoch 1 taking 155.92 seconds since last checkpoint. Last Loss: 0.0029. Progress: 99.46%. Approx. Time left: 17.00 seconds
+Took 3143.15 seconds for epoch 1
+Epoch [1/20], Heatmap Loss: 0.0285
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Validating on cuda
+[2025-03-25 23:45:05.444951] At Batch 2/49 for Validation taking 3.45 seconds since last checkpoint. Last Loss: 0.0032
+[2025-03-25 23:45:08.894534] At Batch 4/49 for Validation taking 3.45 seconds since last checkpoint. Last Loss: 0.0032
+[2025-03-25 23:45:12.178830] At Batch 6/49 for Validation taking 3.28 seconds since last checkpoint. Last Loss: 0.0027
+[2025-03-25 23:45:15.539675] At Batch 8/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0028
+[2025-03-25 23:45:18.982790] At Batch 10/49 for Validation taking 3.44 seconds since last checkpoint. Last Loss: 0.0034
+[2025-03-25 23:45:22.385999] At Batch 12/49 for Validation taking 3.40 seconds since last checkpoint. Last Loss: 0.0033
+[2025-03-25 23:45:25.743758] At Batch 14/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0026
+[2025-03-25 23:45:29.156092] At Batch 16/49 for Validation taking 3.41 seconds since last checkpoint. Last Loss: 0.0033
+[2025-03-25 23:45:32.562644] At Batch 18/49 for Validation taking 3.41 seconds since last checkpoint. Last Loss: 0.0032
+[2025-03-25 23:45:35.891685] At Batch 20/49 for Validation taking 3.33 seconds since last checkpoint. Last Loss: 0.0026
+[2025-03-25 23:45:39.467007] At Batch 22/49 for Validation taking 3.58 seconds since last checkpoint. Last Loss: 0.0031
+[2025-03-25 23:45:42.972071] At Batch 24/49 for Validation taking 3.50 seconds since last checkpoint. Last Loss: 0.0032
+[2025-03-25 23:45:46.331514] At Batch 26/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0029
+[2025-03-25 23:45:49.569974] At Batch 28/49 for Validation taking 3.24 seconds since last checkpoint. Last Loss: 0.0024
+[2025-03-25 23:45:52.925864] At Batch 30/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0033
+[2025-03-25 23:45:56.345448] At Batch 32/49 for Validation taking 3.42 seconds since last checkpoint. Last Loss: 0.0031
+[2025-03-25 23:45:59.600185] At Batch 34/49 for Validation taking 3.25 seconds since last checkpoint. Last Loss: 0.0030
+[2025-03-25 23:46:03.056375] At Batch 36/49 for Validation taking 3.46 seconds since last checkpoint. Last Loss: 0.0026
+[2025-03-25 23:46:06.512652] At Batch 38/49 for Validation taking 3.46 seconds since last checkpoint. Last Loss: 0.0031
+[2025-03-25 23:46:10.000401] At Batch 40/49 for Validation taking 3.49 seconds since last checkpoint. Last Loss: 0.0034
+[2025-03-25 23:46:13.292762] At Batch 42/49 for Validation taking 3.29 seconds since last checkpoint. Last Loss: 0.0029
+[2025-03-25 23:46:16.667817] At Batch 44/49 for Validation taking 3.37 seconds since last checkpoint. Last Loss: 0.0027
+[2025-03-25 23:46:20.117017] At Batch 46/49 for Validation taking 3.45 seconds since last checkpoint. Last Loss: 0.0031
+[2025-03-25 23:46:23.436053] At Batch 48/49 for Validation taking 3.32 seconds since last checkpoint. Last Loss: 0.0030
+[2025-03-25 23:46:24.659508] At Batch 49/49 for Validation taking 1.22 seconds since last checkpoint. Last Loss: 0.0032
+Validation Loss: 0.0030, Validation Average Distance: 274.2813, Validation Accuracy: 0.0120, Recall: 0.0066
+[2025-03-25 23:48:59.473436] At Batch 46/925 for Epoch 2 taking 154.81 seconds since last checkpoint. Last Loss: 0.0026. Progress: 4.97%. Approx. Time left: 2958.18 seconds
+[2025-03-25 23:51:34.854061] At Batch 92/925 for Epoch 2 taking 155.38 seconds since last checkpoint. Last Loss: 0.0028. Progress: 9.95%. Approx. Time left: 2808.56 seconds
+[2025-03-25 23:54:10.050304] At Batch 138/925 for Epoch 2 taking 155.20 seconds since last checkpoint. Last Loss: 0.0025. Progress: 14.92%. Approx. Time left: 2654.04 seconds
+[2025-03-25 23:56:45.285215] At Batch 184/925 for Epoch 2 taking 155.23 seconds since last checkpoint. Last Loss: 0.0023. Progress: 19.89%. Approx. Time left: 2499.34 seconds
+[2025-03-25 23:59:20.453040] At Batch 230/925 for Epoch 2 taking 155.17 seconds since last checkpoint. Last Loss: 0.0021. Progress: 24.86%. Approx. Time left: 2344.23 seconds
+[2025-03-26 00:01:56.060971] At Batch 276/925 for Epoch 2 taking 155.61 seconds since last checkpoint. Last Loss: 0.0025. Progress: 29.84%. Approx. Time left: 2190.13 seconds
+[2025-03-26 00:04:31.065052] At Batch 322/925 for Epoch 2 taking 155.00 seconds since last checkpoint. Last Loss: 0.0026. Progress: 34.81%. Approx. Time left: 2034.47 seconds
+[2025-03-26 00:07:06.361601] At Batch 368/925 for Epoch 2 taking 155.30 seconds since last checkpoint. Last Loss: 0.0021. Progress: 39.78%. Approx. Time left: 1879.42 seconds
+[2025-03-26 00:09:41.622150] At Batch 414/925 for Epoch 2 taking 155.26 seconds since last checkpoint. Last Loss: 0.0024. Progress: 44.76%. Approx. Time left: 1724.26 seconds
+[2025-03-26 00:12:17.640312] At Batch 460/925 for Epoch 2 taking 156.02 seconds since last checkpoint. Last Loss: 0.0025. Progress: 49.73%. Approx. Time left: 1569.86 seconds
+[2025-03-26 00:14:56.795706] At Batch 506/925 for Epoch 2 taking 159.16 seconds since last checkpoint. Last Loss: 0.0026. Progress: 54.70%. Approx. Time left: 1417.75 seconds
+[2025-03-26 00:17:32.725168] At Batch 552/925 for Epoch 2 taking 155.93 seconds since last checkpoint. Last Loss: 0.0018. Progress: 59.68%. Approx. Time left: 1262.29 seconds
+[2025-03-26 00:20:08.257318] At Batch 598/925 for Epoch 2 taking 155.53 seconds since last checkpoint. Last Loss: 0.0024. Progress: 64.65%. Approx. Time left: 1106.55 seconds
+[2025-03-26 00:22:43.646697] At Batch 644/925 for Epoch 2 taking 155.39 seconds since last checkpoint. Last Loss: 0.0021. Progress: 69.62%. Approx. Time left: 950.77 seconds
+[2025-03-26 00:25:18.997852] At Batch 690/925 for Epoch 2 taking 155.35 seconds since last checkpoint. Last Loss: 0.0019. Progress: 74.59%. Approx. Time left: 795.03 seconds
+[2025-03-26 00:27:54.294291] At Batch 736/925 for Epoch 2 taking 155.30 seconds since last checkpoint. Last Loss: 0.0020. Progress: 79.57%. Approx. Time left: 639.32 seconds
+[2025-03-26 00:30:29.116499] At Batch 782/925 for Epoch 2 taking 154.82 seconds since last checkpoint. Last Loss: 0.0021. Progress: 84.54%. Approx. Time left: 483.58 seconds
+[2025-03-26 00:33:04.362789] At Batch 828/925 for Epoch 2 taking 155.25 seconds since last checkpoint. Last Loss: 0.0020. Progress: 89.51%. Approx. Time left: 327.98 seconds
+[2025-03-26 00:35:39.811332] At Batch 874/925 for Epoch 2 taking 155.45 seconds since last checkpoint. Last Loss: 0.0020. Progress: 94.49%. Approx. Time left: 172.44 seconds
+[2025-03-26 00:38:14.972357] At Batch 920/925 for Epoch 2 taking 155.16 seconds since last checkpoint. Last Loss: 0.0021. Progress: 99.46%. Approx. Time left: 16.90 seconds
+Took 3124.76 seconds for epoch 2
+Epoch [2/20], Heatmap Loss: 0.0024
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Validating on cuda
+[2025-03-26 00:38:33.172267] At Batch 2/49 for Validation taking 3.43 seconds since last checkpoint. Last Loss: 0.0022
+[2025-03-26 00:38:36.561973] At Batch 4/49 for Validation taking 3.39 seconds since last checkpoint. Last Loss: 0.0023
+[2025-03-26 00:38:39.867236] At Batch 6/49 for Validation taking 3.31 seconds since last checkpoint. Last Loss: 0.0017
+[2025-03-26 00:38:43.238612] At Batch 8/49 for Validation taking 3.37 seconds since last checkpoint. Last Loss: 0.0019
+[2025-03-26 00:38:46.598308] At Batch 10/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0023
+[2025-03-26 00:38:49.955573] At Batch 12/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0021
+[2025-03-26 00:38:53.317611] At Batch 14/49 for Validation taking 3.36 seconds since last checkpoint. Last Loss: 0.0017
+[2025-03-26 00:38:56.732157] At Batch 16/49 for Validation taking 3.41 seconds since last checkpoint. Last Loss: 0.0023
+[2025-03-26 00:39:00.107352] At Batch 18/49 for Validation taking 3.37 seconds since last checkpoint. Last Loss: 0.0024
+[2025-03-26 00:39:03.414568] At Batch 20/49 for Validation taking 3.31 seconds since last checkpoint. Last Loss: 0.0016
+[2025-03-26 00:39:06.866358] At Batch 22/49 for Validation taking 3.45 seconds since last checkpoint. Last Loss: 0.0023
+[2025-03-26 00:39:10.319095] At Batch 24/49 for Validation taking 3.45 seconds since last checkpoint. Last Loss: 0.0023
+[2025-03-26 00:39:13.734691] At Batch 26/49 for Validation taking 3.42 seconds since last checkpoint. Last Loss: 0.0020
+[2025-03-26 00:39:16.990014] At Batch 28/49 for Validation taking 3.26 seconds since last checkpoint. Last Loss: 0.0015
+[2025-03-26 00:39:20.394153] At Batch 30/49 for Validation taking 3.40 seconds since last checkpoint. Last Loss: 0.0022
+[2025-03-26 00:39:23.832125] At Batch 32/49 for Validation taking 3.44 seconds since last checkpoint. Last Loss: 0.0020
+[2025-03-26 00:39:27.120185] At Batch 34/49 for Validation taking 3.29 seconds since last checkpoint. Last Loss: 0.0018
+[2025-03-26 00:39:30.464807] At Batch 36/49 for Validation taking 3.34 seconds since last checkpoint. Last Loss: 0.0017
+[2025-03-26 00:39:33.945196] At Batch 38/49 for Validation taking 3.48 seconds since last checkpoint. Last Loss: 0.0022
+[2025-03-26 00:39:37.442446] At Batch 40/49 for Validation taking 3.50 seconds since last checkpoint. Last Loss: 0.0025
+[2025-03-26 00:39:40.763918] At Batch 42/49 for Validation taking 3.32 seconds since last checkpoint. Last Loss: 0.0019
+[2025-03-26 00:39:44.167345] At Batch 44/49 for Validation taking 3.40 seconds since last checkpoint. Last Loss: 0.0018
+[2025-03-26 00:39:47.541024] At Batch 46/49 for Validation taking 3.37 seconds since last checkpoint. Last Loss: 0.0022
+[2025-03-26 00:39:50.851428] At Batch 48/49 for Validation taking 3.31 seconds since last checkpoint. Last Loss: 0.0021
+[2025-03-26 00:39:52.081549] At Batch 49/49 for Validation taking 1.23 seconds since last checkpoint. Last Loss: 0.0023
+Validation Loss: 0.0020, Validation Average Distance: 215.0956, Validation Accuracy: 0.1020, Recall: 0.0694
+[2025-03-26 00:42:27.617087] At Batch 46/925 for Epoch 3 taking 155.53 seconds since last checkpoint. Last Loss: 0.0021. Progress: 4.97%. Approx. Time left: 2971.93 seconds
+[2025-03-26 00:45:02.707555] At Batch 92/925 for Epoch 3 taking 155.09 seconds since last checkpoint. Last Loss: 0.0021. Progress: 9.95%. Approx. Time left: 2812.44 seconds
+[2025-03-26 00:47:38.291035] At Batch 138/925 for Epoch 3 taking 155.58 seconds since last checkpoint. Last Loss: 0.0020. Progress: 14.92%. Approx. Time left: 2658.70 seconds
+[2025-03-26 00:50:13.597488] At Batch 184/925 for Epoch 3 taking 155.31 seconds since last checkpoint. Last Loss: 0.0017. Progress: 19.89%. Approx. Time left: 2502.92 seconds
+[2025-03-26 00:52:49.124104] At Batch 230/925 for Epoch 3 taking 155.53 seconds since last checkpoint. Last Loss: 0.0015. Progress: 24.86%. Approx. Time left: 2348.00 seconds

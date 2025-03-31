@@ -1,0 +1,17 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-03-28 14:24:38.550344] At Batch 115/2311 for Epoch 1 taking 185.31 seconds since last checkpoint. Last Loss: 0.0634. Progress: 4.98%. Approx. Time left: 3538.49 seconds
+[2025-03-28 14:26:51.668937] At Batch 230/2311 for Epoch 1 taking 133.12 seconds since last checkpoint. Last Loss: 0.0343. Progress: 9.95%. Approx. Time left: 2881.03 seconds
+[2025-03-28 14:29:05.480509] At Batch 345/2311 for Epoch 1 taking 133.81 seconds since last checkpoint. Last Loss: 0.0211. Progress: 14.93%. Approx. Time left: 2577.07 seconds
+[2025-03-28 14:31:19.070700] At Batch 460/2311 for Epoch 1 taking 133.59 seconds since last checkpoint. Last Loss: 0.0148. Progress: 19.90%. Approx. Time left: 2357.30 seconds
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 501, in <module>
+    model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 253, in train_model
+    total_corner_loss += corner_loss.item()
+                         ^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

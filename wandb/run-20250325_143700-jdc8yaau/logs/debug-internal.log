@@ -1,0 +1,16 @@
+{"time":"2025-03-25T14:37:00.044299132+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250325_143700-jdc8yaau/logs/debug-core.log"}
+{"time":"2025-03-25T14:37:00.253854919+01:00","level":"INFO","msg":"created new stream","id":"jdc8yaau"}
+{"time":"2025-03-25T14:37:00.253877762+01:00","level":"INFO","msg":"stream: started","id":"jdc8yaau"}
+{"time":"2025-03-25T14:37:00.253910092+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:37:00.253934348+01:00","level":"INFO","msg":"sender: started","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:37:00.253945589+01:00","level":"INFO","msg":"handler: started","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:37:00.577614758+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-25T14:44:45.514455778+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-25T14:44:45.51509369+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-25T14:44:46.475192151+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading config.yaml","runtime_seconds":0.452129262,"progress":"953B/953B"}],"total_operations":1}}
+{"time":"2025-03-25T14:44:46.57932502+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-25T14:44:47.811190757+01:00","level":"INFO","msg":"stream: closing","id":"jdc8yaau"}
+{"time":"2025-03-25T14:44:47.811211777+01:00","level":"INFO","msg":"handler: closed","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:44:47.811223869+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:44:47.811237595+01:00","level":"INFO","msg":"sender: closed","stream_id":"jdc8yaau"}
+{"time":"2025-03-25T14:44:47.811292559+01:00","level":"INFO","msg":"stream: closed","id":"jdc8yaau"}
