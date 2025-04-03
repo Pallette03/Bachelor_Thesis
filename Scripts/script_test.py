@@ -51,7 +51,7 @@ bpy.context.scene.render.resolution_x = 1000
 bpy.context.scene.render.resolution_y = 1000
 
 # Set output file path and format
-will_render_image = False
+will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
 add_noise = True
@@ -75,8 +75,9 @@ line_collection = bpy.data.collections.get(line_collection_name)
 # Get the Camera
 camera = bpy.data.objects.get('Camera')
 
-gaussian_mean = 0
-gaussian_sigma = 25
+gaussian_mean = 5
+gaussian_stddev = 5
+gaussian_gamma = 1
 
 min_z = 0.3  # Distance from camera to near plane
 max_z = 0.9  # Distance to far plane (adjust as needed)
@@ -254,7 +255,7 @@ for i in range(rendered_images_amount):
             bpy.data.orphans_purge()  # Purges unused data
             
             if add_noise:
-                uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_sigma)
+                uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_stddev, gaussian_gamma)
 
             if draw_on_image:
                 uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)

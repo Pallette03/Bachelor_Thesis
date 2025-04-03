@@ -542,23 +542,17 @@ class Util_functions:
         
         return True  # No occlusion found
 
-    def add_gaussian_noise_to_image(self, image_path, mean=0, sigma=25):
-        """
-        Adds Gaussian noise to an image.
+    def add_gaussian_noise_to_image(self, image_path, mean, stddev, gamma=1):
+        img = cv2.imread(image_path)
+        gauss_noise = np.zeros(img.shape[:2])
+        cv2.randn(gauss_noise, mean, stddev)
+        gauss_noise = (gauss_noise*gamma).astype(np.uint8)
         
-        :param image: The input image (numpy array).
-        :param mean: Mean of the Gaussian noise.
-        :param sigma: Standard deviation of the Gaussian noise.
-        :return: Noisy image.
-        """
-        image = cv2.imread(image_path)
-        if image is None:
-            raise FileNotFoundError(f"Image at path '{image_path}' could not be found or loaded.")
-        
-        noise = np.random.normal(mean, sigma, image.shape).astype(np.uint8)
-        noisy_image = cv2.add(image, noise)
-
-        cv2.imwrite(image_path, noisy_image)
-        return noisy_image
-        
+        if len(img.shape) == 2:
+            output = cv2.add(img, gauss_noise)
+        elif len(img.shape) == 3:
+            merged = cv2.merge([gauss_noise, gauss_noise, gauss_noise])
+            output = cv2.add(img, merged)
+        cv2.imwrite(image_path, output)
+        return output
         
