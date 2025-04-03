@@ -1,0 +1,80 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/cropped_objects/validate
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-04-02 22:44:02.663954] At Batch 33/661 for Epoch 1 taking 365.66 seconds since last checkpoint. Last Loss: 0.1943. Progress: 4.99%. Approx. Time left: 6958.65 seconds
+[2025-04-02 22:47:30.682946] At Batch 66/661 for Epoch 1 taking 208.02 seconds since last checkpoint. Last Loss: 0.0714. Progress: 9.98%. Approx. Time left: 5171.82 seconds
+[2025-04-02 22:50:57.804694] At Batch 99/661 for Epoch 1 taking 207.12 seconds since last checkpoint. Last Loss: 0.0429. Progress: 14.98%. Approx. Time left: 4432.43 seconds
+[2025-04-02 22:54:24.221390] At Batch 132/661 for Epoch 1 taking 206.42 seconds since last checkpoint. Last Loss: 0.0262. Progress: 19.97%. Approx. Time left: 3956.35 seconds
+[2025-04-02 22:57:50.507194] At Batch 165/661 for Epoch 1 taking 206.29 seconds since last checkpoint. Last Loss: 0.0216. Progress: 24.96%. Approx. Time left: 3587.75 seconds
+[2025-04-02 23:01:17.405365] At Batch 198/661 for Epoch 1 taking 206.90 seconds since last checkpoint. Last Loss: 0.0166. Progress: 29.95%. Approx. Time left: 3274.68 seconds
+[2025-04-02 23:04:43.663905] At Batch 231/661 for Epoch 1 taking 206.26 seconds since last checkpoint. Last Loss: 0.0128. Progress: 34.95%. Approx. Time left: 2990.76 seconds
+[2025-04-02 23:08:11.252831] At Batch 264/661 for Epoch 1 taking 207.59 seconds since last checkpoint. Last Loss: 0.0110. Progress: 39.94%. Approx. Time left: 2728.25 seconds
+[2025-04-02 23:11:38.500768] At Batch 297/661 for Epoch 1 taking 207.25 seconds since last checkpoint. Last Loss: 0.0090. Progress: 44.93%. Approx. Time left: 2477.53 seconds
+[2025-04-02 23:15:04.909475] At Batch 330/661 for Epoch 1 taking 206.41 seconds since last checkpoint. Last Loss: 0.0084. Progress: 49.92%. Approx. Time left: 2234.66 seconds
+[2025-04-02 23:18:31.599014] At Batch 363/661 for Epoch 1 taking 206.69 seconds since last checkpoint. Last Loss: 0.0069. Progress: 54.92%. Approx. Time left: 1998.65 seconds
+[2025-04-02 23:21:58.845454] At Batch 396/661 for Epoch 1 taking 207.25 seconds since last checkpoint. Last Loss: 0.0062. Progress: 59.91%. Approx. Time left: 1767.90 seconds
+[2025-04-02 23:25:25.354310] At Batch 429/661 for Epoch 1 taking 206.51 seconds since last checkpoint. Last Loss: 0.0065. Progress: 64.90%. Approx. Time left: 1540.37 seconds
+[2025-04-02 23:28:51.343166] At Batch 462/661 for Epoch 1 taking 205.99 seconds since last checkpoint. Last Loss: 0.0058. Progress: 69.89%. Approx. Time left: 1315.61 seconds
+[2025-04-02 23:32:18.169120] At Batch 495/661 for Epoch 1 taking 206.83 seconds since last checkpoint. Last Loss: 0.0051. Progress: 74.89%. Approx. Time left: 1093.64 seconds
+[2025-04-02 23:35:45.084657] At Batch 528/661 for Epoch 1 taking 206.92 seconds since last checkpoint. Last Loss: 0.0049. Progress: 79.88%. Approx. Time left: 873.59 seconds
+[2025-04-02 23:39:11.524433] At Batch 561/661 for Epoch 1 taking 206.44 seconds since last checkpoint. Last Loss: 0.0052. Progress: 84.87%. Approx. Time left: 655.00 seconds
+[2025-04-02 23:42:37.566003] At Batch 594/661 for Epoch 1 taking 206.04 seconds since last checkpoint. Last Loss: 0.0041. Progress: 89.86%. Approx. Time left: 437.71 seconds
+[2025-04-02 23:46:04.620782] At Batch 627/661 for Epoch 1 taking 207.05 seconds since last checkpoint. Last Loss: 0.0038. Progress: 94.86%. Approx. Time left: 221.66 seconds
+[2025-04-02 23:49:30.202540] At Batch 660/661 for Epoch 1 taking 205.58 seconds since last checkpoint. Last Loss: 0.0039. Progress: 99.85%. Approx. Time left: 6.50 seconds
+Took 4323.62 seconds for epoch 1
+Epoch [1/20], Heatmap Loss: 0.0411
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/dynamic_corner_detector_epoch.pth
+Validating on cuda
+[2025-04-02 23:50:03.720235] At Batch 1/35 for Validation taking 2.87 seconds since last checkpoint. Last Loss: 0.0042
+[2025-04-02 23:50:06.477199] At Batch 2/35 for Validation taking 2.76 seconds since last checkpoint. Last Loss: 0.0036
+[2025-04-02 23:50:09.417702] At Batch 3/35 for Validation taking 2.94 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:50:12.202218] At Batch 4/35 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:50:15.043300] At Batch 5/35 for Validation taking 2.84 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:50:17.854760] At Batch 6/35 for Validation taking 2.81 seconds since last checkpoint. Last Loss: 0.0036
+[2025-04-02 23:50:20.667694] At Batch 7/35 for Validation taking 2.81 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:50:23.534954] At Batch 8/35 for Validation taking 2.87 seconds since last checkpoint. Last Loss: 0.0038
+[2025-04-02 23:50:26.382346] At Batch 9/35 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0036
+[2025-04-02 23:50:29.269244] At Batch 10/35 for Validation taking 2.89 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:50:32.111595] At Batch 11/35 for Validation taking 2.84 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:50:35.109883] At Batch 12/35 for Validation taking 3.00 seconds since last checkpoint. Last Loss: 0.0041
+[2025-04-02 23:50:37.944412] At Batch 13/35 for Validation taking 2.83 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:50:40.714506] At Batch 14/35 for Validation taking 2.77 seconds since last checkpoint. Last Loss: 0.0041
+[2025-04-02 23:50:43.536043] At Batch 15/35 for Validation taking 2.82 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:50:46.320362] At Batch 16/35 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:50:49.208223] At Batch 17/35 for Validation taking 2.89 seconds since last checkpoint. Last Loss: 0.0042
+[2025-04-02 23:50:52.043180] At Batch 18/35 for Validation taking 2.83 seconds since last checkpoint. Last Loss: 0.0038
+[2025-04-02 23:50:54.908743] At Batch 19/35 for Validation taking 2.87 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:50:57.608193] At Batch 20/35 for Validation taking 2.70 seconds since last checkpoint. Last Loss: 0.0035
+[2025-04-02 23:51:00.328428] At Batch 21/35 for Validation taking 2.72 seconds since last checkpoint. Last Loss: 0.0038
+[2025-04-02 23:51:03.223253] At Batch 22/35 for Validation taking 2.89 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:51:06.069962] At Batch 23/35 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:51:08.853919] At Batch 24/35 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0036
+[2025-04-02 23:51:11.774758] At Batch 25/35 for Validation taking 2.92 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:51:14.553386] At Batch 26/35 for Validation taking 2.78 seconds since last checkpoint. Last Loss: 0.0038
+[2025-04-02 23:51:17.417900] At Batch 27/35 for Validation taking 2.86 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:51:20.379029] At Batch 28/35 for Validation taking 2.96 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:51:23.231044] At Batch 29/35 for Validation taking 2.85 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:51:25.989295] At Batch 30/35 for Validation taking 2.76 seconds since last checkpoint. Last Loss: 0.0036
+[2025-04-02 23:51:28.821287] At Batch 31/35 for Validation taking 2.83 seconds since last checkpoint. Last Loss: 0.0039
+[2025-04-02 23:51:31.651441] At Batch 32/35 for Validation taking 2.83 seconds since last checkpoint. Last Loss: 0.0038
+[2025-04-02 23:51:34.452393] At Batch 33/35 for Validation taking 2.80 seconds since last checkpoint. Last Loss: 0.0042
+[2025-04-02 23:51:37.316303] At Batch 34/35 for Validation taking 2.86 seconds since last checkpoint. Last Loss: 0.0040
+[2025-04-02 23:51:53.248126] At Batch 35/35 for Validation taking 15.93 seconds since last checkpoint. Last Loss: 0.0042
+Validation Loss: 0.0039, Validation Average Distance: 265.9238, Validation Accuracy: 0.0226, Recall: 0.0137
+Traceback (most recent call last):
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 501, in <module>
+    model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pallette/Documents/GitHub/Bachelor/Scripts/KeypointDetector.py", line 248, in train_model
+    corner_loss.backward()
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/torch/_tensor.py", line 626, in backward
+    torch.autograd.backward(
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/torch/autograd/__init__.py", line 347, in backward
+    _engine_run_backward(
+  File "/home/pallette/Documents/GitHub/Bachelor/.venv/lib/python3.12/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: HIP out of memory. Tried to allocate 2.92 GiB. GPU 0 has a total capacity of 15.98 GiB of which 2.50 GiB is free. Of the allocated memory 7.58 GiB is allocated by PyTorch, and 5.32 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_HIP_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

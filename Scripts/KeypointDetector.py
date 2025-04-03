@@ -374,10 +374,10 @@ if __name__ == "__main__":
         entity='pallette-personal', 
         job_type='train',
         config={
-            "model": "UNet",
+            "model": "KeyNet",
             "dataset": "cropped_objects",
-            "batch_size": 4,
-            "val_batch_size": 4,
+            "batch_size": 10,
+            "val_batch_size": 10,
             "learning_rate": 1e-4,
             "global_image_size": (700, 700),
             "num_epochs": 20,
@@ -386,7 +386,7 @@ if __name__ == "__main__":
             "start_from_checkpoint": False,
             "post_processing_threshold": 0.4,
             "distance_threshold": 5,
-            "feature_extractor_lvl_amount": 5,
+            "feature_extractor_lvl_amount": 8,
             "hourglass_stacks": 4
             }
         )

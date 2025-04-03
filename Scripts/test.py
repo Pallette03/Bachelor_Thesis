@@ -76,12 +76,12 @@ def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
 
 
 use_external_image = False
-threshold = 0.3
+threshold = 0.4
 num_channels = 3
 
 # Load the model
-model = UNet(n_channels=3, n_classes=1)
-#model = KeyNet(num_filters=8, num_levels=5, kernel_size=5, in_channels=num_channels)
+#model = UNet(n_channels=3, n_classes=1)
+model = KeyNet(num_filters=8, num_levels=5, kernel_size=5, in_channels=num_channels)
 #model = PoseNet(nstack=2, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
 #model = SimpleModel(in_channels=num_channels, out_channels=1)
 model.load_state_dict(torch.load(model_path)) 
@@ -107,85 +107,85 @@ if not use_external_image:
 
     dataset_length = len(dataset)
     rand_index = np.random.randint(0, dataset_length)
-    sample = dataset[rand_index]
-    model_input = sample['image'].unsqueeze(0)
     
-    input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
+    i = -37
+    while True:
+        
+        sample = dataset[i]
+        model_input = sample['image'].unsqueeze(0)
     
-    # Predict the keypoints
-    start_time = time.time()
-    pred_heatmap = model(model_input)
-    end_time = time.time()
-    print(f"Prediction Time: {end_time - start_time:.4f} seconds")
-    pred_heatmap = pred_heatmap.squeeze(0).squeeze(0).detach().cpu().numpy()
+        input_image = sample['image'].permute(1, 2, 0).cpu().numpy()
+        
+        # Predict the keypoints
+        start_time = time.time()
+        pred_heatmap = model(model_input)
+        end_time = time.time()
+        print(f"Prediction Time: {end_time - start_time:.4f} seconds")
+        pred_heatmap = pred_heatmap.squeeze(0).squeeze(0).detach().cpu().numpy()
 
 
-    # Convert to probability using sigmoid
-    prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
+        # Convert to probability using sigmoid
+        prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
 
-    # Normalize the heatmap to the range [0, 1]
-    prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
+        # Normalize the heatmap to the range [0, 1]
+        prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
 
-    # Save a heatmap where every pixel gets a color from black to red according to its value
-    plt.imshow(prob_heatmap, cmap='Reds', interpolation='nearest')
-    plt.title("Predicted Heatmap (Black to Red)")
-    plt.colorbar()
-    plt.savefig("predicted_heatmap_black_to_red.png")
-    plt.close()
+        # Save a heatmap where every pixel gets a color from black to red according to its value using OpenCV
+        heatmap = cv2.applyColorMap((prob_heatmap * 255).astype(np.uint8), cv2.COLORMAP_JET)
+        cv2.imwrite("predicted_heatmap_blue_to_red.png", heatmap)
 
 
-    
+        
 
 
-    pred_heatmap = convert_pred_to_heatmap(prob_heatmap, threshold=threshold)
+        pred_heatmap = convert_pred_to_heatmap(prob_heatmap, threshold=threshold)
 
-    # Detect blobs in the heatmap and convert them to keypoints
-    binary_map = (pred_heatmap > threshold).astype(np.uint8)
-    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_map)
+        # Detect blobs in the heatmap and convert them to keypoints
+        binary_map = (pred_heatmap > threshold).astype(np.uint8)
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_map)
 
-    # Extract keypoint coordinates (ignore the background component at index 0)
-    keypoints = centroids[1:]
+        # Extract keypoint coordinates (ignore the background component at index 0)
+        keypoints = centroids[1:]
 
-    # Print keypoints
-    print("Detected Keypoints amount:", len(keypoints))
+        # Print keypoints
+        print("Detected Keypoints amount:", len(keypoints))
 
-    # Apply max filter to find local peaks
-    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
-    peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
+        # Apply max filter to find local peaks
+        local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+        peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
 
-    # Get peak coordinates
-    y_coords, x_coords = np.where(peaks)
-    keypoints = np.column_stack((x_coords, y_coords))
+        # Get peak coordinates
+        y_coords, x_coords = np.where(peaks)
+        keypoints = np.column_stack((x_coords, y_coords))
 
-    print("Filtered Keypoints amount:", len(keypoints))
+        print("Filtered Keypoints amount:", len(keypoints))
 
-    #Save input image with predicted keypoints using opencv
-    cv_image = (input_image * 255).astype(np.uint8)
-    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
-    
-    for x, y in keypoints:
-        cv2.circle(cv_image, (int(x), int(y)), radius=2, color=(0, 255, 255), thickness=1)
-    cv2.imwrite("input_image_with_predicted_keypoints.png", cv_image)
+        #Save input image with predicted keypoints using opencv
+        cv_image = (input_image * 255).astype(np.uint8)
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
 
+        cv2.imwrite("model_input_image.png", cv_image)
 
-    #target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
-
+        for x, y in keypoints:
+            cv2.circle(cv_image, (int(x), int(y)), radius=2, color=(0, 255, 255), thickness=3)
+        cv2.imwrite("input_image_with_predicted_keypoints.png", cv_image)
 
 
-    # Plot the heatmaps
+        #target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
 
 
-    plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
-    plt.title("Predicted Heatmap")
-    plt.savefig("predicted_heatmap.png")
-    
 
-    plt.figure(figsize=(10, 10))
-    plt.imshow(input_image)
+        # Plot the heatmaps
 
-    plt.title("Input Image with Predicted Keypoints")
-    plt.savefig("model_input_image.png")
-    plt.close()
+
+        plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
+        plt.title("Predicted Heatmap")
+        plt.savefig("predicted_heatmap.png")
+        plt.close()
+
+        print(i)
+        i = i - 1
+        input("Press Enter to continue...")
 
 else:
     # Load an external image
