@@ -54,8 +54,14 @@ bpy.context.scene.render.resolution_y = 1000
 will_render_image = False
 draw_on_image = False
 fill_to_max_items = False
-render_images_folder = '//datasets/cropped_objects/images/rgb'
-annotations_folder = '//datasets/cropped_objects/annotations'
+add_noise = True
+
+if add_noise:
+    render_images_folder = '//datasets/noisy/images/rgb'
+    annotations_folder = '//datasets/noisy/annotations'
+else:
+    render_images_folder = '//datasets/cropped_objects/images/rgb'
+    annotations_folder = '//datasets/cropped_objects/annotations'
 hdri_folder = '//HDRI'
 
 bpy.context.scene.use_nodes = True
@@ -68,6 +74,9 @@ line_collection = bpy.data.collections.get(line_collection_name)
 
 # Get the Camera
 camera = bpy.data.objects.get('Camera')
+
+gaussian_mean = 0
+gaussian_sigma = 25
 
 min_z = 0.3  # Distance from camera to near plane
 max_z = 0.9  # Distance to far plane (adjust as needed)
@@ -242,8 +251,11 @@ for i in range(rendered_images_amount):
             write_annotations_to_file(time_for_name)
             print(f"Rendering image {i+1}/{rendered_images_amount}")
             bpy.ops.render.render(write_still=True, use_viewport=True)
-
             bpy.data.orphans_purge()  # Purges unused data
+            
+            if add_noise:
+                uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_sigma)
+
             if draw_on_image:
                 uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)
         else:

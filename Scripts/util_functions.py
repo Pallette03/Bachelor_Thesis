@@ -1,3 +1,4 @@
+import numpy as np
 import bpy # type: ignore
 import bpy_extras # type: ignore
 import json
@@ -540,5 +541,24 @@ class Util_functions:
             return hit_distance >= target_distance
         
         return True  # No occlusion found
+
+    def add_gaussian_noise_to_image(self, image_path, mean=0, sigma=25):
+        """
+        Adds Gaussian noise to an image.
+        
+        :param image: The input image (numpy array).
+        :param mean: Mean of the Gaussian noise.
+        :param sigma: Standard deviation of the Gaussian noise.
+        :return: Noisy image.
+        """
+        image = cv2.imread(image_path)
+        if image is None:
+            raise FileNotFoundError(f"Image at path '{image_path}' could not be found or loaded.")
+        
+        noise = np.random.normal(mean, sigma, image.shape).astype(np.uint8)
+        noisy_image = cv2.add(image, noise)
+
+        cv2.imwrite(image_path, noisy_image)
+        return noisy_image
         
         
