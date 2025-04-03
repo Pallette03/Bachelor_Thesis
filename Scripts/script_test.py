@@ -55,12 +55,15 @@ will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
 add_noise = True
+depth_output = True
 
 if add_noise:
     render_images_folder = '//datasets/noisy/images/rgb'
+    depth_map_folder = '//datasets/noisy/images/depth'
     annotations_folder = '//datasets/noisy/annotations'
 else:
     render_images_folder = '//datasets/cropped_objects/images/rgb'
+    depth_map_folder = '//datasets/cropped_objects/images/depth'
     annotations_folder = '//datasets/cropped_objects/annotations'
 hdri_folder = '//HDRI'
 
@@ -185,6 +188,7 @@ def write_annotations_to_file(file_name):
 
         image_id = file_name
         json_file.write(f'{{"image_id": "{image_id}", ')
+        json_file.write(f'"noise_flag": {add_noise}, "depth_flag": {depth_output}, ')
         json_file.write('"camera_matrix": [')
         for vector in camera.matrix_world:
             json.dump((vector[0], vector[1], vector[2]), json_file)
@@ -251,7 +255,12 @@ for i in range(rendered_images_amount):
         if camera_collection.objects:
             write_annotations_to_file(time_for_name)
             print(f"Rendering image {i+1}/{rendered_images_amount}")
-            bpy.ops.render.render(write_still=True, use_viewport=True)
+
+            if depth_output:
+                uf.save_depth_map(depth_map_folder, bpy.context.scene, time_for_name)
+            else:
+                bpy.ops.render.render(write_still=True, use_viewport=True)
+
             bpy.data.orphans_purge()  # Purges unused data
             
             if add_noise:

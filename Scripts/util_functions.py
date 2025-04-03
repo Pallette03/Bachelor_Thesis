@@ -555,4 +555,80 @@ class Util_functions:
             output = cv2.add(img, merged)
         cv2.imwrite(image_path, output)
         return output
+    
+    def save_depth_map(self, depth_map_path, scene, file_name):
+        # Store the original state of the compositor flag
+        original_use_nodes = scene.use_nodes
+        scene.use_nodes = True  # Ensure compositor nodes are enabled
+        
+        # Get the node tree and lists for convenience
+        node_tree = scene.node_tree
+        nodes = node_tree.nodes
+        links = node_tree.links
+
+        # Ensure the active view layers output the Z (depth) pass
+        for layer in scene.view_layers:
+            layer.use_pass_z = True
+
+        # List to keep track of nodes we create
+        nodes_created = []
+        
+        # Create a File Output node for the depth map
+        file_node = nodes.new(type="CompositorNodeOutputFile")
+        file_node.name = "TempDepthOutput"
+        file_node.label = "Temp Depth Output"
+        nodes_created.append(file_node)
+        
+        # Set the base path to the directory of the current .blend file
+        base_path = bpy.path.abspath("//") + depth_map_path
+        file_node.base_path = base_path
+        # Set the file prefix; the output will have a frame number appended
+        complete_file_name = file_name + "_depth"
+        file_node.file_slots[0].path = complete_file_name
+        # Use OpenEXR format for full depth precision and single channel (BW)
+        file_node.format.file_format = 'PNG'
+        file_node.format.color_mode = 'RGB'
+        #file_node.format.color_depth = '16' #Increases Accuracy of depth readings but increases file size
+        
+        # Find an existing Render Layers node, or create one if not found.
+        render_layers = None
+        for node in nodes:
+            if node.type == 'R_LAYERS':
+                render_layers = node
+                break
+        render_layers_created = False
+        if render_layers is None:
+            render_layers = nodes.new(type="CompositorNodeRLayers")
+            render_layers_created = True
+            nodes_created.append(render_layers)
+        
+        # Clear any preexisting links on the file node's input (should be unnecessary for a new node)
+        while file_node.inputs[0].links:
+            links.remove(file_node.inputs[0].links[0])
+        
+        # Connect the Render Layers' 'Depth' output to the File Output node
+        links.new(render_layers.outputs['Depth'], file_node.inputs[0])
+        
+        # Render the scene (this will execute the compositor and save the depth map)
+        bpy.ops.render.render(write_still=True, use_viewport=True)
+        
+        frame_str = f"{scene.frame_current:04d}"
+        extension = ".png"
+        old_filename = complete_file_name + frame_str + extension
+        old_filepath = os.path.join(base_path, old_filename)
+
+        new_filename = complete_file_name + extension
+        new_filepath = os.path.join(base_path, new_filename)
+
+        try:
+            os.rename(old_filepath, new_filepath)
+        except Exception as e:
+            print("Error renaming file:", e)
+
+        # Clean up: remove only the nodes we created
+        for node in nodes_created:
+            nodes.remove(node)
+        
+        # Restore the original state for using nodes if it was disabled originally
+        scene.use_nodes = original_use_nodes
         
