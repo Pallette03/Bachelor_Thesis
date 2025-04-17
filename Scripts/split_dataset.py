@@ -3,7 +3,7 @@ import random
 import shutil
 
 
-def split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.8):
+def split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.8, with_depth=False):
     """Split a dataset into training and validation sets.
     
     Args:
@@ -23,21 +23,33 @@ def split_dataset(dataset_path, train_output_path, validate_output_path, split_r
         print(f"Removing existing training set at {train_output_path}")
         shutil.rmtree(os.path.join(train_output_path, 'images'))
         shutil.rmtree(os.path.join(train_output_path, 'annotations'))
-        os.makedirs(os.path.join(train_output_path, 'images'))
-        os.makedirs(os.path.join(train_output_path, 'annotations'))
+    
         
     if os.path.exists(validate_output_path):
         print(f"Removing existing validation set at {validate_output_path}")
         shutil.rmtree(os.path.join(validate_output_path, 'images'))
         shutil.rmtree(os.path.join(validate_output_path, 'annotations'))
-        os.makedirs(os.path.join(validate_output_path, 'images'))
-        os.makedirs(os.path.join(validate_output_path, 'annotations'))
+    
+    os.makedirs(os.path.join(train_output_path, 'images'))
+    os.makedirs(os.path.join(train_output_path, 'annotations'))
+    os.makedirs(os.path.join(train_output_path, 'images', 'rgb'))
+    if with_depth:
+        os.makedirs(os.path.join(train_output_path, 'images', 'depth'))   
+    
+    os.makedirs(os.path.join(validate_output_path, 'images'))
+    os.makedirs(os.path.join(validate_output_path, 'annotations'))
+    os.makedirs(os.path.join(validate_output_path, 'images', 'rgb'))
+    if with_depth:
+        os.makedirs(os.path.join(validate_output_path, 'images', 'depth'))
     
     print(f"Copying files to training and validation sets...")
     progress = 0
     for filename in train_set:
         annotation_name = filename.replace('.png', '.json')
-        shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(train_output_path, 'images', filename))
+        shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(train_output_path, 'images', 'rgb', filename))
+        if with_depth:
+            depth_name = filename.replace('.png', '_depth.png')
+            shutil.copy(os.path.join(dataset_path, 'images', 'depth', depth_name), os.path.join(train_output_path, 'images', 'depth', depth_name))
         shutil.copy(os.path.join(dataset_path, 'annotations', annotation_name), os.path.join(train_output_path, 'annotations', annotation_name))
         progress += 1
         if progress % (len(train_set) % 20) == 0:
@@ -46,7 +58,10 @@ def split_dataset(dataset_path, train_output_path, validate_output_path, split_r
     progress = 0
     for filename in validate_set:
         annotation_name = filename.replace('.png', '.json')
-        shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(validate_output_path, 'images', filename))
+        shutil.copy(os.path.join(dataset_path, 'images', 'rgb', filename), os.path.join(validate_output_path, 'images', 'rgb', filename))
+        if with_depth:
+            depth_name = filename.replace('.png', '_depth.png')
+            shutil.copy(os.path.join(dataset_path, 'images', 'depth', depth_name), os.path.join(validate_output_path, 'images', 'depth', depth_name))
         shutil.copy(os.path.join(dataset_path, 'annotations', annotation_name), os.path.join(validate_output_path, 'annotations', annotation_name))
         progress += 1
         if progress % (len(validate_set) % 20) == 0:
@@ -59,4 +74,4 @@ dataset_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'c
 train_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
 validate_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
 
-split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.95)
+split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.9, with_depth=True)

@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import bpy # type: ignore
 import bpy_extras # type: ignore
@@ -34,6 +35,10 @@ class Util_functions:
                     break
 
         self.remove_objects(to_be_removed, camera_collection)
+        
+        for mesh in bpy.data.meshes:
+            if mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
     
     def world_to_camera_coords(self, camera, world_coords):
         if not isinstance(world_coords, mathutils.Vector):
@@ -237,33 +242,48 @@ class Util_functions:
         random_point = point_on_left.lerp(point_on_right, random_x)
         return random_point
     
-    def random_attributes_object(self, obj, camera, min_z, max_z):
+    def random_attributes_object(self, obj, camera, min_z, max_z, is_clutter=False):
         # Random location
         obj.location = self.random_point_in_camera_view(bpy.context.scene, camera, random.uniform(min_z, max_z))
 
         # Random rotation
         obj.rotation_euler = mathutils.Euler((random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi), random.uniform(0, 2*math.pi)))
 
-        # Random color
-        colours = [(255,0,0), (0,255,0), (0,0,255)]
-        rgb = random.choice(colours)
+        if not is_clutter:
+            # Random color
+            colours = [(255,0,0), (0,255,0), (0,0,255)]
+            rgb = random.choice(colours)
 
-        new_mat = obj.data.materials[0].copy()
-        unique_id = str(uuid.uuid4())
-        new_mat.name = obj.data.materials[0].name + '_copy_' + unique_id
+            new_mat = obj.data.materials[0].copy()
+            unique_id = str(uuid.uuid4())
+            new_mat.name = obj.data.materials[0].name + '_copy_' + unique_id
 
-        node_tree = new_mat.node_tree
-        nodes = node_tree.nodes
+            node_tree = new_mat.node_tree
+            nodes = node_tree.nodes
 
-        # get the node with the name "Group"
-        group_node = nodes.get("Group")
+            # get the node with the name "Group"
+            group_node = nodes.get("Group")
 
-        group_node.inputs[0].default_value = (self.to_blender_color(rgb[0]), self.to_blender_color(rgb[1]), self.to_blender_color(rgb[2]), 1)
+            group_node.inputs[0].default_value = (self.to_blender_color(rgb[0]), self.to_blender_color(rgb[1]), self.to_blender_color(rgb[2]), 1)
 
-        obj.data.materials.clear()
-        obj.data.materials.append(new_mat)
+            obj.data.materials.clear()
+            obj.data.materials.append(new_mat)
 
         return obj
+    
+    def clutter_scene(self, clutter_collection, camera_clutter_collection, camera, min_z, max_z, min_clutter_items, max_clutter_items):
+        clutter_objects = []
+        for i in range(random.randint(min_clutter_items, max_clutter_items)):
+            if i > 100:
+                break
+            clutter_objects.append(random.choice(clutter_collection.objects))
+            
+        for obj in clutter_objects:
+            new_obj = obj.copy()
+            new_obj.data = obj.data.copy()
+            camera_clutter_collection.objects.link(new_obj)
+            new_obj.hide_render = False
+            self.random_attributes_object(new_obj, camera, min_z, max_z, is_clutter=True)
     
     def to_blender_color(self, c):    # gamma correction
         c = min(max(0, c), 255) / 255
@@ -631,4 +651,63 @@ class Util_functions:
         
         # Restore the original state for using nodes if it was disabled originally
         scene.use_nodes = original_use_nodes
+        
+    def preload_clutter(self, object_folder=os.path.join("G:\GoogleScannedObjects\extracted_files"),  start_index=0, amount=50, clutter_collection_name="Clutter"):
+        object_list = os.listdir(object_folder)
+        
+        start_index = int(start_index)
+        end_index = int(start_index + amount)
+        if end_index > len(object_list):
+            start_index = 0
+            end_index = int(amount)
+            
+        object_list = object_list[start_index:end_index]
+        
+        def find_layer_collection(layer_collection, name):
+            if layer_collection.collection.name == name:
+                return layer_collection
+            for child in layer_collection.children:
+                result = find_layer_collection(child, name)
+                if result:
+                    return result
+            return None
+
+        # Get the active view layer
+        view_layer = bpy.context.view_layer
+
+        # Find the desired collection
+        layer_collection = find_layer_collection(view_layer.layer_collection, clutter_collection_name)
+
+        # Set it as active if found
+        if layer_collection:
+            # Clear the existing objects in the collection
+            for obj in layer_collection.collection.objects:
+                layer_collection.collection.objects.unlink(obj)
+                bpy.data.objects.remove(obj)
+            
+            view_layer.active_layer_collection = layer_collection
+            print(f"Active collection set to: {clutter_collection_name}")
+        else:
+            print(f"Collection '{clutter_collection_name}' not found.")
+        
+        for folder in object_list:
+            if os.path.isdir(os.path.join(object_folder, folder)):
+                obj_file = os.path.join(object_folder, folder, "meshes", "model.obj")
+                if os.path.isfile(obj_file):
+                    
+                    # Load the object
+                    bpy.ops.wm.obj_import(filepath=obj_file)
+                    # Get the loaded object by name since its always model
+                    obj = bpy.data.objects.get("model")
+                    if not obj:
+                        continue
+                    obj.name = folder
+                    obj.hide_render = True
+                    obj.hide_set(True)
+                    
+                    # Rescale the object to one quarter of its size
+                    obj.scale[0] = 0.25
+                    obj.scale[1] = 0.25
+                    obj.scale[2] = 0.25
+        
         

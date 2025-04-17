@@ -1,0 +1,30 @@
+{
+  "os": "Windows-10-10.0.26100-SP0",
+  "python": "CPython 3.11.3",
+  "startedAt": "2025-04-17T13:31:23.684694Z",
+  "program": "c:\\Users\\paulb\\Documents\\TUDresden\\Bachelor\\Scripts\\bayes_optim.py",
+  "codePath": "Scripts\\bayes_optim.py",
+  "git": {
+    "remote": "https://github.com/Pallette03/Bachelor.git",
+    "commit": "419c2f48385db919b940511f26bc51daa6b772cc"
+  },
+  "root": "C:\\Users\\paulb\\Documents\\TUDresden\\Bachelor",
+  "host": "DESKTOP-223",
+  "executable": "C:\\Users\\paulb\\Documents\\TUDresden\\Bachelor\\Scripts\\virtualEnv\\simpleModel\\Scripts\\python.exe",
+  "codePathLocal": "Scripts\\bayes_optim.py",
+  "cpu_count": 8,
+  "cpu_count_logical": 16,
+  "disk": {
+    "/": {
+      "total": "498672332800",
+      "used": "442181025792"
+    }
+  },
+  "memory": {
+    "total": "34267709440"
+  },
+  "cpu": {
+    "count": 8,
+    "countLogical": 16
+  }
+}

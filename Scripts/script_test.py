@@ -1,3 +1,4 @@
+import cProfile
 import bpy # type: ignore
 import bpy_extras # type: ignore
 import random
@@ -40,11 +41,16 @@ if debug:
 collection_name = 'Parts'
 camera_collection_name = 'In_Camera'
 line_collection_name = 'Lines'
+clutter_collection_name = 'Clutter'
+camera_clutter_name = 'Camera_Clutter'
 
 # Minimum and Maximum amount of items to be placed in the camera collection
 min_items = 1
 max_items = 10
 rendered_images_amount = 1
+
+min_clutter_items = 5
+max_clutter_items = 15
 
 # Set the render resolution
 bpy.context.scene.render.resolution_x = 1000
@@ -54,8 +60,9 @@ bpy.context.scene.render.resolution_y = 1000
 will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
-add_noise = True
+add_noise = False
 depth_output = True
+add_clutter = True
 
 if add_noise:
     render_images_folder = '//datasets/noisy/images/rgb'
@@ -69,11 +76,17 @@ hdri_folder = '//HDRI'
 
 bpy.context.scene.use_nodes = True
 
+os.makedirs(bpy.path.abspath(render_images_folder), exist_ok=True)
+os.makedirs(bpy.path.abspath(depth_map_folder), exist_ok=True)
+os.makedirs(bpy.path.abspath(annotations_folder), exist_ok=True)
+
 
 # Get the collection
 collection = bpy.data.collections.get(collection_name)
 camera_collection = bpy.data.collections.get(camera_collection_name)
 line_collection = bpy.data.collections.get(line_collection_name)
+clutter_collection = bpy.data.collections.get(clutter_collection_name)
+camera_clutter_collection = bpy.data.collections.get(camera_clutter_name)
 
 # Get the Camera
 camera = bpy.data.objects.get('Camera')
@@ -94,7 +107,7 @@ to_be_removed = set()
 
 uf = util_functions.Util_functions()
 
-def main(collection, camera_collection, camera, line_collection, file_name="rendered_image.png", fill_to_max_items=False):
+def main(collection, camera_collection, camera, line_collection, clutter_collection, camera_clutter_collection, file_name="rendered_image.png", fill_to_max_items=False):
 
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
@@ -118,6 +131,11 @@ def main(collection, camera_collection, camera, line_collection, file_name="rend
         # Clear the line collection
         for obj in line_collection.objects:
             line_collection.objects.unlink(obj)
+            bpy.data.objects.remove(obj)
+        
+        # Clear the camera clutter collection
+        for obj in camera_clutter_collection.objects:
+            camera_clutter_collection.objects.unlink(obj)
             bpy.data.objects.remove(obj)
 
         # Get a random amount of objects from the Parts collection
@@ -156,6 +174,17 @@ def main(collection, camera_collection, camera, line_collection, file_name="rend
                 bpy.context.view_layer.update()
                 
                 uf.clean_scene(camera_collection, line_collection, camera, to_be_removed)
+                
+        # Add clutter to the scene
+        clutter_time = time.time()
+        if add_clutter:
+            if clutter_collection and camera_clutter_collection:
+                uf.clutter_scene(clutter_collection, camera_clutter_collection, camera, min_z, max_z, min_clutter_items, max_clutter_items)
+                # Force update
+                #bpy.context.view_layer.update()
+            else:
+                print(f"Clutter collections not found. Skipping clutter generation.")
+        print(f"Clutter generation time: {time.time() - clutter_time} seconds")
 
     else:
         if not collection:
@@ -188,7 +217,7 @@ def write_annotations_to_file(file_name):
 
         image_id = file_name
         json_file.write(f'{{"image_id": "{image_id}", ')
-        json_file.write(f'"noise_flag": {add_noise}, "depth_flag": {depth_output}, ')
+        json_file.write(f'"noise_flag": {"true" if add_noise else "false"}, "depth_flag": {"true" if depth_output else "false"}, "clutter_flag": {"true" if add_clutter else "false"}, ')
         json_file.write('"camera_matrix": [')
         for vector in camera.matrix_world:
             json.dump((vector[0], vector[1], vector[2]), json_file)
@@ -242,34 +271,51 @@ def write_annotations_to_file(file_name):
 
     print(f"Annotations written to file {file_name}.json")
 
-start_time = time.time()
-bpy.context.preferences.edit.use_global_undo = False
+def main_main():
+    start_time = time.time()
+    bpy.context.preferences.edit.use_global_undo = False
 
+    preload_amount = 50 # Defines the amount of objects to be preloaded
+    
+    # Define how often to preload objects
+    seperating_img_amount = int(rendered_images_amount /(1000/preload_amount))
+    print(f"Preloading {preload_amount} objects every {seperating_img_amount} images")
+    
+    for i in range(rendered_images_amount):
+        
+        if i % seperating_img_amount == 0:
+            start_index = (i/seperating_img_amount) * preload_amount
+            preload_time = time.time()
+            uf.preload_clutter(start_index=start_index, amount=preload_amount, clutter_collection_name=clutter_collection_name)
+            print(f"Preloaded {preload_amount} objects in {time.time() - preload_time} seconds")
+        
+        time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
+        image_name = time_for_name + '.png'
+        main(collection, camera_collection, camera, line_collection, clutter_collection, camera_clutter_collection, image_name, fill_to_max_items)
+        uf.remove_objects(to_be_removed, camera_collection)
+        if will_render_image:
+            if camera_collection.objects:
+                write_annotations_to_file(time_for_name)
+                print(f"Rendering image {i+1}/{rendered_images_amount}")
 
-for i in range(rendered_images_amount):
-    time_for_name = time.strftime("%d%m%Y-%H%M%S") + f"-{int(time.time() * 1000) % 1000}"
-    image_name = time_for_name + '.png'
-    main(collection, camera_collection, camera, line_collection, image_name, fill_to_max_items)
-    uf.remove_objects(to_be_removed, camera_collection)
-    if will_render_image:
-        if camera_collection.objects:
-            write_annotations_to_file(time_for_name)
-            print(f"Rendering image {i+1}/{rendered_images_amount}")
+                if depth_output:
+                    uf.save_depth_map(depth_map_folder, bpy.context.scene, time_for_name)
+                else:
+                    bpy.ops.render.render(write_still=True, use_viewport=True)
 
-            if depth_output:
-                uf.save_depth_map(depth_map_folder, bpy.context.scene, time_for_name)
+                bpy.data.orphans_purge()  # Purges unused data
+                
+                if add_noise:
+                    uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_stddev, gaussian_gamma)
+
+                if draw_on_image:
+                    uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)
             else:
-                bpy.ops.render.render(write_still=True, use_viewport=True)
-
-            bpy.data.orphans_purge()  # Purges unused data
-            
-            if add_noise:
-                uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_stddev, gaussian_gamma)
-
-            if draw_on_image:
-                uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)
-        else:
-            print(f"No objects in camera collection. Not saving image.")
-end_time = time.time()
-print(f"Time taken: {end_time - start_time} seconds")
-print(f"Average time per image: {(end_time - start_time) / rendered_images_amount} seconds")
+                print(f"No objects in camera collection. Not saving image.")
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time} seconds")
+    print(f"Average time per image: {(end_time - start_time) / rendered_images_amount} seconds")
+    
+    
+if __name__ == "__main__":
+    cProfile.run('main_main()', sort='time')

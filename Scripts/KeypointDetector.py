@@ -1,7 +1,6 @@
 import datetime
 import os
 import sys
-from matplotlib import pyplot as plt
 import numpy as np
 import scipy
 import torch
@@ -17,7 +16,6 @@ from models.simpleModel.simple_model import SimpleModel
 from unet_model import UNet
 from models.KeyNet.keynet import KeyNet
 import wandb
-import threading
 
 
 class FocalLoss(nn.Module):
@@ -36,7 +34,6 @@ class FocalLoss(nn.Module):
         # Compute BCE loss
         bce_loss = nn.functional.binary_cross_entropy_with_logits(pred, target, reduction="none")
         
-        # Apply focal weighting
         focal_loss = focal_weight * bce_loss
         return focal_loss.mean()
     
@@ -109,12 +106,6 @@ def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', cr
     #loss = torch.abs(loss)
 
     return loss
-
-def extract_coordinates(heatmap, threshold=0.5):
-    heatmap = heatmap.squeeze().detach().cpu().numpy()  # Remove batch & channel dims
-    corners = torch.nonzero(heatmap > threshold)  # Get (y, x) positions
-    corners = corners.numpy() * 16  # Upscale to original image size (500x500)
-    return corners  # List of (y, x) positions
 
 def collate_fn(batch):
     images = [item["image"] for item in batch]
@@ -291,16 +282,13 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
         torch.save(model.state_dict(), epoch_model_path)
         print(f"Saved model to {epoch_model_path}")
 
-
-        artifact = wandb.Artifact('epoch_model', type='model')
-        artifact.add_file(epoch_model_path)
-        run_handler.log_artifact(artifact)
-
         if validataion_params:
-            validate_model(model, **validataion_params)
+            f1_score = validate_model(model, **validataion_params)
             torch.cuda.empty_cache()
+        else:
+            f1_score = None
 
-    return model
+    return model, f1_score
 
 def validate_model(model, dataloader, global_image_size, gaussian_blur=False, threshold=0.5, distance_threshold=10, run_handler=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -357,40 +345,27 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
             print("No keypoints detected in any of the images. Very bad.")
             average_distance = -1
             accuracy = -1
+            f1_score = -1
         else: 
             average_distance /= (len(dataloader) - no_points_detected)
             accuracy /= (len(dataloader) - no_points_detected)
+            f1_score = 2 * (accuracy * recall) / (accuracy + recall)
+        
+        
         recall /= (len(dataloader))
-        run_handler.log({"Validation Loss": total_corner_loss / len(dataloader), "Validation Average Distance": average_distance, "Validation Accuracy": accuracy, "Recall": recall})
-        print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}, Validation Average Distance: {average_distance:.4f}, Validation Accuracy: {accuracy:.4f}, Recall: {recall:.4f}")
+        run_handler.log({"Validation Loss": total_corner_loss / len(dataloader), "Validation Average Distance": average_distance, "Validation Accuracy": accuracy, "Recall": recall, "F1 Score": f1_score})
+        print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}, Validation Average Distance: {average_distance:.4f}, Validation Accuracy: {accuracy:.4f}, Recall: {recall:.4f}, F1 Score: {f1_score:.4f}")
     
     torch.cuda.empty_cache()
-    return total_corner_loss / len(dataloader)
+    
+    
+    return f1_score
 
-if __name__ == "__main__":
 
-    run = wandb.init(
-        project='lego-keypoint-detection', 
-        entity='pallette-personal', 
-        job_type='train',
-        config={
-            "model": "KeyNet",
-            "dataset": "cropped_objects",
-            "batch_size": 10,
-            "val_batch_size": 10,
-            "learning_rate": 1e-4,
-            "global_image_size": (700, 700),
-            "num_epochs": 20,
-            "num_channels": 3,
-            "gaussian_blur": True,
-            "start_from_checkpoint": False,
-            "post_processing_threshold": 0.4,
-            "distance_threshold": 5,
-            "feature_extractor_lvl_amount": 8,
-            "hourglass_stacks": 4
-            }
-        )
-
+def main(params):
+    
+    run = wandb.init(project="dynamic_corner_detector", config=params, reinit=True)
+    
     with_validate = True
     only_validate = False
 
@@ -401,8 +376,8 @@ if __name__ == "__main__":
     # Paths
     model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
     epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
-    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'train')
-    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'cropped_objects', 'validate')
+    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'train')
+    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'validate')
 
     
 
@@ -452,17 +427,23 @@ if __name__ == "__main__":
         print("Loading model from checkpoint...")
         model.load_state_dict(torch.load(epoch_model_path))
 
+    
+    print(f"{torch.cuda.device_count()} GPUs available")
+    for i in range(torch.cuda.device_count()):
+        print(torch.cuda.get_device_properties(i).name)
+
+    model = nn.DataParallel(model)
     # Train the model
     
     
     # Dataset and DataLoader
     print("Loading training dataset...")
-    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images'), transform=transform_1)
+    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images', 'rgb'), transform=transform_1)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
     if only_validate:
         print("Validating the model...")
-        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_1)
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
         
         validataion_params = {
@@ -482,7 +463,7 @@ if __name__ == "__main__":
 
     if with_validate:
         print("Loading validation dataset...")
-        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images'), transform=transform_1)
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
         
         validataion_params = {
@@ -498,15 +479,42 @@ if __name__ == "__main__":
         # model.load_state_dict(torch.load(epoch_model_path))
         # validate_model(model, **validataion_params)
         print("Training the model...")
-        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
+        model, f1_score = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
     
     else:
         print("Training the model...")
-        model = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=None)
+        model, f1_score = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=None)
 
     # Save the model
     print("Saving the model...")
     torch.save(model.state_dict(), model_path)
+    
+    artifact = wandb.Artifact('model', type='model')
+    artifact.add_file(model_path)
+    run.log_artifact(artifact)
+    
     run.finish()
+    print("Model saved.")
+    
+    return model, f1_score
 
-        
+
+
+if __name__ == "__main__":
+    params = {
+        "model": "KeyNet",
+        "dataset": "with_clutter",
+        "batch_size": 10,
+        "val_batch_size": 10,
+        "learning_rate": 1e-4,
+        "global_image_size": (700, 700),
+        "num_epochs": 20,
+        "num_channels": 3,
+        "gaussian_blur": True,
+        "start_from_checkpoint": False,
+        "post_processing_threshold": 0.4,
+        "distance_threshold": 5,
+        "feature_extractor_lvl_amount": 8,
+        "hourglass_stacks": 4
+    }
+    main(params)

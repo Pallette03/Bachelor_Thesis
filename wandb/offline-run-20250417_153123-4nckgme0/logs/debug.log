@@ -1,0 +1,23 @@
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_setup.py:_flush():67] Current SDK version is 0.19.9
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_setup.py:_flush():67] Configure stats pid to 21236
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_setup.py:_flush():67] Loading settings from C:\Users\paulb\.config\wandb\settings
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_setup.py:_flush():67] Loading settings from C:\Users\paulb\Documents\TUDresden\Bachelor\wandb\settings
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_setup.py:_flush():67] Loading settings from environment variables
+2025-04-17 15:31:23,660 INFO    MainThread:21236 [wandb_init.py:setup_run_log_directory():662] Logging user logs to C:\Users\paulb\Documents\TUDresden\Bachelor\wandb\offline-run-20250417_153123-4nckgme0\logs\debug.log
+2025-04-17 15:31:23,661 INFO    MainThread:21236 [wandb_init.py:setup_run_log_directory():663] Logging internal logs to C:\Users\paulb\Documents\TUDresden\Bachelor\wandb\offline-run-20250417_153123-4nckgme0\logs\debug-internal.log
+2025-04-17 15:31:23,661 INFO    MainThread:21236 [wandb_init.py:init():781] calling init triggers
+2025-04-17 15:31:23,663 INFO    MainThread:21236 [wandb_init.py:init():786] wandb.init called with sweep_config: {}
+config: {'model': 'UNet', 'dataset': 'with_clutter', 'batch_size': tensor(30.5821), 'val_batch_size': tensor(30.5821), 'learning_rate': tensor(1.9749e-06), 'global_image_size': tensor(137.1337), 'num_epochs': 8, 'num_channels': 3, 'gaussian_blur': True, 'start_from_checkpoint': False, 'post_processing_threshold': 0.4, 'distance_threshold': 5, 'feature_extractor_lvl_amount': 8, 'hourglass_stacks': 4, '_wandb': {}}
+2025-04-17 15:31:23,663 INFO    MainThread:21236 [wandb_init.py:init():809] starting backend
+2025-04-17 15:31:23,663 INFO    MainThread:21236 [wandb_init.py:init():813] sending inform_init request
+2025-04-17 15:31:23,684 INFO    MainThread:21236 [backend.py:_multiprocessing_setup():101] multiprocessing start_methods=spawn, using: spawn
+2025-04-17 15:31:23,684 INFO    MainThread:21236 [wandb_init.py:init():823] backend started and connected
+2025-04-17 15:31:23,686 INFO    MainThread:21236 [wandb_init.py:init():915] updated telemetry
+2025-04-17 15:31:23,770 INFO    MainThread:21236 [wandb_init.py:init():939] communicating run to backend with 90.0 second timeout
+2025-04-17 15:31:24,577 INFO    MainThread:21236 [wandb_init.py:init():1014] starting run threads in backend
+2025-04-17 15:31:24,687 INFO    MainThread:21236 [wandb_run.py:_console_start():2454] atexit reg
+2025-04-17 15:31:24,687 INFO    MainThread:21236 [wandb_run.py:_redirect():2306] redirect: wrap_raw
+2025-04-17 15:31:24,687 INFO    MainThread:21236 [wandb_run.py:_redirect():2371] Wrapping output streams.
+2025-04-17 15:31:24,687 INFO    MainThread:21236 [wandb_run.py:_redirect():2394] Redirects installed.
+2025-04-17 15:31:24,692 INFO    MainThread:21236 [wandb_init.py:init():1056] run started, returning control to user process
+2025-04-17 15:31:25,588 INFO    MsgRouterThr:21236 [mailbox.py:close():129] [no run ID] Closing mailbox, abandoning 0 handles.
