@@ -3,9 +3,11 @@ import json
 import time
 import torch
 from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 from PIL import Image
 import os
 import numpy as np
+import torchvision.transforms as transforms
 
 class LegoKeypointDataset(Dataset):
     def __init__(self, annotations_folder, img_dir, transform=None, num_workers=4):
@@ -78,18 +80,48 @@ class LegoKeypointDataset(Dataset):
 
         return {"image": image, "norm_corners": normalized_corners, "image_path": img_path}
 
-# #image_dir = os.path.join(os.path.dirname(__file__), 'validate', 'images')
-# #annotation_dir = os.path.join(os.path.dirname(__file__), 'validate', 'annotations')
-# image_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/images"
-# annotation_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/annotations"
-# # Get the first element from the dataset
-# start_time = time.time()
-# dataset = LegoKeypointDataset(annotation_dir, image_dir, image_size=(600, 600), sigma=0.3)
-# print(f"Time taken: {time.time() - start_time:.2f} seconds")
-# print(f"Time per image: {(time.time() - start_time) / len(dataset):.4f} seconds")
-# print(f"Dataset size: {len(dataset)}")
 
-# start_time = time.time()
-# sample = dataset[1]
-# print(f"Time taken: {time.time() - start_time:.2f} seconds")
-# print(sample["heatmaps"])
+# def collate_fn(batch):
+#     images = [item["image"] for item in batch]
+#     corners_list = [item["norm_corners"] for item in batch]
+#     max_corner_amount = max([norm_corners.shape[0] for norm_corners in corners_list])
+
+#     # Pad the corners
+#     for i in range(len(corners_list)):
+#         corners = corners_list[i]
+        
+#         pad_amount = max_corner_amount - corners.shape[0]
+#         pad = np.zeros((pad_amount, 2))
+        
+#         if corners.shape[0] == 0:
+#             corners_list[i] = pad
+#         else:
+#             corners_list[i] = np.concatenate((corners, pad), axis=0)
+        
+#     images = torch.stack(images)
+#     corners_list = torch.stack([torch.tensor(corners, dtype=torch.float32) for corners in corners_list])
+
+#     return {"image": images, "norm_corners": corners_list}
+
+# image_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'with_clutter', 'train', 'images', 'rgb')
+# annotation_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'with_clutter', 'train', 'annotations')
+
+# # # Get the first element from the dataset
+# # start_time = time.time()
+
+# transform_1 = transforms.Compose([
+#             transforms.ToTensor()
+#             #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+#         ])
+
+# dataset = LegoKeypointDataset(annotation_dir, image_dir, transform=transform_1, num_workers=8)
+# train_dataloader = DataLoader(dataset, batch_size=10, shuffle=True, collate_fn=collate_fn)
+
+
+# # Load the entire dataset once
+# for batch in train_dataloader:
+#     images = batch["image"]
+#     corners = batch["norm_corners"]
+
+    
+    

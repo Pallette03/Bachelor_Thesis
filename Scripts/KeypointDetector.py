@@ -16,6 +16,7 @@ from models.simpleModel.simple_model import SimpleModel
 from unet_model import UNet
 from models.KeyNet.keynet import KeyNet
 import wandb
+import argparse
 
 
 class FocalLoss(nn.Module):
@@ -69,6 +70,9 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
     """
     target_heatmap = torch.zeros((1, image_size, image_size)).to(device)
 
+    if keypoints is None:
+        return target_heatmap
+    
     for (x, y) in keypoints:
         x = x * image_size
         y = y * image_size
@@ -117,10 +121,12 @@ def collate_fn(batch):
         corners = corners_list[i]
         pad_amount = max_corner_amount - corners.shape[0]
         pad = np.zeros((pad_amount, 2))
-        corners_list[i] = np.concatenate((corners, pad), axis=0)
         
-
-
+        if corners.shape[0] == 0:
+            corners_list[i] = pad
+        else:
+            corners_list[i] = np.concatenate((corners, pad), axis=0)
+        
     images = torch.stack(images)
     corners_list = torch.stack([torch.tensor(corners, dtype=torch.float32) for corners in corners_list])
 
@@ -140,6 +146,9 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
     correct_points = 0
     total_distance = 0
     for batch_keypoints in target_keypoints:
+        if batch_keypoints is None:
+            denormalized_target_keypoints.append([])
+            continue
         batch_keypoints = [kp.cpu().numpy() * global_image_size[0] for kp in batch_keypoints]
         denormalized_target_keypoints.append(batch_keypoints)
         target_kp_amount += len(batch_keypoints)
@@ -165,7 +174,8 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
                     ]
                 if len(denormalized_target_keypoints[i]) == 0:
                     break
-            
+            if closest_distance == float("inf"):
+                closest_distance = 0 # If no target point is found, set distance to 0. needs to be changed
             total_distance += closest_distance
 
     if num_pred_points == 0:
@@ -223,7 +233,12 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
             for corners in target_corners:
                 zero_tensor = torch.tensor([0, 0], dtype=torch.float32).to(device)
                 filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
-                filtered_target_corners.append(filtered_corners)
+                
+                if len(filtered_corners) == 0:
+                    filtered_target_corners.append(None)
+                else:
+                    filtered_target_corners.append(filtered_corners)
+                    
             target_corners = filtered_target_corners
 
             predicted_corners = model(images)
@@ -315,7 +330,12 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
             for corners in target_corners:
                 zero_tensor = torch.tensor([0, 0], dtype=torch.float32).to(device)
                 filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
-                filtered_target_corners.append(filtered_corners)
+                
+                if len(filtered_corners) == 0:
+                    filtered_target_corners.append(None)
+                else:
+                    filtered_target_corners.append(filtered_corners)
+
             target_corners = filtered_target_corners
 
             predicted_corners = model(images)
@@ -349,10 +369,9 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
         else: 
             average_distance /= (len(dataloader) - no_points_detected)
             accuracy /= (len(dataloader) - no_points_detected)
-            f1_score = 2 * (accuracy * recall) / (accuracy + recall)
-        
-        
+            
         recall /= (len(dataloader))
+        f1_score = 2 * (accuracy * recall) / (accuracy + recall)
         run_handler.log({"Validation Loss": total_corner_loss / len(dataloader), "Validation Average Distance": average_distance, "Validation Accuracy": accuracy, "Recall": recall, "F1 Score": f1_score})
         print(f"Validation Loss: {total_corner_loss / len(dataloader):.4f}, Validation Average Distance: {average_distance:.4f}, Validation Accuracy: {accuracy:.4f}, Recall: {recall:.4f}, F1 Score: {f1_score:.4f}")
     
@@ -371,18 +390,7 @@ def main(params):
 
     #Clear vram memory
     torch.cuda.empty_cache()
-
-
-    # Paths
-    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector.pth')
-    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', 'dynamic_corner_detector_epoch.pth')
-    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'train')
-    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'validate')
-
     
-
-    print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
-
     architecture = run.config["model"]
     batch_size = run.config["batch_size"]
     val_batch_size = run.config["val_batch_size"]
@@ -396,6 +404,18 @@ def main(params):
     num_levels = run.config["feature_extractor_lvl_amount"]
     start_from_checkpoint = run.config["start_from_checkpoint"]
     num_stacks = run.config["hourglass_stacks"]
+
+    # Paths
+    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_dynamic_corner_detector.pth'))
+    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_dynamic_corner_detector_epoch.pth'))
+    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'train')
+    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'validate')
+
+    
+
+    print(f"Paths: {model_path}, {epoch_model_path}, {train_dir}, {validate_dir}")
+
+    
 
     if num_channels == 1:
         transform_1 = transforms.Compose([
@@ -501,20 +521,23 @@ def main(params):
 
 
 if __name__ == "__main__":
-    params = {
-        "model": "KeyNet",
-        "dataset": "with_clutter",
-        "batch_size": 10,
-        "val_batch_size": 10,
-        "learning_rate": 1e-4,
-        "global_image_size": (700, 700),
-        "num_epochs": 20,
-        "num_channels": 3,
-        "gaussian_blur": True,
-        "start_from_checkpoint": False,
-        "post_processing_threshold": 0.4,
-        "distance_threshold": 5,
-        "feature_extractor_lvl_amount": 8,
-        "hourglass_stacks": 4
-    }
+    parser = argparse.ArgumentParser(description="Train a keypoint detection model")
+    parser.add_argument("--model", type=str, default="UNet", help="Model architecture to use (UNet, KeyNet, SimpleModel, Hourglass, Hourglass_Github)")
+    parser.add_argument("--dataset", type=str, default="with_clutter", help="Dataset to use (with_clutter, without_clutter)")
+    parser.add_argument("--batch_size", type=int, default=15, help="Batch size for training")
+    parser.add_argument("--val_batch_size", type=int, default=15, help="Batch size for validation")
+    parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate for the optimizer")
+    parser.add_argument("--global_image_size", type=int, default=800, help="Global image size for training")
+    parser.add_argument("--num_epochs", type=int, default=8, help="Number of epochs to train the model")
+    parser.add_argument("--num_channels", type=int, default=3, help="Number of channels in the input images")
+    parser.add_argument("--gaussian_blur", type=bool, default=True, help="Whether to apply Gaussian blur to the heatmaps")
+    parser.add_argument("--start_from_checkpoint", type=bool, default=False, help="Whether to start training from a checkpoint")
+    parser.add_argument("--post_processing_threshold", type=float, default=0.4, help="Threshold for post-processing the heatmaps")
+    parser.add_argument("--distance_threshold", type=float, default=5, help="Distance threshold for keypoint matching")
+    parser.add_argument("--feature_extractor_lvl_amount", type=int, default=8, help="Number of levels in the feature extractor")
+    parser.add_argument("--hourglass_stacks", type=int, default=4, help="Number of stacks in the hourglass model")
+    
+    params = parser.parse_args()
+    params = vars(params)  # Convert Namespace to dict
+    params['global_image_size'] = (params['global_image_size'], params['global_image_size'])
     main(params)

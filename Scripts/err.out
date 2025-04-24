@@ -1,0 +1,381 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) release/24.04
+Modules PyTorch/2.1.2-CUDA-12.1.1, SciPy-bundle/2023.07, Pillow/10.0.0 and 17 dependencies unloaded.
+Modules GCC/12.3.0, OpenMPI/4.1.5, Python/3.11.3, PyTorch-bundle/2.1.2-CUDA-12.1.1, PyTorch/2.1.2-CUDA-12.1.1, SciPy-bundle/2023.07, Pillow/10.0.0, OpenCV/4.8.1-contrib, matplotlib/3.7.2 and 133 dependencies loaded.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: pallette (pallette-personal) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250420_223117-uenw4roq
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run glad-star-23
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/uenw4roq
+wandb: uploading artifact model
+wandb: uploading artifact model; uploading history steps 167-167, summary, console lines 386-392
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left █▆▄▃▂▁▆▄▃▂▆▆▂▁▁▅▅▄▃▂▆▄▃▂▂▅▃▃▂▁▅▅▃▃▃▅▅▃▂▁
+wandb:                    F1 Score ▁▁▁▁▄███
+wandb:                   Last Loss █▆▅▃▃▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▁▅▇▁▂▃▅▆█▁▃▄▄▅▆▁▂▃▄▅█▂▂▃▄▇█▅▅▆██▁▅▆▂▃▅▅█
+wandb:                      Recall ▇█▄▂▁▆▆▆
+wandb:  Time since last checkpoint ▁▁▁▁▁▁▁▆▁▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▂█▁▁▁▁▁▁▁▁▁
+wandb:         Validation Accuracy ▁▁▁▁▆███
+wandb: Validation Average Distance ▇▇██▂▁▁▁
+wandb:             Validation Loss █▄▃▂▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 9.47973
+wandb:              Batch Progress 560/569
+wandb:                    F1 Score 0.73295
+wandb:                   Last Loss 0.00418
+wandb:                    Progress 98.41828
+wandb:                      Recall 0.62262
+wandb:  Time since last checkpoint 29.67252
+wandb:         Validation Accuracy 0.89078
+wandb: Validation Average Distance 14.86588
+wandb:             Validation Loss 0.0042
+wandb: 
+wandb: 🚀 View run glad-star-23 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/uenw4roq
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250420_223117-uenw4roq/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_002240-94x26a84
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run trim-sun-24
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/94x26a84
+wandb: uploading artifact model; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading artifact model
+wandb: uploading artifact model; uploading summary
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ▆▆▅▄▄▂▂█▇▄▂▁█▇▇▃█▇▅▄▂▁▅▃▂██▃▃▂▆▅▄▄▃▂██▅▁
+wandb:                    F1 Score ▁▅▆▇▇▇██
+wandb:                   Last Loss █▆▆▄▅▃▃▂▂▂▂▂▂▂▂▂▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁
+wandb:                    Progress ▄▇▁▁▂▅▅▇▇█▆▇█▂▄▅▇█▁▂▃▄▅▅▆█▁▃▄▅▂▂▃▄▄█▂▂▃█
+wandb:                      Recall ▁▅▆▆▆▆██
+wandb:  Time since last checkpoint ▂▂▂▂▂▂▁▂▂▂▂▁▂▂▂▂▁▂▂▁▂▂▁▁▂▂▁▁▂▂▁▂▂▂▇▂▂▂█▂
+wandb:         Validation Accuracy ▁▆▇▇█▇██
+wandb: Validation Average Distance █▆▂▁▁▄▂▂
+wandb:             Validation Loss █▄▂▂▂▂▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 18.7555
+wandb:              Batch Progress 520/536
+wandb:                    F1 Score 0.84003
+wandb:                   Last Loss 0.00059
+wandb:                    Progress 97.01493
+wandb:                      Recall 0.77748
+wandb:  Time since last checkpoint 30.07004
+wandb:         Validation Accuracy 0.91353
+wandb: Validation Average Distance 10.77437
+wandb:             Validation Loss 0.00058
+wandb: 
+wandb: 🚀 View run trim-sun-24 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/94x26a84
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_002240-94x26a84/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_021727-hv9ceouo
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run noble-water-25
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/hv9ceouo
+wandb: uploading artifact model; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading artifact model
+wandb: uploading artifact model; uploading history steps 167-167, summary, console lines 396-400
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ▇▆▄▄▄█▆▅▄▃▂▇▆▆▅▄▃▂▂▂▇▇▆▆▅▄▃▃▇▄▁▁▇▇▅▄▄▃▂▁
+wandb:                    F1 Score ▁▁▄▇████
+wandb:                   Last Loss █▆▅▄▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▄▅▆▇█▁▅▇▂▂▅▅▆▇█▂▃▆▆▇██▁▂▃▂▃▃▄▄█▂▂▃▄▇▇█▂█
+wandb:                      Recall ▄▅▁▆▇▇▇█
+wandb:  Time since last checkpoint ▁▂▁▁▁▁▁▂▁▂▅▁▃▁▁▁▁▁▂▁▂▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▂▂▁
+wandb:         Validation Accuracy ▁▁▆█████
+wandb: Validation Average Distance ▇█▂▁▁▁▁▁
+wandb:             Validation Loss █▃▂▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 7.19598
+wandb:              Batch Progress 820/828
+wandb:                    F1 Score 0.77583
+wandb:                   Last Loss 0.00098
+wandb:                    Progress 99.03382
+wandb:                      Recall 0.73323
+wandb:  Time since last checkpoint 36.926
+wandb:         Validation Accuracy 0.82367
+wandb: Validation Average Distance 18.50606
+wandb:             Validation Loss 0.00094
+wandb: 
+wandb: 🚀 View run noble-water-25 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/hv9ceouo
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_021727-hv9ceouo/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_041718-9igmtem0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run likely-snow-26
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/9igmtem0
+wandb: uploading artifact model; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left █▆▅▅▄▁█▂▁▅▄▄▂▁█▇▆▃▁▇▂█▆▆▅▂▁▁█▆▃▂▂▁█▆▅▅▄▂
+wandb:                    F1 Score ▁▅▆▆▇▇▇█
+wandb:                   Last Loss █▅▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▂▅▅▇█▄▄▅▅▇▇▁▂▄▄▇██▂▇▃▄▆▇▁▂▄▅▆█▄▅▆▂▂▄▄▅▇█
+wandb:                      Recall ▁▁▄▂▇▇▆█
+wandb:  Time since last checkpoint ▂▄▁▁▁▁▂▁▁▁▁█▁▂▁▁▁▁▁▂▂▁▁▁▁█▁█▁▁▁▁▁▁▁▂▁▂▁▁
+wandb:         Validation Accuracy ▁▇▇█▇▇██
+wandb: Validation Average Distance █▃▃▁▃▃▁▂
+wandb:             Validation Loss █▄▃▂▂▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 20.07707
+wandb:              Batch Progress 520/536
+wandb:                    F1 Score 0.79136
+wandb:                   Last Loss 0.00042
+wandb:                    Progress 97.01493
+wandb:                      Recall 0.6967
+wandb:  Time since last checkpoint 32.55009
+wandb:         Validation Accuracy 0.91579
+wandb: Validation Average Distance 10.89018
+wandb:             Validation Loss 0.00054
+wandb: 
+wandb: 🚀 View run likely-snow-26 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/9igmtem0
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_041718-9igmtem0/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_055732-lwgqs1lx
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run stellar-wood-27
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/lwgqs1lx
+wandb: uploading artifact model; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left █▇▆▆▃▂▂▇▆▅▆▆▃▁▇▅▄▄▃█▆▄▃▂▂██▆▅▄▂▂▁▇▇▅▄▃▂▁
+wandb:                    F1 Score ▁▅▅▇▇██▂
+wandb:                   Last Loss █▃▂▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▂▃▄▄▅▆█▄▄▅▂▃▅▅▆██▂▃▃█▁▁▅▆█▁▂▄▆▂▂▂▃▅▇█▂▅█
+wandb:                      Recall ▃▁▁▃▂▅▅█
+wandb:  Time since last checkpoint ▄▂▄▁▂▅▂▁▃▂▂▄▆▂▃▂▂█▄▅▄▃▆▅▁▃▅▄▃▂▃▁▅▄▁▅▄▃▆▅
+wandb:         Validation Accuracy ▂▇█▇█▇▆▁
+wandb: Validation Average Distance █▄▄▃▂▂▁▅
+wandb:             Validation Loss █▅▃▃▂▂▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 10.21054
+wandb:              Batch Progress 560/569
+wandb:                    F1 Score 0.59253
+wandb:                   Last Loss 0.00073
+wandb:                    Progress 98.41828
+wandb:                      Recall 0.84382
+wandb:  Time since last checkpoint 31.70332
+wandb:         Validation Accuracy 0.45657
+wandb: Validation Average Distance 25.56688
+wandb:             Validation Loss 0.00061
+wandb: 
+wandb: 🚀 View run stellar-wood-27 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/lwgqs1lx
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_055732-lwgqs1lx/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_073322-0ndnv491
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run pretty-sunset-28
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/0ndnv491
+wandb: uploading artifact model; uploading config.yaml
+wandb: uploading artifact model
+wandb: uploading summary
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ▇▆▅▂▁▆▅▅▄▄▇▅▅▄█▆▆▅▄▃▁█▅▄▂▇▁▁██▆▅▄▄▃▂▂▂█▂
+wandb:                    F1 Score ▁▁▆▅████
+wandb:                   Last Loss ██▆▆▅▄▄▄▃▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▁▂▅▆▇▄▅▅▅▇▁▁█▁▃▇▁▂▆▆▂▂▂▃▄▅▆▇██▂▃▄▄▆▃▄▅▆█
+wandb:                      Recall ▆▄▃▁▇▇██
+wandb:  Time since last checkpoint ▁▁▁▁▁▁▁▁▁▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁█▂▁▁▁▆▁▁▁▁▁▁▁▂▁
+wandb:         Validation Accuracy ▁▁██▇███
+wandb: Validation Average Distance ██▁▂▂▁▁▁
+wandb:             Validation Loss █▄▂▂▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 5.53855
+wandb:              Batch Progress 1000/1011
+wandb:                    F1 Score 0.74226
+wandb:                   Last Loss 0.0024
+wandb:                    Progress 98.91197
+wandb:                      Recall 0.61354
+wandb:  Time since last checkpoint 25.1215
+wandb:         Validation Accuracy 0.93931
+wandb: Validation Average Distance 5.57678
+wandb:             Validation Loss 0.00252
+wandb: 
+wandb: 🚀 View run pretty-sunset-28 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/0ndnv491
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_073322-0ndnv491/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_085502-j9bp5gmu
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run fast-valley-29
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/j9bp5gmu
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left █▅▅▄▃▅▅▄▃▂▆▅▅▄▁▇▅▄▃▂▆▅▄▄▄▆▄▃▂▇▅▄▂▂█▆▅▅▄▄
+wandb:                    F1 Score ▁▁▄▇▇███
+wandb:                   Last Loss █▅▄▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▂▇██▁▂▄▄▅▅█▁▁▅▆█▂▂▄▅▆▇▂▂▄▅▆▆▇▁▂▃▁▂▂▇▃▄▅▇
+wandb:                      Recall █▄▁▃▅▆▆▇
+wandb:  Time since last checkpoint ▂▂▁▁▁▁▁█▁▁▂▂▂▁▁▁▂▁▁▁▂▁▂▂▂▂▂▂▁▂▂▁▂▂▁▁▂▂▂▁
+wandb:         Validation Accuracy ▁▁▄█▇▇█▇
+wandb: Validation Average Distance ██▂▁▁▁▁▁
+wandb:             Validation Loss █▃▂▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 6.28795
+wandb:              Batch Progress 820/828
+wandb:                    F1 Score 0.77875
+wandb:                   Last Loss 0.00092
+wandb:                    Progress 99.03382
+wandb:                      Recall 0.72776
+wandb:  Time since last checkpoint 32.21857
+wandb:         Validation Accuracy 0.83742
+wandb: Validation Average Distance 19.17673
+wandb:             Validation Loss 0.00106
+wandb: 
+wandb: 🚀 View run fast-valley-29 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/j9bp5gmu
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_085502-j9bp5gmu/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_105844-r73ge11x
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run divine-durian-30
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/r73ge11x
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ██▇▅▂▁█▇▆▂▄▃▃▂▁▇▆▆▅▅▁██▅▅▂▁▇▆▄▃█▇▇▆▂█▇▄▁
+wandb:                    F1 Score ▁▅▆▇▇▇██
+wandb:                   Last Loss █▄▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▁▃▄▄▅▇▂▃▆█▃▃▄▅▅▇▁▂▃▄▇▇█▁▄▁▂▄▅▇█▁▂▅▅▁▂▃▃▇
+wandb:                      Recall ▁▄▆▆▆▇██
+wandb:  Time since last checkpoint ▃▃▂▃▂▂▂▂▂▂▃▁▃▁▂▁▂▃▂▂▁▂▂▂▃▂▁█▃▄▂▂▃▂▃▁▂▃▁▂
+wandb:         Validation Accuracy ▁█▆▇█▇██
+wandb: Validation Average Distance █▂▃▂▂▁▁▁
+wandb:             Validation Loss █▃▂▂▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 17.63237
+wandb:              Batch Progress 520/536
+wandb:                    F1 Score 0.83906
+wandb:                   Last Loss 0.00058
+wandb:                    Progress 97.01493
+wandb:                      Recall 0.7776
+wandb:  Time since last checkpoint 28.64973
+wandb:         Validation Accuracy 0.91107
+wandb: Validation Average Distance 7.55073
+wandb:             Validation Loss 0.00066
+wandb: 
+wandb: 🚀 View run divine-durian-30 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/r73ge11x
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_105844-r73ge11x/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_122638-oxvrkn0o
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run super-plant-31
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/oxvrkn0o
+wandb: uploading artifact model
+wandb: uploading summary, console lines 400-400
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ██▇▆▆▅▄▃▂▁▅▄▂▇▆▃▃▁█▅▂▁██▇▅▅▄▂▅▃▁▆▅▄▁█▆▆▂
+wandb:                    F1 Score ▁▂▄▆▇▇▇█
+wandb:                   Last Loss █▇▆▅▅▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▂▃▄▆▇▁▂▂▆▇█▁▂▃▃▂▆█▂▄▅▆▇█▁▂▅▇██▄▄▅▇▁▄▅▆▇█
+wandb:                      Recall █▆▄▄▂▂▂▁
+wandb:  Time since last checkpoint ▁▁▂▁▂▁▂▁▁▂▂▂▂▂▁▁▁█▁▁▂▁▁▁▁▂▁▁▄▁▂▂▁▁▂▁▂▂▂▂
+wandb:         Validation Accuracy ▁▂▄▆▇▇▇█
+wandb: Validation Average Distance ▁▁▃▄▅▇▇█
+wandb:             Validation Loss █▅▃▃▂▂▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 7.4457
+wandb:              Batch Progress 1000/1011
+wandb:                    F1 Score 0.00654
+wandb:                   Last Loss 0.33008
+wandb:                    Progress 98.91197
+wandb:                      Recall 0.42154
+wandb:  Time since last checkpoint 33.85786
+wandb:         Validation Accuracy 0.0033
+wandb: Validation Average Distance 294.75525
+wandb:             Validation Loss 0.33039
+wandb: 
+wandb: 🚀 View run super-plant-31 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/oxvrkn0o
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_122638-oxvrkn0o/logs
+wandb: Tracking run with wandb version 0.19.9
+wandb: Run data is saved locally in /data/cat/ws/pabb608d-brick_training_cat/wandb/run-20250421_145018-iew13vjo
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run noble-wave-32
+wandb: ⭐️ View project at https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: 🚀 View run at https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/iew13vjo
+wandb: uploading artifact model
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:           Approx. Time left ▇▅▅▄▃▄▄▃▂▁█▆▅▅▄▂▇▆▄▄▁█▇▅▃▂▂▆▆▅▂▄▃▂▇▄▄▃▂▁
+wandb:                    F1 Score ▁▆▃▇▇███
+wandb:                   Last Loss █▅▅▅▃▂▂▂▂▂▂▁▂▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:                    Progress ▁▂▄▅▇▁▂▂▄▁▃▄▅▅▇▃▅▆▇█▄▅▅▆▇▂▂▅▅▆█▁▂▃▅▇▂▂▄▆
+wandb:                      Recall ▅▆▁▇▆▇█▇
+wandb:  Time since last checkpoint ▂▂▂▂▂▁▁▁▁▂▂▁▂▁▂▁▂▂▂▂▂▂▁▁▁▁▁▂▁▂▂▂▂▂▁█▁▁▁▂
+wandb:         Validation Accuracy ▁▆▇▇██▇█
+wandb: Validation Average Distance █▄▃▃▂▂▂▁
+wandb:             Validation Loss █▄▃▂▂▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:           Approx. Time left 20.75014
+wandb:              Batch Progress 300/314
+wandb:                    F1 Score 0.73389
+wandb:                   Last Loss 0.00181
+wandb:                    Progress 95.5414
+wandb:                      Recall 0.59858
+wandb:  Time since last checkpoint 21.95077
+wandb:         Validation Accuracy 0.94824
+wandb: Validation Average Distance 4.06625
+wandb:             Validation Loss 0.0018
+wandb: 
+wandb: 🚀 View run noble-wave-32 at: https://wandb.ai/pallette-personal/dynamic_corner_detector/runs/iew13vjo
+wandb: ⭐️ View project at: https://wandb.ai/pallette-personal/dynamic_corner_detector
+wandb: Synced 5 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250421_145018-iew13vjo/logs
