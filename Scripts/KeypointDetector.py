@@ -386,7 +386,6 @@ def main(params):
     run = wandb.init(project="dynamic_corner_detector", config=params, reinit=True)
     
     with_validate = True
-    only_validate = False
 
     #Clear vram memory
     torch.cuda.empty_cache()
@@ -404,6 +403,8 @@ def main(params):
     num_levels = run.config["feature_extractor_lvl_amount"]
     start_from_checkpoint = run.config["start_from_checkpoint"]
     num_stacks = run.config["hourglass_stacks"]
+    only_validate = run.config["only_validate"]
+    val_model_path = run.config["val_model_path"]
 
     # Paths
     model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_dynamic_corner_detector.pth'))
@@ -456,15 +457,13 @@ def main(params):
     # Train the model
     
     
-    # Dataset and DataLoader
-    print("Loading training dataset...")
-    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images', 'rgb'), transform=transform_1)
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    
 
     if only_validate:
         print("Validating the model...")
         val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
+        val_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', val_model_path)
         
         validataion_params = {
             "dataloader": val_dataloader,
@@ -476,10 +475,16 @@ def main(params):
         }
         
         print("Validating the model...")
-        model.load_state_dict(torch.load(epoch_model_path))
-        validate_model(model, **validataion_params)
+        model.load_state_dict(torch.load(val_model_path))
+        f1_score = validate_model(model, **validataion_params)
+        print(f"F1 Score: {f1_score:.4f}")
         run.finish()
-        sys.exit(0)
+        return
+        
+    # Dataset and DataLoader
+    print("Loading training dataset...")
+    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images', 'rgb'), transform=transform_1)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
     if with_validate:
         print("Loading validation dataset...")
@@ -523,12 +528,12 @@ def main(params):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a keypoint detection model")
     parser.add_argument("--model", type=str, default="UNet", help="Model architecture to use (UNet, KeyNet, SimpleModel, Hourglass, Hourglass_Github)")
-    parser.add_argument("--dataset", type=str, default="with_clutter", help="Dataset to use (with_clutter, without_clutter)")
-    parser.add_argument("--batch_size", type=int, default=15, help="Batch size for training")
-    parser.add_argument("--val_batch_size", type=int, default=15, help="Batch size for validation")
-    parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate for the optimizer")
+    parser.add_argument("--dataset", type=str, default="gaussian_noise", help="Dataset to use (with_clutter, without_clutter)")
+    parser.add_argument("--batch_size", type=int, default=17, help="Batch size for training")
+    parser.add_argument("--val_batch_size", type=int, default=17, help="Batch size for validation")
+    parser.add_argument("--learning_rate", type=float, default=0.00342, help="Learning rate for the optimizer")
     parser.add_argument("--global_image_size", type=int, default=800, help="Global image size for training")
-    parser.add_argument("--num_epochs", type=int, default=8, help="Number of epochs to train the model")
+    parser.add_argument("--num_epochs", type=int, default=15, help="Number of epochs to train the model")
     parser.add_argument("--num_channels", type=int, default=3, help="Number of channels in the input images")
     parser.add_argument("--gaussian_blur", type=bool, default=True, help="Whether to apply Gaussian blur to the heatmaps")
     parser.add_argument("--start_from_checkpoint", type=bool, default=False, help="Whether to start training from a checkpoint")
@@ -536,6 +541,8 @@ if __name__ == "__main__":
     parser.add_argument("--distance_threshold", type=float, default=5, help="Distance threshold for keypoint matching")
     parser.add_argument("--feature_extractor_lvl_amount", type=int, default=8, help="Number of levels in the feature extractor")
     parser.add_argument("--hourglass_stacks", type=int, default=4, help="Number of stacks in the hourglass model")
+    parser.add_argument("--only_validate", type=bool, default=False, help="Whether to only validate the model")
+    parser.add_argument("--val_model_path", type=str, default="dynamic_corner_detector.pth", help="model used if only validation is set to True")
     
     params = parser.parse_args()
     params = vars(params)  # Convert Namespace to dict

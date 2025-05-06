@@ -562,20 +562,37 @@ class Util_functions:
         
         return True  # No occlusion found
 
-    def add_gaussian_noise_to_image(self, image_path, mean, stddev, gamma=1):
-        img = cv2.imread(image_path)
-        gauss_noise = np.zeros(img.shape[:2])
-        cv2.randn(gauss_noise, mean, stddev)
-        gauss_noise = (gauss_noise*gamma).astype(np.uint8)
+    
+    def add_gaussian_noise_to_image(self, image_path, mean=0.0, var=0.01):
+        img_bgr = cv2.imread(image_path)
+        if img_bgr is None:
+            raise FileNotFoundError(f"Could not load image at: {image_path}")
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
         
-        if len(img.shape) == 2:
-            output = cv2.add(img, gauss_noise)
-        elif len(img.shape) == 3:
-            merged = cv2.merge([gauss_noise, gauss_noise, gauss_noise])
-            output = cv2.add(img, merged)
+        sigma = var ** 0.5
+        
+        noise = np.random.normal(loc=mean, scale=sigma, size=img_rgb.shape).astype(np.float32)
+        
+        noisy_img = np.clip(img_rgb + noise, 0.0, 1.0)
+        
+        noisy_img_uint8 = (noisy_img * 255).astype(np.uint8)
+        cv2.imwrite(image_path, cv2.cvtColor(noisy_img_uint8, cv2.COLOR_RGB2BGR))
+        return noisy_img_uint8
+    
+    def add_salt_and_pepper_noise(self, image_path, prob=0.5):
+        img = cv2.imread(image_path)
+        output = np.copy(img)
+
+        black = np.array([0, 0, 0], dtype='uint8')
+        white = np.array([255, 255, 255], dtype='uint8')
+
+        probs = np.random.random(output.shape[:2])
+        output[probs < (prob / 2)] = black
+        output[probs > 1 - (prob / 2)] = white
+        
         cv2.imwrite(image_path, output)
         return output
-    
+        
     def save_depth_map(self, depth_map_path, scene, file_name):
         # Store the original state of the compositor flag
         original_use_nodes = scene.use_nodes

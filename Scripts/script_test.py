@@ -60,14 +60,19 @@ bpy.context.scene.render.resolution_y = 1000
 will_render_image = True
 draw_on_image = False
 fill_to_max_items = False
-add_noise = False
-depth_output = True
-add_clutter = True
+add_gaussian_noise = False
+add_salt_and_pepper_noise = False
+depth_output = False
+add_clutter = False
 
-if add_noise:
-    render_images_folder = '//datasets/noisy/images/rgb'
-    depth_map_folder = '//datasets/noisy/images/depth'
-    annotations_folder = '//datasets/noisy/annotations'
+if add_gaussian_noise:
+    render_images_folder = '//datasets/gaussian_noise/images/rgb'
+    depth_map_folder = '//datasets/gaussian_noise/images/depth'
+    annotations_folder = '//datasets/gaussian_noise/annotations'
+elif add_salt_and_pepper_noise:
+    render_images_folder = '//datasets/salt_and_pepper/images/rgb'
+    depth_map_folder = '//datasets/salt_and_pepper/images/depth'
+    annotations_folder = '//datasets/salt_and_pepper/annotations'
 else:
     render_images_folder = '//datasets/cropped_objects/images/rgb'
     depth_map_folder = '//datasets/cropped_objects/images/depth'
@@ -91,9 +96,10 @@ camera_clutter_collection = bpy.data.collections.get(camera_clutter_name)
 # Get the Camera
 camera = bpy.data.objects.get('Camera')
 
-gaussian_mean = 5
-gaussian_stddev = 5
-gaussian_gamma = 1
+gaussian_mean = 0
+gaussian_var = 0.25
+
+salt_pepper_prob = 0.5
 
 min_z = 0.3  # Distance from camera to near plane
 max_z = 0.9  # Distance to far plane (adjust as needed)
@@ -217,7 +223,7 @@ def write_annotations_to_file(file_name):
 
         image_id = file_name
         json_file.write(f'{{"image_id": "{image_id}", ')
-        json_file.write(f'"noise_flag": {"true" if add_noise else "false"}, "depth_flag": {"true" if depth_output else "false"}, "clutter_flag": {"true" if add_clutter else "false"}, ')
+        json_file.write(f'"gaussian_noise_flag": {"true" if add_gaussian_noise else "false"}, "salt_and_pepper_noise_flag": {"true" if add_salt_and_pepper_noise else "false"}, "depth_flag": {"true" if depth_output else "false"}, "clutter_flag": {"true" if add_clutter else "false"}, ')
         json_file.write('"camera_matrix": [')
         for vector in camera.matrix_world:
             json.dump((vector[0], vector[1], vector[2]), json_file)
@@ -276,14 +282,13 @@ def main_main():
     bpy.context.preferences.edit.use_global_undo = False
 
     preload_amount = 50 # Defines the amount of objects to be preloaded
-    
     # Define how often to preload objects
-    seperating_img_amount = int(rendered_images_amount /(1000/preload_amount))
+    seperating_img_amount = math.ceil(rendered_images_amount / (1000 / preload_amount))
     print(f"Preloading {preload_amount} objects every {seperating_img_amount} images")
     
     for i in range(rendered_images_amount):
         
-        if i % seperating_img_amount == 0:
+        if add_clutter and i % seperating_img_amount == 0:
             start_index = (i/seperating_img_amount) * preload_amount
             preload_time = time.time()
             uf.preload_clutter(start_index=start_index, amount=preload_amount, clutter_collection_name=clutter_collection_name)
@@ -305,8 +310,11 @@ def main_main():
 
                 bpy.data.orphans_purge()  # Purges unused data
                 
-                if add_noise:
-                    uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_stddev, gaussian_gamma)
+                if add_gaussian_noise:
+                    uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_var)
+                    
+                if add_salt_and_pepper_noise:
+                    uf.add_salt_and_pepper_noise(bpy.context.scene.render.filepath, salt_pepper_prob)
 
                 if draw_on_image:
                     uf.draw_points_on_rendered_image(bpy.context.scene.render.filepath, annotations_folder)

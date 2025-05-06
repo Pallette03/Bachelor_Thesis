@@ -1,4 +1,3 @@
-import time
 from PIL import Image
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -33,13 +32,35 @@ def validate_images_parallel(image_dir, num_workers=4):
     return corrupted_images
 
 # Specify your directory path and number of threads
-train_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/train/images"
-validate_dir = "C:/Users/paulb/Documents/TUDresden/Bachelor/datasets/cropped_objects/validate/images"
-num_workers = 8  # Adjust based on your CPU core count
-start_time = time.time()
+train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'train', 'images', 'rgb')
+validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'validate', 'images', 'rgb')
+train_annotations_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'train', 'annotations')
+validate_annotations_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'validate', 'annotations')
+num_workers = 4  # Adjust based on your CPU core count
 corrupted_images = validate_images_parallel(train_dir, num_workers)
 validate_corrupted_images = validate_images_parallel(validate_dir, num_workers)
-print(f"Time taken: {time.time() - start_time:.2f} seconds")
 
 print(f"Total corrupted images: {len(corrupted_images)}")
 print(f"Total corrupted images in validation set: {len(validate_corrupted_images)}")
+
+print("Removing corrupted images...")
+for img_path in corrupted_images:
+    print(f"Removing corrupted image: {img_path}")
+    os.remove(img_path)
+    # Optionally, you can also remove the corresponding annotation files if needed
+    annotation_path = os.path.join(train_annotations_dir, os.path.basename(img_path).replace('.png', '.json'))
+    os.remove(annotation_path)
+    
+for img_path in validate_corrupted_images:
+    print(f"Removing corrupted image: {img_path}")
+    os.remove(img_path)
+    # Optionally, you can also remove the corresponding annotation files if needed
+    annotation_path = os.path.join(validate_annotations_dir, os.path.basename(img_path).replace('.png', '.json'))
+    os.remove(annotation_path)
+    
+    
+    
+corrupted_images = validate_images_parallel(train_dir, num_workers)
+validate_corrupted_images = validate_images_parallel(validate_dir, num_workers)
+print(f"Total corrupted images after removal: {len(corrupted_images)}")
+print(f"Total corrupted images in validation set after removal: {len(validate_corrupted_images)}")
