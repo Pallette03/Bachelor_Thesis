@@ -39,6 +39,7 @@ def main():
     parser.add_argument('dir_a', help="Directory to scan for .png/.json files")
     parser.add_argument('dir_b', help="Directory in which to look for matching counterparts")
     parser.add_argument('source', help="Directory to pull missing files from")
+    parser.add_argument('delete_unpaired', help="Delete unpaired files", type=bool, default=False)
     args = parser.parse_args()
 
     dir_a = os.path.abspath(args.dir_a)
@@ -58,7 +59,13 @@ def main():
         return
 
     for filename in missing:
-        print(filename)
+        if args.delete_unpaired:
+            path_a = os.path.join(dir_a, filename)
+            path_b = os.path.join(dir_b, filename)
+            if os.path.isfile(path_a):
+                os.remove(path_a)
+            if os.path.isfile(path_b):
+                os.remove(path_b)
         
     print(f"Total missing files: {len(missing)}")
     print(f"Total files copied: {copy_counter}")

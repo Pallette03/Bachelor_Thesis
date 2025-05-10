@@ -391,6 +391,7 @@ def main(params):
     torch.cuda.empty_cache()
     
     architecture = run.config["model"]
+    dataset = run.config["dataset"]
     batch_size = run.config["batch_size"]
     val_batch_size = run.config["val_batch_size"]
     global_image_size = run.config["global_image_size"]
@@ -407,10 +408,10 @@ def main(params):
     val_model_path = run.config["val_model_path"]
 
     # Paths
-    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_dynamic_corner_detector.pth'))
-    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_dynamic_corner_detector_epoch.pth'))
-    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'train')
-    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', run.config["dataset"], 'validate')
+    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '.pth'))
+    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '_epoch.pth'))
+    train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', dataset, 'train')
+    validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', dataset, 'validate')
 
     
 
