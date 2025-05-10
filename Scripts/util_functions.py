@@ -15,20 +15,12 @@ class Util_functions:
     def __init__(self):
         pass
 
-    def clean_scene(self, camera_collection, line_collection, camera, to_be_removed):
-        # Checks for occlusions and objects out of bounds
-        for obj in camera_collection.objects:
-            occluding_objects = self.get_occluding_objects(camera, obj, camera_collection, line_collection)
-            for occluding_obj in occluding_objects:
-                to_be_removed.add(occluding_obj)
-
-        self.remove_objects(to_be_removed, camera_collection)
-
+    def clean_scene(self, camera_collection, line_collection, clutter_collection, camera, to_be_removed):
         for obj in camera_collection.objects:
             # Get the object's bounding box corners in world space
-            corners = self.get_corners_of_object(obj, camera, camera_collection)
+            corners = self.get_corners_of_object(obj, camera)
             for corner_data in corners.values():
-                if self.is_point_in_camera_view(camera, corner_data[0]):
+                if self.is_point_in_camera_view(camera, corner_data[0]) and self.is_visible(camera, corner_data[0], exclude_objects=[obj]):
                     continue
                 else:
                     to_be_removed.add(obj)
@@ -134,7 +126,7 @@ class Util_functions:
     
     def draw_corners(self, obj, line_collection, camera_collection):
         # Get the object's bounding box corners in world space
-        corners = self.get_corners_of_object(obj, bpy.context.scene.camera, camera_collection)
+        corners = self.get_corners_of_object(obj, bpy.context.scene.camera)
 
         for corner_name, corner_data in corners.items():
             corners[corner_name] = corner_data[0]
@@ -289,54 +281,6 @@ class Util_functions:
         c = min(max(0, c), 255) / 255
         return c / 12.92 if c < 0.04045 else math.pow((c + 0.055) / 1.055, 2.4)
     
-    def get_occluding_objects(self, camera, target, camera_collection, line_collection, draw_line=False):
-        # Get the position of the camera and target
-        cam_location = camera.location
-        obj_flag = False
-
-        if not isinstance(target, mathutils.Vector):
-            target_location = target.location
-            obj_flag = True
-        else:
-            target_location = target
-            obj_flag = False
-
-        # Vector from camera to target
-        cam_to_target_vec = target_location - cam_location
-        cam_to_target_distance = cam_to_target_vec.length
-
-
-        objects_in_between = []
-
-        # Loop through all objects in the scene
-        for obj in camera_collection.objects:
-            # Ignore the camera and target itself
-            if obj == camera:
-                continue
-            if obj == target and obj_flag:
-                continue
-
-            # Vector from camera to the current object
-            cam_to_obj_vec = obj.location - cam_location
-
-            # Project the object onto the camera-to-target line
-            projection_length = cam_to_obj_vec.dot(cam_to_target_vec.normalized())
-
-            # Check if the object is in between camera and target along the line
-            if 0 < projection_length < cam_to_target_distance:
-                # Check if the object is close to the camera-target line
-                distance_to_line = (cam_to_obj_vec - cam_to_target_vec.normalized() * projection_length).length
-
-                # Adjust this threshold for tolerance in distance to the line
-                if distance_to_line < 0.05:
-                    objects_in_between.append(obj)
-
-        if draw_line and objects_in_between:
-            # Draw a line from the camera to the target
-            line = self.draw_line_meth(cam_location, cam_to_target_vec, cam_to_target_distance, line_name=f"CameraToTarget_{target.name}")
-            line_collection.objects.link(line)
-
-        return objects_in_between
     
     def draw_line_meth(self, start, direction, length, line_name="Line"):
         # Calculate the end point of the line
@@ -374,7 +318,7 @@ class Util_functions:
         relative_position = camera.matrix_world.inverted() @ obj.location
         return relative_position
     
-    def get_corners_of_object(self, obj, camera, camera_collection):
+    def get_corners_of_object(self, obj, camera):
         # Get the object's bounding box corners in world space and put them in a dictionary
         all_corners = {f"Corner_{i}": mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
 
@@ -405,13 +349,7 @@ class Util_functions:
                     
         # Check the visibility of the corners
         for corner_name, corner_vector in stud_corrected_corners.items():
-            # Cast a ray from the camera to the corner
-            is_visible = self.is_visible(camera, corner_vector)
-            # Check if the ray intersected with any object
-            if is_visible:
-                stud_corrected_corners[corner_name] = (corner_vector, True)
-            else:
-                stud_corrected_corners[corner_name] = (corner_vector, False)
+            stud_corrected_corners[corner_name] = (corner_vector, self.is_visible(camera, corner_vector))
 
         return stud_corrected_corners
     
@@ -432,7 +370,7 @@ class Util_functions:
     
     def get_2d_bound_box(self, obj, scene, camera, camera_collection):
         # Get the object's bounding box corners in world space
-        corners = self.get_corners_of_object(obj, camera, camera_collection)
+        corners = self.get_corners_of_object(obj, camera)
 
         for corner_name, corner_data in corners.items():
             corner_vector, visible = corner_data

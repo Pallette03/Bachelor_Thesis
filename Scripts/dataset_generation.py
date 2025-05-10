@@ -30,6 +30,7 @@ def main(params, render_images_folder, hdri_folder, file_name, camera, camera_co
     max_clutter_items = params.get('max_clutter_items')
     min_z = params.get('min_z')
     max_z = params.get('max_z')
+    filter_occlusions = params.get('filter_occlusions')
     
     bpy.context.scene.render.filepath = os.path.join(bpy.path.abspath(render_images_folder), file_name)
     bpy.context.scene.render.image_settings.file_format = 'PNG'
@@ -76,10 +77,19 @@ def main(params, render_images_folder, hdri_folder, file_name, camera, camera_co
         # Set the location of the new object within the camera's view frustum 
         uf.random_attributes_object(new_obj, camera, min_z, max_z)
 
-    # Force update
+    # Add clutter to the scene
+    clutter_time = time.time()
+    if params.get('add_clutter'):
+        if clutter_collection and camera_clutter_collection:
+            uf.clutter_scene(clutter_collection, camera_clutter_collection, camera, min_z, max_z, min_clutter_items, max_clutter_items)
+        else:
+            print(f"Clutter collections not found. Skipping clutter generation.")
+    print(f"Clutter generation time: {time.time() - clutter_time} seconds")
+    
     bpy.context.view_layer.update()
+    if filter_occlusions:
+        uf.clean_scene(camera_collection, line_collection, clutter_collection, camera, to_be_removed)
 
-    uf.clean_scene(camera_collection, line_collection, camera, to_be_removed)
 
     if params.get('fill_to_max_items'):
         while len(camera_collection.objects) < max_items:
@@ -95,19 +105,9 @@ def main(params, render_images_folder, hdri_folder, file_name, camera, camera_co
                 uf.random_attributes_object(new_obj, camera, min_z, max_z)
 
             bpy.context.view_layer.update()
+            if filter_occlusions:
+                uf.clean_scene(camera_collection, line_collection, clutter_collection, camera, to_be_removed)
             
-            uf.clean_scene(camera_collection, line_collection, camera, to_be_removed)
-            
-    # Add clutter to the scene
-    clutter_time = time.time()
-    if params.get('add_clutter'):
-        if clutter_collection and camera_clutter_collection:
-            uf.clutter_scene(clutter_collection, camera_clutter_collection, camera, min_z, max_z, min_clutter_items, max_clutter_items)
-        else:
-            print(f"Clutter collections not found. Skipping clutter generation.")
-    print(f"Clutter generation time: {time.time() - clutter_time} seconds")
-
-        
             
 
 def write_annotations_to_file(params, file_name, annotations_folder, camera, camera_collection):
@@ -127,7 +127,7 @@ def write_annotations_to_file(params, file_name, annotations_folder, camera, cam
         json_file.write('"annotations": [\n')
 
         for obj in camera_collection.objects:
-            corners = uf.get_corners_of_object(obj, camera, camera_collection)
+            corners = uf.get_corners_of_object(obj, camera)
             brick_type = obj.name.split('.')[0]
             color = obj.data.materials[0].node_tree.nodes.get("Group").inputs[0].default_value
 
@@ -141,10 +141,6 @@ def write_annotations_to_file(params, file_name, annotations_folder, camera, cam
                 for val in uf.world_to_camera_coords(camera, corner_data[0]):
                     temp_tuple += (val,)
                 camera_corners[corner_name] = temp_tuple
-            
-            # serialized_corners = {}
-            # for corner_name, corner_vector in corners.items():
-            #     serialized_corners.update(convert_coordinates(corner_name, corner_vector, bpy.context.scene, camera))
 
             normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
             #normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
@@ -315,6 +311,7 @@ if __name__ == "__main__":
     parser.add_argument("--min_z", type=float, default=0.3, help="Minimum distance from camera to near plane.")
     parser.add_argument("--max_z", type=float, default=0.9, help="Maximum distance to far plane.")
     parser.add_argument("--rendered_image_resolution", type=int, default=1000, help="Resolution of the rendered images. In tuple format (width, height).")
+    parser.add_argument("--filter_occlusions", action="store_true", help="Filter out occluding objects in the scene.")
     
     args = parser.parse_args(argv)
     params = vars(args)
