@@ -86,7 +86,7 @@ class Util_functions:
         for corner_name, corner_data in keypoints.items():
             x = corner_data[0][0] / image_width
             y = corner_data[0][1] / image_height
-            normalized_keypoints[corner_name] = ([x, y], corner_data[1])
+            normalized_keypoints[corner_name] = ([x, y], corner_data[1], corner_data[2])
         return normalized_keypoints
     
     def normalize_coordinate(self, coord, image_width, image_height):
@@ -343,17 +343,17 @@ class Util_functions:
 
         for name, value in all_corners.items():
             if value.z == max_z:
-                stud_corrected_corners[name] = obj.matrix_world @ mathutils.Vector((value.x, value.y, real_top_z))
+                stud_corrected_corners[name] = (obj.matrix_world @ mathutils.Vector((value.x, value.y, real_top_z)), "top")
             else:
-                stud_corrected_corners[name] = obj.matrix_world @ value
+                stud_corrected_corners[name] = (obj.matrix_world @ value, "bottom")
                     
         # Check the visibility of the corners
-        for corner_name, corner_vector in stud_corrected_corners.items():
-            stud_corrected_corners[corner_name] = (corner_vector, self.is_visible(camera, corner_vector))
+        for corner_name, corner_data in stud_corrected_corners.items():
+            stud_corrected_corners[corner_name] = (corner_data[0], self.is_visible(camera, corner_data[0]), corner_data[1])
 
         return stud_corrected_corners
     
-    def convert_coordinates(self, corner_name, vector, scene, camera, visible=None):
+    def convert_coordinates(self, corner_name, vector, scene, camera, visible=None, lateral_category=None):
 
         co_2d = bpy_extras.object_utils.world_to_camera_view(scene, camera, vector)
         # Convert the normalized coordinates to pixel coordinates
@@ -363,8 +363,8 @@ class Util_functions:
         # Flip the y coordinate
         y = scene.render.resolution_y - y
 
-        if visible is not None:
-            return {corner_name: ((x, y), visible)}
+        if visible is not None and lateral_category is not None:
+            return {corner_name: ((x, y), visible, lateral_category)}
         else:
             return {corner_name: (x, y)}
     
@@ -373,7 +373,7 @@ class Util_functions:
         corners = self.get_corners_of_object(obj, camera)
 
         for corner_name, corner_data in corners.items():
-            corner_vector, visible = corner_data
+            corner_vector, visible, lateral_category = corner_data
             corners[corner_name] = corner_vector
 
         # Convert the corners to camera view coordinates

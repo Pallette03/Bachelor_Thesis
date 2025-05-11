@@ -136,15 +136,14 @@ def write_annotations_to_file(params, file_name, annotations_folder, camera, cam
             serialized_corners = {}
             camera_corners = {}
             for corner_name, corner_data in corners.items():
-                serialized_corners.update(uf.convert_coordinates(corner_name, corner_data[0], bpy.context.scene, camera, corner_data[1]))
+                serialized_corners.update(uf.convert_coordinates(corner_name, corner_data[0], bpy.context.scene, camera, corner_data[1], corner_data[2]))
                 temp_tuple = ()
                 for val in uf.world_to_camera_coords(camera, corner_data[0]):
                     temp_tuple += (val,)
                 camera_corners[corner_name] = temp_tuple
 
             normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
-            #normalized_corners = uf.normalize_keypoints(serialized_corners, bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y)
-            
+
             json.dump(camera_corners, json_file)
             json_file.write(',\n')
             
