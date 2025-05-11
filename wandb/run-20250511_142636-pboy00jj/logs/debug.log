@@ -1,0 +1,30 @@
+2025-05-11 14:26:36,106 INFO    MainThread:129664 [wandb_setup.py:_flush():67] Current SDK version is 0.19.7
+2025-05-11 14:26:36,107 INFO    MainThread:129664 [wandb_setup.py:_flush():67] Configure stats pid to 129664
+2025-05-11 14:26:36,108 INFO    MainThread:129664 [wandb_setup.py:_flush():67] Loading settings from /home/pallette/.config/wandb/settings
+2025-05-11 14:26:36,108 INFO    MainThread:129664 [wandb_setup.py:_flush():67] Loading settings from /home/pallette/Documents/GitHub/Bachelor/wandb/settings
+2025-05-11 14:26:36,108 INFO    MainThread:129664 [wandb_setup.py:_flush():67] Loading settings from environment variables
+2025-05-11 14:26:36,108 INFO    MainThread:129664 [wandb_init.py:setup_run_log_directory():647] Logging user logs to /home/pallette/Documents/GitHub/Bachelor/wandb/run-20250511_142636-pboy00jj/logs/debug.log
+2025-05-11 14:26:36,108 INFO    MainThread:129664 [wandb_init.py:setup_run_log_directory():648] Logging internal logs to /home/pallette/Documents/GitHub/Bachelor/wandb/run-20250511_142636-pboy00jj/logs/debug-internal.log
+2025-05-11 14:26:36,109 INFO    MainThread:129664 [wandb_init.py:init():761] calling init triggers
+2025-05-11 14:26:36,109 INFO    MainThread:129664 [wandb_init.py:init():766] wandb.init called with sweep_config: {}
+config: {'model': 'UNet', 'dataset': 'normal', 'batch_size': 2, 'val_batch_size': 2, 'learning_rate': 0.00342, 'global_image_size': (600, 600), 'num_epochs': 15, 'num_channels': 3, 'gaussian_blur': True, 'start_from_checkpoint': False, 'post_processing_threshold': 0.4, 'distance_threshold': 5, 'feature_extractor_lvl_amount': 8, 'hourglass_stacks': 4, 'only_validate': False, 'val_model_path': 'dynamic_corner_detector.pth', '_wandb': {}}
+2025-05-11 14:26:36,109 INFO    MainThread:129664 [wandb_init.py:init():784] starting backend
+2025-05-11 14:26:36,109 INFO    MainThread:129664 [wandb_init.py:init():788] sending inform_init request
+2025-05-11 14:26:36,116 INFO    MainThread:129664 [backend.py:_multiprocessing_setup():97] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2025-05-11 14:26:36,118 INFO    MainThread:129664 [wandb_init.py:init():803] backend started and connected
+2025-05-11 14:26:36,122 INFO    MainThread:129664 [wandb_init.py:init():896] updated telemetry
+2025-05-11 14:26:36,135 INFO    MainThread:129664 [wandb_init.py:init():920] communicating run to backend with 90.0 second timeout
+2025-05-11 14:26:36,669 INFO    MainThread:129664 [wandb_init.py:init():995] starting run threads in backend
+2025-05-11 14:26:36,743 INFO    MainThread:129664 [wandb_run.py:_console_start():2377] atexit reg
+2025-05-11 14:26:36,744 INFO    MainThread:129664 [wandb_run.py:_redirect():2227] redirect: wrap_raw
+2025-05-11 14:26:36,744 INFO    MainThread:129664 [wandb_run.py:_redirect():2292] Wrapping output streams.
+2025-05-11 14:26:36,744 INFO    MainThread:129664 [wandb_run.py:_redirect():2317] Redirects installed.
+2025-05-11 14:26:36,747 INFO    MainThread:129664 [wandb_init.py:init():1037] run started, returning control to user process
+2025-05-11 14:33:07,451 INFO    MainThread:129664 [wandb_run.py:_finish():2112] finishing run pallette-personal/dynamic_corner_detector/pboy00jj
+2025-05-11 14:33:07,451 INFO    MainThread:129664 [wandb_run.py:_atexit_cleanup():2342] got exitcode: 0
+2025-05-11 14:33:07,452 INFO    MainThread:129664 [wandb_run.py:_restore():2324] restore
+2025-05-11 14:33:07,453 INFO    MainThread:129664 [wandb_run.py:_restore():2330] restore done
+2025-05-11 14:33:35,714 INFO    MsgRouterThr:129664 [mailbox.py:close():115] Closing mailbox, abandoning 1 handles.
+2025-05-11 14:33:35,715 INFO    MainThread:129664 [wandb_run.py:_footer_history_summary_info():3958] rendering history
+2025-05-11 14:33:35,716 INFO    MainThread:129664 [wandb_run.py:_footer_history_summary_info():3990] rendering summary
+2025-05-11 14:33:35,717 INFO    MainThread:129664 [wandb_run.py:_footer_sync_info():3919] logging synced files

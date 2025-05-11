@@ -1,0 +1,7 @@
+{"time":"2025-05-11T10:20:28.557953388+02:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250511_102028-0c0lkpz6/logs/debug-core.log"}
+{"time":"2025-05-11T10:20:28.770301643+02:00","level":"INFO","msg":"created new stream","id":"0c0lkpz6"}
+{"time":"2025-05-11T10:20:28.770350364+02:00","level":"INFO","msg":"stream: started","id":"0c0lkpz6"}
+{"time":"2025-05-11T10:20:28.770385389+02:00","level":"INFO","msg":"handler: started","stream_id":"0c0lkpz6"}
+{"time":"2025-05-11T10:20:28.770452424+02:00","level":"INFO","msg":"writer: Do: started","stream_id":"0c0lkpz6"}
+{"time":"2025-05-11T10:20:28.77088867+02:00","level":"INFO","msg":"sender: started","stream_id":"0c0lkpz6"}
+{"time":"2025-05-11T10:20:29.186077866+02:00","level":"INFO","msg":"Starting system monitor"}

@@ -70,8 +70,8 @@ def split_dataset(dataset_path, train_output_path, validate_output_path, split_r
         
     print(f"Dataset split into training and validation sets. Training set: {len(train_set)} samples, Validation set: {len(validate_set)} samples.")
     
-dataset_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'salt_and_pepper')
-train_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'salt_and_pepper', 'train')
-validate_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'salt_and_pepper', 'validate')
+dataset_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'normal')
+train_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'normal', 'train')
+validate_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'normal', 'validate')
 
-split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.9, with_depth=True)
+split_dataset(dataset_path, train_output_path, validate_output_path, split_ratio=0.9, with_depth=False)

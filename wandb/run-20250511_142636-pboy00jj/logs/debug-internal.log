@@ -1,0 +1,16 @@
+{"time":"2025-05-11T14:26:36.120914518+02:00","level":"INFO","msg":"stream: starting","core version":"0.19.7","symlink path":"/home/pallette/Documents/GitHub/Bachelor/wandb/run-20250511_142636-pboy00jj/logs/debug-core.log"}
+{"time":"2025-05-11T14:26:36.331253419+02:00","level":"INFO","msg":"created new stream","id":"pboy00jj"}
+{"time":"2025-05-11T14:26:36.331292222+02:00","level":"INFO","msg":"stream: started","id":"pboy00jj"}
+{"time":"2025-05-11T14:26:36.331333719+02:00","level":"INFO","msg":"writer: Do: started","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:26:36.331391647+02:00","level":"INFO","msg":"handler: started","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:26:36.331407397+02:00","level":"INFO","msg":"sender: started","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:26:36.672881131+02:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-05-11T14:33:07.454112353+02:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-05-11T14:33:07.454771604+02:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-05-11T14:33:08.460571726+02:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading artifact model","runtime_seconds":1.01775894,"subtasks":[{"desc":"UNet_normal.pth","runtime_seconds":0.059874032,"progress":"896.0KB/118.5MB"}]},{"desc":"uploading output.log","runtime_seconds":0.478943506,"progress":"68.3KB/68.3KB"}],"total_operations":2}}
+{"time":"2025-05-11T14:33:34.497453316+02:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-05-11T14:33:35.718574782+02:00","level":"INFO","msg":"stream: closing","id":"pboy00jj"}
+{"time":"2025-05-11T14:33:35.718599398+02:00","level":"INFO","msg":"handler: closed","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:33:35.718613495+02:00","level":"INFO","msg":"writer: Close: closed","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:33:35.718626829+02:00","level":"INFO","msg":"sender: closed","stream_id":"pboy00jj"}
+{"time":"2025-05-11T14:33:35.718708352+02:00","level":"INFO","msg":"stream: closed","id":"pboy00jj"}

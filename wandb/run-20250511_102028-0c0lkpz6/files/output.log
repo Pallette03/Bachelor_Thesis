@@ -1,0 +1,4 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_gaussian_noise.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_gaussian_noise_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/gaussian_noise/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/gaussian_noise/validate
+1 GPUs available
+AMD Radeon RX 7800 XT
+Loading training dataset...

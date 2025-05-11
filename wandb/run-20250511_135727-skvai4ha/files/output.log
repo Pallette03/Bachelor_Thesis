@@ -1,0 +1,13 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/normal/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/normal/validate
+1 GPUs available
+AMD Radeon RX 7800 XT
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-05-11 13:57:31.602065] At Batch 1/23 for Epoch 1 taking 1.09 seconds since last checkpoint. Last Loss: 0.9832. Progress: 4.35%. Approx. Time left: 23.97 seconds
+[2025-05-11 13:57:32.379018] At Batch 2/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.9541. Progress: 8.70%. Approx. Time left: 19.60 seconds
+[2025-05-11 13:57:33.158672] At Batch 3/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.7817. Progress: 13.04%. Approx. Time left: 17.64 seconds
+[2025-05-11 13:57:33.978767] At Batch 4/23 for Epoch 1 taking 0.82 seconds since last checkpoint. Last Loss: 0.6719. Progress: 17.39%. Approx. Time left: 16.46 seconds
+[2025-05-11 13:57:34.733877] At Batch 5/23 for Epoch 1 taking 0.75 seconds since last checkpoint. Last Loss: 0.6034. Progress: 21.74%. Approx. Time left: 15.20 seconds
+[2025-05-11 13:57:35.558999] At Batch 6/23 for Epoch 1 taking 0.82 seconds since last checkpoint. Last Loss: 0.5618. Progress: 26.09%. Approx. Time left: 14.30 seconds

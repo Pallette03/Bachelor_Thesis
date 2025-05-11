@@ -68,12 +68,13 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
     Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
     The heatmap will be upsampled to match the input image size (500×500).
     """
-    target_heatmap = torch.zeros((1, image_size, image_size)).to(device)
+    target_heatmap_channel_0 = torch.zeros((1, image_size, image_size)).to(device)
+    target_heatmap_channel_1 = torch.zeros((1, image_size, image_size)).to(device)
 
     if keypoints is None:
-        return target_heatmap
+        return target_heatmap_channel_0, target_heatmap_channel_1
     
-    for (x, y) in keypoints:
+    for x, y, lateral_configuration in keypoints:
         x = x * image_size
         y = y * image_size
         x, y = int(x), int(y)  # Scale keypoints
@@ -85,25 +86,34 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
                         xi, yj = x + i, y + j
                         if 0 <= xi < image_size and 0 <= yj < image_size:
                             exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32).to(device)
-                            target_heatmap[0, yj, xi] += torch.exp(exponent).to(device)
+                            if lateral_configuration == 0:
+                                target_heatmap_channel_0[0, yj, xi] += torch.exp(exponent).to(device)
+                            else:
+                                target_heatmap_channel_1[0, yj, xi] += torch.exp(exponent).to(device)
         else:
-            target_heatmap[0, y, x] = 1
+            if lateral_configuration == 0:
+                target_heatmap_channel_0[0, y, x] = 1.0
+            else:
+                target_heatmap_channel_1[0, y, x] = 1.0
 
-    
-    # if not os.path.exists(os.path.join(os.path.dirname(__file__), os.pardir, 'heatmap.png')):
-    #     heatmap = target_heatmap.squeeze().detach().cpu().numpy()
-    #     plt.imshow(heatmap, cmap='Reds', interpolation='nearest')
-    #     plt.title("Target Heatmap (Black to Red)")
-    #     plt.colorbar()
-    #     plt.savefig("heatmap.png")
-    #     plt.close()
 
-    return target_heatmap
+    return target_heatmap_channel_0, target_heatmap_channel_1
 
 
 def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', critereon=None, gaussian_blur=False):
 
-    target_heatmaps = torch.stack([keypoints_to_heatmap(kp, image_size=image_size, device=device, gaussian_blur=gaussian_blur) for kp in keypoints_list]).to(device)
+    targets = []
+    for kp in keypoints_list:
+        # produce two [1,H,W] maps and concatenate → [2,H,W]
+        h0, h1 = keypoints_to_heatmap(
+            kp,
+            image_size=image_size,
+            gaussian_blur=gaussian_blur,
+            device=device
+        )
+        targets.append(torch.cat((h0, h1), dim=0))
+    # stack into [B,2,H,W]
+    target_heatmaps = torch.stack(targets, dim=0).to(device)
 
     loss = critereon(pred_heatmaps, target_heatmaps)
 
@@ -120,7 +130,7 @@ def collate_fn(batch):
     for i in range(len(corners_list)):
         corners = corners_list[i]
         pad_amount = max_corner_amount - corners.shape[0]
-        pad = np.zeros((pad_amount, 2))
+        pad = np.zeros((pad_amount, 3))
         
         if corners.shape[0] == 0:
             corners_list[i] = pad
@@ -138,9 +148,12 @@ def wait_for_termination(run_handler):
             run_handler.finish()
             break
 
-def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
+def calculate_accuracy(pred_keypoints_maps, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
     # Compare batchsize number of predicted keypoints to target keypoints
-    
+    pred_keypoints_0 = pred_keypoints_maps[0]
+    pred_keypoints_1 = pred_keypoints_maps[1]
+
+
     denormalized_target_keypoints = []
     target_kp_amount = 0
     correct_points = 0
@@ -149,18 +162,52 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
         if batch_keypoints is None:
             denormalized_target_keypoints.append([])
             continue
-        batch_keypoints = [kp.cpu().numpy() * global_image_size[0] for kp in batch_keypoints]
+        batch_keypoints = [[kp_1.cpu().numpy() * global_image_size[0],  kp_2.cpu().numpy() * global_image_size[0], lateral_config.cpu().numpy()] for kp_1, kp_2, lateral_config in batch_keypoints]
         denormalized_target_keypoints.append(batch_keypoints)
         target_kp_amount += len(batch_keypoints)
     
     num_pred_points = 0
-    for i in range(len(pred_keypoints)):
-        num_pred_points += len(pred_keypoints[i])
-        for idx, pred_point in enumerate(pred_keypoints[i]):
+    for i in range(len(pred_keypoints_0)):
+        num_pred_points += len(pred_keypoints_0[i])
+        for idx, pred_point in enumerate(pred_keypoints_0[i]):
             # Find the closest target point
             closest_target_point = None
             closest_distance = float("inf")
-            for target_point in denormalized_target_keypoints[i]:
+            for target_point_x, target_point_y, lateral_conf in denormalized_target_keypoints[i]:
+                
+                if lateral_conf != 0:
+                    continue
+
+                target_point = np.array([target_point_x, target_point_y])
+                distance = np.linalg.norm(pred_point - target_point)
+                if distance < closest_distance:
+                    closest_distance = distance
+                    closest_target_point = target_point
+
+            if closest_distance < distance_threshold:
+                correct_points += 1
+                denormalized_target_keypoints[i] = [
+                        kp for kp in denormalized_target_keypoints[i]
+                        if not np.array_equal(kp, closest_target_point)
+                    ]
+                if len(denormalized_target_keypoints[i]) == 0:
+                    break
+            if closest_distance == float("inf"):
+                closest_distance = 0 # If no target point is found, set distance to 0. needs to be changed
+            total_distance += closest_distance
+
+    for i in range(len(pred_keypoints_1)):
+        num_pred_points += len(pred_keypoints_1[i])
+        for idx, pred_point in enumerate(pred_keypoints_1[i]):
+            # Find the closest target point
+            closest_target_point = None
+            closest_distance = float("inf")
+            for target_point_x, target_point_y, lateral_conf in denormalized_target_keypoints[i]:
+                
+                if lateral_conf != 1:
+                    continue
+
+                target_point = np.array([target_point_x, target_point_y])
                 distance = np.linalg.norm(pred_point - target_point)
                 if distance < closest_distance:
                     closest_distance = distance
@@ -188,23 +235,33 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
 
 
 def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
-    all_keypoints = []
-    for pred_heatmap in pred_heatmaps:
-        prob_heatmap = torch.sigmoid(pred_heatmap.clone()).squeeze().numpy()
+    all_keypoints_0 = []
+    all_keypoints_1 = []
+    for pred_heatmap_0, pred_heatmap_1 in pred_heatmaps:
+        prob_heatmap_0 = torch.sigmoid(pred_heatmap_0.clone()).squeeze().numpy()
+        prob_heatmap_1 = torch.sigmoid(pred_heatmap_1.clone()).squeeze().numpy()
 
         # Normalize heatmap to [0, 1]
-        prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
+        prob_heatmap_0 = (prob_heatmap_0 - np.min(prob_heatmap_0)) / (np.max(prob_heatmap_0) - np.min(prob_heatmap_0))
+        prob_heatmap_1 = (prob_heatmap_1 - np.min(prob_heatmap_1)) / (np.max(prob_heatmap_1) - np.min(prob_heatmap_1))
 
-        local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
-        peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
+        local_max_0 = scipy.ndimage.maximum_filter(prob_heatmap_0, size=5)  # Adjust size
+        peaks_0 = (prob_heatmap_0 == local_max_0) & (prob_heatmap_0 > threshold)
+
+        local_max_1 = scipy.ndimage.maximum_filter(prob_heatmap_1, size=5)  # Adjust size
+        peaks_1 = (prob_heatmap_1 == local_max_1) & (prob_heatmap_1 > threshold)
 
         # Get peak coordinates
-        y_coords, x_coords = np.where(peaks)
-        keypoints = np.column_stack((x_coords, y_coords))
+        y_coords_0, x_coords_0 = np.where(peaks_0)
+        y_coords_1, x_coords_1 = np.where(peaks_1)
 
-        all_keypoints.append(keypoints)
+        keypoints_0 = np.column_stack((x_coords_0, y_coords_0))
+        keypoints_1 = np.column_stack((x_coords_1, y_coords_1))
 
-    return all_keypoints
+        all_keypoints_0.append(keypoints_0)
+        all_keypoints_1.append(keypoints_1)
+
+    return all_keypoints_0, all_keypoints_1
 
 # Training Loop
 def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, global_image_size=(500, 500), gaussian_blur=False, run_handler=None, validataion_params=None):
@@ -231,7 +288,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
 
             filtered_target_corners = []
             for corners in target_corners:
-                zero_tensor = torch.tensor([0, 0], dtype=torch.float32).to(device)
+                zero_tensor = torch.tensor([0, 0, 0], dtype=torch.float32).to(device)
                 filtered_corners = [kp for kp in corners if not torch.equal(kp, zero_tensor)]
                 
                 if len(filtered_corners) == 0:
@@ -357,7 +414,7 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
 
             val_counter += 1
             # Check the progress through the batch and print every 5 percent
-            if (val_counter % (len(dataloader) // 20) == 0) or (val_counter == len(dataloader)):
+            if (len(dataloader) // 20) == 0 or (val_counter % (len(dataloader) // 20) == 0) or (val_counter == len(dataloader)):
                 print(f"[{datetime.datetime.now()}] At Batch {val_counter}/{len(dataloader)} for Validation taking {time.time() - val_batch_start_time:.2f} seconds since last checkpoint. Last Loss: {val_last_loss:.4f}")
                 val_batch_start_time = time.time()
         
@@ -434,7 +491,7 @@ def main(params):
 
 
     if architecture == "UNet":
-        model = UNet(n_channels=num_channels, n_classes=1)
+        model = UNet(n_channels=num_channels, n_classes=2)
     elif architecture == "KeyNet":
         model = KeyNet(num_filters=8, num_levels=num_levels, kernel_size=5, in_channels=num_channels)
     elif architecture == "SimpleModel":

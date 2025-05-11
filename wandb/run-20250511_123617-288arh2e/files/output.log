@@ -1,0 +1,35 @@
+Paths: /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal_epoch.pth, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/normal/train, /home/pallette/Documents/GitHub/Bachelor/Scripts/../datasets/normal/validate
+1 GPUs available
+AMD Radeon RX 7800 XT
+Loading training dataset...
+Loading validation dataset...
+Training the model...
+Training on cuda
+[2025-05-11 12:36:25.344180] At Batch 1/23 for Epoch 1 taking 1.04 seconds since last checkpoint. Last Loss: 0.8780. Progress: 4.35%. Approx. Time left: 22.75 seconds
+[2025-05-11 12:36:26.163036] At Batch 2/23 for Epoch 1 taking 0.82 seconds since last checkpoint. Last Loss: 0.8352. Progress: 8.70%. Approx. Time left: 19.46 seconds
+[2025-05-11 12:36:26.924590] At Batch 3/23 for Epoch 1 taking 0.76 seconds since last checkpoint. Last Loss: 0.6641. Progress: 13.04%. Approx. Time left: 17.43 seconds
+[2025-05-11 12:36:27.738527] At Batch 4/23 for Epoch 1 taking 0.81 seconds since last checkpoint. Last Loss: 0.5479. Progress: 17.39%. Approx. Time left: 16.29 seconds
+[2025-05-11 12:36:28.520777] At Batch 5/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.4998. Progress: 21.74%. Approx. Time left: 15.16 seconds
+[2025-05-11 12:36:29.246003] At Batch 6/23 for Epoch 1 taking 0.72 seconds since last checkpoint. Last Loss: 0.4307. Progress: 26.09%. Approx. Time left: 13.99 seconds
+[2025-05-11 12:36:30.113076] At Batch 7/23 for Epoch 1 taking 0.87 seconds since last checkpoint. Last Loss: 0.4131. Progress: 30.43%. Approx. Time left: 13.26 seconds
+[2025-05-11 12:36:30.841780] At Batch 8/23 for Epoch 1 taking 0.73 seconds since last checkpoint. Last Loss: 0.4084. Progress: 34.78%. Approx. Time left: 12.25 seconds
+[2025-05-11 12:36:31.669892] At Batch 9/23 for Epoch 1 taking 0.83 seconds since last checkpoint. Last Loss: 0.3487. Progress: 39.13%. Approx. Time left: 11.45 seconds
+[2025-05-11 12:36:32.499680] At Batch 10/23 for Epoch 1 taking 0.83 seconds since last checkpoint. Last Loss: 0.3251. Progress: 43.48%. Approx. Time left: 10.65 seconds
+[2025-05-11 12:36:33.305158] At Batch 11/23 for Epoch 1 taking 0.80 seconds since last checkpoint. Last Loss: 0.3047. Progress: 47.83%. Approx. Time left: 9.81 seconds
+[2025-05-11 12:36:34.047297] At Batch 12/23 for Epoch 1 taking 0.74 seconds since last checkpoint. Last Loss: 0.2682. Progress: 52.17%. Approx. Time left: 8.93 seconds
+[2025-05-11 12:36:34.845122] At Batch 13/23 for Epoch 1 taking 0.80 seconds since last checkpoint. Last Loss: 0.2618. Progress: 56.52%. Approx. Time left: 8.10 seconds
+[2025-05-11 12:36:35.629229] At Batch 14/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.2543. Progress: 60.87%. Approx. Time left: 7.28 seconds
+[2025-05-11 12:36:36.429592] At Batch 15/23 for Epoch 1 taking 0.80 seconds since last checkpoint. Last Loss: 0.2545. Progress: 65.22%. Approx. Time left: 6.46 seconds
+[2025-05-11 12:36:37.207305] At Batch 16/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.2209. Progress: 69.57%. Approx. Time left: 5.64 seconds
+[2025-05-11 12:36:38.009099] At Batch 17/23 for Epoch 1 taking 0.80 seconds since last checkpoint. Last Loss: 0.2027. Progress: 73.91%. Approx. Time left: 4.84 seconds
+[2025-05-11 12:36:38.817929] At Batch 18/23 for Epoch 1 taking 0.81 seconds since last checkpoint. Last Loss: 0.1929. Progress: 78.26%. Approx. Time left: 4.03 seconds
+[2025-05-11 12:36:39.601633] At Batch 19/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.1650. Progress: 82.61%. Approx. Time left: 3.22 seconds
+[2025-05-11 12:36:40.471043] At Batch 20/23 for Epoch 1 taking 0.87 seconds since last checkpoint. Last Loss: 0.1661. Progress: 86.96%. Approx. Time left: 2.42 seconds
+[2025-05-11 12:36:41.247563] At Batch 21/23 for Epoch 1 taking 0.78 seconds since last checkpoint. Last Loss: 0.1493. Progress: 91.30%. Approx. Time left: 1.61 seconds
+[2025-05-11 12:36:42.070711] At Batch 22/23 for Epoch 1 taking 0.82 seconds since last checkpoint. Last Loss: 0.1317. Progress: 95.65%. Approx. Time left: 0.81 seconds
+[2025-05-11 12:36:42.537817] At Batch 23/23 for Epoch 1 taking 0.47 seconds since last checkpoint. Last Loss: 0.1268. Progress: 100.00%. Approx. Time left: 0.00 seconds
+Took 18.23 seconds for epoch 1
+Epoch [1/15], Heatmap Loss: 0.3500
+Saving model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal_epoch.pth
+Saved model to /home/pallette/Documents/GitHub/Bachelor/Scripts/../output/UNet_normal_epoch.pth
+Validating on cuda

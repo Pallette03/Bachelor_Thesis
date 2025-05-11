@@ -47,23 +47,9 @@ class LegoKeypointDataset(Dataset):
             for brick in annotation["annotations"]:
                 for corner_name, data in brick["normal_pixel_coordinates"].items():
                     if data[1]:
-                        normalized_corners.append(data[0])
-            
+                        normalized_corners.append((data[0][0], data[0][1], 0 if data[2] == "bottom" else 1))
+
             normalized_corners = np.array(normalized_corners)
-
-
-            # # Denormalize corner coordinates
-            # img_width, img_height = self.image_size
-            # denormalized_corners = self.denormalize_keypoints(normalized_corners, img_width, img_height)
-
-
-            # for corner in denormalized_corners:
-            #     x, y = int(corner[0]), int(corner[1])
-
-            #     # Skip invalid or out-of-bound corners
-            #     if x < 0 or x >= img_width or y < 0 or y >= img_height:
-            #         print(f"Invalid corner: {corner}")
-            #         continue
 
             return normalized_corners
     
