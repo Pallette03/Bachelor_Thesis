@@ -4,3 +4,4 @@ Backgrounds
 datasets
 output/viewpoint_estimator.pth
 .venv
+output

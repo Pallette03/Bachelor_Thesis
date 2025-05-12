@@ -9,22 +9,41 @@ SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "dataset_generation.py")
 # Example list of parameter sets
 param_sets = [
     {
-        "--rendered_images_amount": 1,
-        "--output_folder": "//datasets/normal",
+        "--rendered_images_amount": 6000,
+        "--output_folder": "//datasets/gaussian_clutter_lateral",
         "--hdri_folder": "//HDRI",
         "--gaussian_noise": False,
         "--salt_and_pepper_noise": False,
         "--depth_output": False,
-        "--add_clutter": False,
+        "--add_clutter": True,
         "--fill_to_max_items": False,
         "--will_render_image": True,
         "--filter_occlusions": False,
-        "--min_items": 20,
-        "--max_items": 30,
+        "--min_items": 10,
+        "--max_items": 20,
         "--min_clutter_items": 5,
         "--max_clutter_items": 15,
         "--min_z": 0.3,
-        "--max_z": 1.5,
+        "--max_z": 0.9,
+        "--rendered_image_resolution": 1000
+    },
+    {
+        "--rendered_images_amount": 4000,
+        "--output_folder": "//datasets/gaussian_clutter_lateral",
+        "--hdri_folder": "//HDRI",
+        "--gaussian_noise": True,
+        "--salt_and_pepper_noise": False,
+        "--depth_output": False,
+        "--add_clutter": True,
+        "--fill_to_max_items": False,
+        "--will_render_image": True,
+        "--filter_occlusions": False,
+        "--min_items": 10,
+        "--max_items": 20,
+        "--min_clutter_items": 5,
+        "--max_clutter_items": 15,
+        "--min_z": 0.3,
+        "--max_z": 0.9,
         "--rendered_image_resolution": 1000
     }
 ]
