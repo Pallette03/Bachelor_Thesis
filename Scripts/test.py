@@ -17,9 +17,10 @@ from models.KeyNet.keynet import KeyNet
 
 annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'placeholder', 'test', 'annotations')
 img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'placeholder', 'test', 'images', 'rgb')
-model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '48_Hourglass_mixed_guassian_clutter_and_clutter.pth')
+model_path_top = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '139_UNet_gaussian_clutter_lateral_top.pth')
+model_path_bottom = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '138_UNet_gaussian_clutter_lateral_bottom.pth')
 external_img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images')
-results_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'real_world_results')
+results_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'real_world_results_2_models_2')
 
 global_image_size = (800, 800)
 
@@ -83,14 +84,18 @@ threshold = 0.25
 num_channels = 3
 
 # Load the model
-#model = UNet(n_channels=3, n_classes=1)
+model_top = UNet(n_channels=3, n_classes=1)
+model_bottom = UNet(n_channels=3, n_classes=1)
 #model = KeyNet(num_filters=8, num_levels=8, kernel_size=5, in_channels=num_channels)
-model = PoseNet(nstack=4, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
+#model = PoseNet(nstack=4, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
 #model = SimpleModel(in_channels=num_channels, out_channels=1)
 
-model = torch.nn.DataParallel(model)
-model.load_state_dict(torch.load(model_path)) 
-model.eval()
+model_top = torch.nn.DataParallel(model_top)
+model_bottom = torch.nn.DataParallel(model_bottom)
+model_top.load_state_dict(torch.load(model_path_top)) 
+model_bottom.load_state_dict(torch.load(model_path_bottom))
+model_top.eval()
+model_bottom.eval()
 
 if num_channels == 1:
     transforms = torchvision.transforms.Compose([
@@ -136,52 +141,70 @@ while True:
     
     # Predict the keypoints
     start_time = time.time()
-    pred_heatmap = model(model_input)
+    pred_heatmap_top = model_top(model_input)
+    pred_heatmap_bottom = model_bottom(model_input)
     end_time = time.time()
     print(f"Prediction Time: {end_time - start_time:.4f} seconds")
-    pred_heatmap = pred_heatmap.squeeze(0).squeeze(0).detach().cpu().numpy()
+    pred_heatmap_top = pred_heatmap_top.squeeze(0).squeeze(0).detach().cpu().numpy()
+    pred_heatmap_bottom = pred_heatmap_bottom.squeeze(0).squeeze(0).detach().cpu().numpy()
 
 
     # Convert to probability using sigmoid
-    prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
+    prob_heatmap_top = torch.sigmoid(torch.tensor(pred_heatmap_top)).detach().cpu().numpy()
+    prob_heatmap_bottom = torch.sigmoid(torch.tensor(pred_heatmap_bottom)).detach().cpu().numpy()
 
     # Normalize the heatmap to the range [0, 1]
-    prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
+    prob_heatmap_top = (prob_heatmap_top - np.min(prob_heatmap_top)) / (np.max(prob_heatmap_top) - np.min(prob_heatmap_top))
+    prob_heatmap_bottom = (prob_heatmap_bottom - np.min(prob_heatmap_bottom)) / (np.max(prob_heatmap_bottom) - np.min(prob_heatmap_bottom))
 
     # Save a heatmap where every pixel gets a color from black to red according to its value using OpenCV
-    heatmap = cv2.applyColorMap((prob_heatmap * 255).astype(np.uint8), cv2.COLORMAP_JET)
-    filename = str(i) + "predicted_heatmap_blue_to_red_" + name_suffix + ".png"
-    file_path = os.path.join(results_dir, filename)
+    heatmap_top = cv2.applyColorMap((prob_heatmap_top * 255).astype(np.uint8), cv2.COLORMAP_JET)
+    heatmap_bottom = cv2.applyColorMap((prob_heatmap_bottom * 255).astype(np.uint8), cv2.COLORMAP_JET)
+    filename_top = str(i) + "predicted_heatmap_blue_to_red_" + name_suffix + "_top.png"
+    filename_bottom = str(i) + "predicted_heatmap_blue_to_red_" + name_suffix + "_bottom.png"
+    file_path_top = os.path.join(results_dir, filename_top)
+    file_path_bottom = os.path.join(results_dir, filename_bottom)
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
         
-    cv2.imwrite(file_path, heatmap)
+    cv2.imwrite(file_path_top, heatmap_top)
+    cv2.imwrite(file_path_bottom, heatmap_bottom)
 
 
     
 
 
-    pred_heatmap = convert_pred_to_heatmap(prob_heatmap, threshold=threshold)
+    pred_heatmap_top = convert_pred_to_heatmap(prob_heatmap_top, threshold=threshold)
+    pred_heatmap_bottom = convert_pred_to_heatmap(prob_heatmap_bottom, threshold=threshold)
 
     # Detect blobs in the heatmap and convert them to keypoints
-    binary_map = (pred_heatmap > threshold).astype(np.uint8)
-    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_map)
+    binary_map_top = (pred_heatmap_top > threshold).astype(np.uint8)
+    binary_map_bottom = (pred_heatmap_bottom > threshold).astype(np.uint8)
+    num_labels_top, labels_top, stats_top, centroids_top = cv2.connectedComponentsWithStats(binary_map_top)
+    num_labels_bottom, labels_bottom, stats_bottom, centroids_bottom = cv2.connectedComponentsWithStats(binary_map_bottom)
 
     # Extract keypoint coordinates (ignore the background component at index 0)
-    keypoints = centroids[1:]
+    keypoints_top = centroids_top[1:]
+    keypoints_bottom = centroids_bottom[1:]
 
     # Print keypoints
-    print("Detected Keypoints amount:", len(keypoints))
+    print("Detected Top Keypoints amount:", len(keypoints_top))
+    print("Detected Bottom Keypoints amount:", len(keypoints_bottom))
 
     # Apply max filter to find local peaks
-    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
-    peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
+    local_max_top = scipy.ndimage.maximum_filter(prob_heatmap_top, size=5)  # Adjust size
+    local_max_bottom = scipy.ndimage.maximum_filter(prob_heatmap_bottom, size=5)  # Adjust size
+    peaks_top = (prob_heatmap_top == local_max_top) & (prob_heatmap_top > threshold)
+    peaks_bottom = (prob_heatmap_bottom == local_max_bottom) & (prob_heatmap_bottom > threshold)
 
     # Get peak coordinates
-    y_coords, x_coords = np.where(peaks)
-    keypoints = np.column_stack((x_coords, y_coords))
+    y_coords_top, x_coords_top = np.where(peaks_top)
+    y_coords_bottom, x_coords_bottom = np.where(peaks_bottom)
+    keypoints_top = np.column_stack((x_coords_top, y_coords_top))
+    keypoints_bottom = np.column_stack((x_coords_bottom, y_coords_bottom))
 
-    print("Filtered Keypoints amount:", len(keypoints))
+    print("Filtered Top Keypoints amount:", len(keypoints_top))
+    print("Filtered Bottom Keypoints amount:", len(keypoints_bottom))
 
     #Save input image with predicted keypoints using opencv
     cv_image = (input_image * 255).astype(np.uint8)
@@ -189,24 +212,14 @@ while True:
 
     cv2.imwrite("model_input_image.png", cv_image)
 
-    for x, y in keypoints:
+    for x, y in keypoints_top:
         cv2.circle(cv_image, (int(x), int(y)), radius=1, color=(0, 255, 255), thickness=3)
+        
+    for x, y in keypoints_bottom:
+        cv2.circle(cv_image, (int(x), int(y)), radius=1, color=(255, 0, 255), thickness=3)
     filename = str(i) + "input_image_with_predicted_keypoints_" + name_suffix + ".png"
     file_path = os.path.join(results_dir, filename)
     cv2.imwrite(file_path, cv_image)
-
-
-    #target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
-
-
-
-    # Plot the heatmaps
-
-
-    plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
-    plt.title("Predicted Heatmap")
-    plt.savefig("predicted_heatmap.png")
-    plt.close()
 
     i = i + 1
 

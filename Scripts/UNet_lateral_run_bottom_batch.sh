@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:2
 #SBATCH --gpus-per-task=2
-#SBATCH --time=04:30:00
+#SBATCH --time=06:00:00
 #SBATCH --mem-per-cpu=1443
 #SBATCH --output=log_Unet.out
 #SBATCH --error=err_Unet.out
@@ -13,7 +13,7 @@ module load release/24.04 GCC/12.3.0 OpenMPI/4.1.5 Python/3.11.3 PyTorch-bundle/
 
 source this_venv/bin/activate
 
-python3 Scripts/KeypointDetector.py --model UNet  --dataset salt_and_pepper --batch_size 17 --val_batch_size 24 --learning_rate 0.00342 --global_image_size 800 --num_epochs 20
+python3 Scripts/KeypointDetector.py --model UNet --dataset gaussian_clutter_lateral --batch_size 17 --val_batch_size 24 --learning_rate 0.00342 --global_image_size 800 --num_epochs 30 --lateral_conf bottom
 
 echo "Waiting for all job steps to complete..."
 wait

@@ -10,8 +10,7 @@ import numpy as np
 import torchvision.transforms as transforms
 
 class LegoKeypointDataset(Dataset):
-    def __init__(self, annotations_folder, img_dir, transform=None, num_workers=4):
-        
+    def __init__(self, annotations_folder, img_dir, transform=None, num_workers=4, lateral_conf="top"):
         
         def load_annotation(file):
             with open(os.path.join(annotations_folder, file), 'r') as f:
@@ -26,6 +25,7 @@ class LegoKeypointDataset(Dataset):
         self.transform = transform
         self.annotations = combined_annotations
         self.img_dir = img_dir
+        self.lateral_conf = lateral_conf
 
     def __len__(self):
         return len(self.annotations)
@@ -46,7 +46,7 @@ class LegoKeypointDataset(Dataset):
             normalized_corners = []
             for brick in annotation["annotations"]:
                 for corner_name, data in brick["normal_pixel_coordinates"].items():
-                    if data[1]:
+                    if data[1] and data[2] == self.lateral_conf:
                         normalized_corners.append(data[0])
             
             normalized_corners = np.array(normalized_corners)

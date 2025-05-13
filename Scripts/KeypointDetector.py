@@ -406,10 +406,11 @@ def main(params):
     num_stacks = run.config["hourglass_stacks"]
     only_validate = run.config["only_validate"]
     val_model_path = run.config["val_model_path"]
+    lateral_conf = run.config["lateral_conf"]
 
     # Paths
-    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '.pth'))
-    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '_epoch.pth'))
+    model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '_' + lateral_conf + '.pth'))
+    epoch_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', (architecture + '_' + dataset + '_' + lateral_conf + '_epoch.pth'))
     train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', dataset, 'train')
     validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', dataset, 'validate')
 
@@ -462,7 +463,7 @@ def main(params):
 
     if only_validate:
         print("Validating the model...")
-        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1, lateral_conf=lateral_conf)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
         val_model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', val_model_path)
         
@@ -484,12 +485,12 @@ def main(params):
         
     # Dataset and DataLoader
     print("Loading training dataset...")
-    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images', 'rgb'), transform=transform_1)
+    train_dataset = LegoKeypointDataset(os.path.join(train_dir, 'annotations'), os.path.join(train_dir, 'images', 'rgb'), transform=transform_1, lateral_conf=lateral_conf)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
     if with_validate:
         print("Loading validation dataset...")
-        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
+        val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1, lateral_conf=lateral_conf)
         val_dataloader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, collate_fn=collate_fn)
         
         validataion_params = {
@@ -544,6 +545,7 @@ if __name__ == "__main__":
     parser.add_argument("--hourglass_stacks", type=int, default=4, help="Number of stacks in the hourglass model")
     parser.add_argument("--only_validate", type=bool, default=False, help="Whether to only validate the model")
     parser.add_argument("--val_model_path", type=str, default="dynamic_corner_detector.pth", help="model used if only validation is set to True")
+    parser.add_argument("--lateral_conf", type=str, default="top", help="wether to detect the top or bottom corners in the image")
     
     params = parser.parse_args()
     params = vars(params)  # Convert Namespace to dict
