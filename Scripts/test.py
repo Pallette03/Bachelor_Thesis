@@ -21,6 +21,7 @@ model_path_top = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '1
 model_path_bottom = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '138_UNet_gaussian_clutter_lateral_bottom.pth')
 external_img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images')
 results_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'real_world_results_2_models_2')
+json_output_path = os.path.join(os.path.dirname(__file__), os.pardir, 'real_world_results_2_models_2', 'predictions.json')
 
 global_image_size = (800, 800)
 
@@ -68,6 +69,8 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0):
 
     return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
 
+
+
 def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
 
     print(f"Pixel Number above threshold: {np.sum(pred_heatmap > threshold)}, Pixel Number below threshold: {np.sum(pred_heatmap < threshold)}")
@@ -81,6 +84,7 @@ def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
 use_external_image = True
 name_suffix = "hourglass_mixed_gaussian_clutter_external"
 threshold = 0.25
+top_threshold = 0.15
 num_channels = 3
 
 # Load the model
@@ -174,11 +178,11 @@ while True:
     
 
 
-    pred_heatmap_top = convert_pred_to_heatmap(prob_heatmap_top, threshold=threshold)
+    pred_heatmap_top = convert_pred_to_heatmap(prob_heatmap_top, threshold=top_threshold)
     pred_heatmap_bottom = convert_pred_to_heatmap(prob_heatmap_bottom, threshold=threshold)
 
     # Detect blobs in the heatmap and convert them to keypoints
-    binary_map_top = (pred_heatmap_top > threshold).astype(np.uint8)
+    binary_map_top = (pred_heatmap_top > top_threshold).astype(np.uint8)
     binary_map_bottom = (pred_heatmap_bottom > threshold).astype(np.uint8)
     num_labels_top, labels_top, stats_top, centroids_top = cv2.connectedComponentsWithStats(binary_map_top)
     num_labels_bottom, labels_bottom, stats_bottom, centroids_bottom = cv2.connectedComponentsWithStats(binary_map_bottom)
@@ -194,7 +198,7 @@ while True:
     # Apply max filter to find local peaks
     local_max_top = scipy.ndimage.maximum_filter(prob_heatmap_top, size=5)  # Adjust size
     local_max_bottom = scipy.ndimage.maximum_filter(prob_heatmap_bottom, size=5)  # Adjust size
-    peaks_top = (prob_heatmap_top == local_max_top) & (prob_heatmap_top > threshold)
+    peaks_top = (prob_heatmap_top == local_max_top) & (prob_heatmap_top > top_threshold)
     peaks_bottom = (prob_heatmap_bottom == local_max_bottom) & (prob_heatmap_bottom > threshold)
 
     # Get peak coordinates
