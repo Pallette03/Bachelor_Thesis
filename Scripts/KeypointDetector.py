@@ -540,7 +540,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_from_checkpoint", type=bool, default=False, help="Whether to start training from a checkpoint")
     parser.add_argument("--post_processing_threshold", type=float, default=0.4, help="Threshold for post-processing the heatmaps")
     parser.add_argument("--distance_threshold", type=float, default=5, help="Distance threshold for keypoint matching")
-    parser.add_argument("--feature_extractor_lvl_amount", type=int, default=8, help="Number of levels in the feature extractor")
+    parser.add_argument("--feature_extractor_lvl_amount", type=int, default=3, help="Number of levels in the feature extractor")
     parser.add_argument("--hourglass_stacks", type=int, default=4, help="Number of stacks in the hourglass model")
     parser.add_argument("--only_validate", type=bool, default=False, help="Whether to only validate the model")
     parser.add_argument("--val_model_path", type=str, default="dynamic_corner_detector.pth", help="model used if only validation is set to True")

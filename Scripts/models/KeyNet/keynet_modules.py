@@ -4,7 +4,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import kornia
-from scipy.ndimage import gaussian_filter
+from kornia.color import rgb_to_grayscale
+from kornia.filters import GaussianBlur2d
+from kornia.feature import gftt_response, harris_response
 
 
 class feature_extractor(nn.Module):
@@ -15,7 +17,7 @@ class feature_extractor(nn.Module):
         super(feature_extractor, self).__init__()
 
         self.hc_block = handcrafted_block()
-        self.lb_block = learnable_block(in_channels=(in_channels+2))
+        self.lb_block = learnable_block(in_channels=(in_channels+3))
 
     def forward(self, x):
         x_hc = self.hc_block(x)
@@ -23,338 +25,90 @@ class feature_extractor(nn.Module):
         return x_lb
 
 
+def normalize(tensor: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    """
+    Normalize a tensor to the range [0, 1] per-sample.
+    """
+    B, C, H, W = tensor.shape
+    flat = tensor.view(B, -1)
+    min_val = flat.min(dim=1)[0].view(B, 1, 1, 1)
+    max_val = flat.max(dim=1)[0].view(B, 1, 1, 1)
+    return (tensor - min_val) / (max_val - min_val + eps)
+
+
 class handcrafted_block(nn.Module):
-    '''
-        It defines the handcrafted filters within the Key.Net handcrafted block
-    '''
-    def __init__(self):
-        super(handcrafted_block, self).__init__()
-
-    def add_fast_keypoint_heatmap(self, tensor_images: torch.Tensor, sigma: float = 2.0):
-        """
-        Takes a batch of PyTorch tensor images, extracts FAST keypoints using OpenCV,
-        creates a heatmap, applies Gaussian blur, and appends it as a new channel.
+    """
+    GPU-accelerated handcrafted detectors: Shi-Tomasi (GFTT), Harris, and FAST.
+    FAST will run on a GPU if supported, otherwise falls back to CPU via OpenCV.
+    """
+    def __init__(self,
+                 harris_k: float = 0.04,
+                 harris_thr: float = 0.01,
+                 fast_thresh: int = 10,
+                 fast_nonmax: bool = True):
+        super().__init__()
+        self.harris_k = harris_k
+        self.harris_thr = harris_thr
+        self.fast_thresh = fast_thresh
+        self.fast_nonmax = fast_nonmax
         
-        Args:
-            tensor_images (torch.Tensor): Input batch of images (B, C, H, W) in range [0,1].
-            sigma (float): Standard deviation for Gaussian blur.
-        
-        Returns:
-            torch.Tensor: Modified tensor with an extra channel containing the heatmap.
-        """
-        if tensor_images.dim() != 4:
-            raise ValueError("Input tensor must have 4 dimensions (B, C, H, W)")
-        
-        device = tensor_images.device
-        batch_size, _, height, width = tensor_images.shape
-        heatmaps = []
-        
-        for img in tensor_images:
-            # Convert tensor to OpenCV format (H, W, C) and then grayscale
-            np_image = (img.permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)
-            gray = cv2.cvtColor(np_image, cv2.COLOR_RGB2GRAY) if np_image.shape[-1] == 3 else np_image
-            
-            # Use FAST feature detector
-            fast = cv2.FastFeatureDetector_create(threshold=10, nonmaxSuppression=False)
-            keypoints = fast.detect(gray, None)
-            
-            # Create heatmap
-            heatmap = np.zeros((height, width), dtype=np.float32)
-            for kp in keypoints:
-                x, y = int(kp.pt[0]), int(kp.pt[1])
-                if 0 <= x < width and 0 <= y < height:
-                    heatmap[y, x] = 1.0
-            
-            # Apply Gaussian blur
-            heatmap = gaussian_filter(heatmap, sigma=sigma)
-            
-            # Normalize heatmap to [0,1]
-            heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-            
-            # Convert to PyTorch tensor
-            heatmaps.append(torch.from_numpy(heatmap).unsqueeze(0))  # (1, H, W)
-        
-        heatmaps_tensor = torch.stack(heatmaps, dim=0).to(device)  # (B, 1, H, W)
-        #output_tensor = torch.cat([tensor_images, heatmaps_tensor], dim=1)  # (B, C+1, H, W)
-        
-        return heatmaps_tensor
-    
-    def harris_laplace_detector_batch(self, images, num_octaves=6, initial_sigma=1.4, k=0.04, threshold=0.01):
-        """
-        Apply the Harris-Laplace corner detector to a batch of images.
-
-        Parameters:
-        - images: Batch of images as a PyTorch tensor of shape (N, C, H, W).
-        - num_octaves: Number of octaves for Laplacian computation.
-        - initial_sigma: Initial sigma for Gaussian blur.
-        - k: Harris detector free parameter.
-        - threshold: Threshold for Harris response.
-        - output_dir: Directory to save the output images.
-
-        Returns:
-        - corners_batch: Batch of corner maps as a NumPy array of shape (N, 1, H, W).
-        """
-        batch_size, channels, height, width = images.shape
-        corners_batch = np.zeros((batch_size, height, width), dtype=np.float32)
-
-        device = images.device
-        images = images.cpu().numpy()
-
-        for batch_idx in range(batch_size):
-            image = images[batch_idx]
-            combined_corners = np.zeros((height, width), dtype=np.float32)
-
-            for channel_idx in range(channels):
-                gray = cv2.normalize(image[channel_idx], None, 0, 255, cv2.NORM_MINMAX).astype('uint8')
-                harris_corners = cv2.cornerHarris(gray, 2, 3, k)
-                harris_corners = cv2.dilate(harris_corners, None)
-                harris_corners = harris_corners > threshold * harris_corners.max()
-
-                for octave in range(num_octaves):
-                    sigma = initial_sigma * (2 ** octave)
-                    laplacian = cv2.Laplacian(gray, cv2.CV_64F, ksize=3, scale=sigma)
-                    laplacian = cv2.GaussianBlur(laplacian, (0, 0), sigma)
-                    laplacian = np.abs(laplacian)
-
-                    combined_response = harris_corners * laplacian
-                    combined_corners = np.maximum(combined_corners, combined_response)
-
-            corners_batch[batch_idx] = combined_corners
-            #cv2.imwrite(os.path.join(output_dir, f'harris_laplace_corners_{batch_idx}.png'), (combined_corners * 255).astype(np.uint8))
-
-        # Convert to tensor and return
-        corners_batch = torch.from_numpy(corners_batch)
-        # add channel dimension
-        corners_batch = corners_batch.unsqueeze(1)
-
-        return corners_batch.to(device)
-    
-    def canny_into_harris(self, input_tensor):
-        B, C, H, W = input_tensor.shape
-        device = input_tensor.device
-        all_responses = torch.zeros(B, 1, H, W, device=device)
-
-        for i in range(B):
-            image_tensor = input_tensor[i].to(torch.float32).cpu()
-
-            if C == 3:
-                # Split RGB channels and convert to grayscale
-                r, g, b = image_tensor[0], image_tensor[1], image_tensor[2]
-                gray = 0.299 * r + 0.587 * g + 0.114 * b
-            else:
-                gray = image_tensor.squeeze(0)
-
-            if r is not None:
-                r_canny = cv2.Canny((r.numpy() * 255).astype(np.uint8), 100, 200)
-                g_canny = cv2.Canny((g.numpy() * 255).astype(np.uint8), 100, 200)
-                b_canny = cv2.Canny((b.numpy() * 255).astype(np.uint8), 100, 200)
-                gray_canny = cv2.Canny((gray.numpy() * 255).astype(np.uint8), 100, 200)
-
-                # Use good features to track to find corners
-                r_keypoints = cv2.goodFeaturesToTrack(r_canny, 100, 0.01, 10)
-                g_keypoints = cv2.goodFeaturesToTrack(g_canny, 100, 0.01, 10)
-                b_keypoints = cv2.goodFeaturesToTrack(b_canny, 100, 0.01, 10)
-                gray_keypoints = cv2.goodFeaturesToTrack(gray_canny, 100, 0.01, 10)
-
-                # Create a heatmap for all keypoints
-                heatmap = np.zeros((H, W), dtype=np.float32)
-
-                # Add keypoints from each channel
-                for keypoints in [r_keypoints, g_keypoints, b_keypoints, gray_keypoints]:
-                    if keypoints is not None:
-                        for keypoint in keypoints:
-                            x, y = keypoint.ravel()
-                            heatmap[int(y), int(x)] += 1
-
-                # Normalize the heatmap
-                heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-
-                # Convert heatmap to tensor and add to responses
-                all_keypoints = torch.from_numpy(heatmap).unsqueeze(0).to(device)
-            else:
-                gray_canny = cv2.Canny((gray.numpy() * 255).astype(np.uint8), 100, 200)
-                gray_keypoints = cv2.goodFeaturesToTrack(gray_canny, 100, 0.01, 10)
-                
-                heatmap = np.zeros((H, W), dtype=np.float32)
-                if gray_keypoints is not None:
-                    for keypoint in gray_keypoints:
-                        x, y = keypoint.ravel()
-                        heatmap[int(y), int(x)] += 1
-                    
-                heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-                all_keypoints = torch.from_numpy(heatmap).unsqueeze(0).to(device)
-
-
-            # Apply Gaussian blur to the heatmap
-            blurred_heatmap = cv2.GaussianBlur(heatmap, (5, 5), sigmaX=1.0, sigmaY=1.0)
-
-            # Normalize the blurred heatmap
-            blurred_heatmap = (blurred_heatmap - blurred_heatmap.min()) / (blurred_heatmap.max() - blurred_heatmap.min() + 1e-8)
-
-            # Convert blurred heatmap to tensor and add to responses
-            all_keypoints = torch.from_numpy(blurred_heatmap).unsqueeze(0).to(device)
-
-            all_responses[i] = all_keypoints
-
-        return all_responses.to(device)
-
-    def good_features_to_track(self, input_tensor, max_corners=200, quality_level=0.01, min_distance=5):
-        B, C, H, W = input_tensor.shape
-        device = input_tensor.device
-        all_responses = torch.zeros(B, 1, H, W, device='cpu')
-
-        for i in range(B):
-            image_tensor = input_tensor[i].to(torch.float32).cpu()
-
-            if C == 3:
-                # Split RGB channels and convert to grayscale
-                r, g, b = image_tensor[0], image_tensor[1], image_tensor[2]
-                gray = 0.299 * r + 0.587 * g + 0.114 * b
-                r = None
-            else:
-                gray = image_tensor.squeeze(0)
-
-            if r is not None:
-                r_features = cv2.goodFeaturesToTrack((r.numpy() * 255).astype(np.uint8), max_corners, quality_level, min_distance)
-                g_features = cv2.goodFeaturesToTrack((g.numpy() * 255).astype(np.uint8), max_corners, quality_level, min_distance)
-                b_features = cv2.goodFeaturesToTrack((b.numpy() * 255).astype(np.uint8), max_corners, quality_level, min_distance)
-                gray_features = cv2.goodFeaturesToTrack((gray.numpy() * 255).astype(np.uint8), max_corners, quality_level, min_distance)
-
-                # Create a heatmap for all keypoints
-                heatmap = np.zeros((H, W), dtype=np.float32)
-
-                # Add keypoints from each channel
-                for features in [r_features, g_features, b_features, gray_features]:
-                    if features is not None:
-                        for feature in features:
-                            x, y = feature.ravel()
-                            heatmap[int(y), int(x)] += 1
-
-                # Normalize the heatmap
-                heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-
-                # add gaussian blur
-                blurred_heatmap = cv2.GaussianBlur(heatmap, (5, 5), sigmaX=1.0, sigmaY=1.0)
-
-                # Normalize the blurred heatmap
-                blurred_heatmap = (blurred_heatmap - blurred_heatmap.min()) / (blurred_heatmap.max() - blurred_heatmap.min() + 1e-8)
-
-                # Convert blurred heatmap to tensor and add to responses
-                all_keypoints = torch.from_numpy(blurred_heatmap).unsqueeze(0).to(device)
-            else:
-                gray_features = cv2.goodFeaturesToTrack((gray.numpy() * 255).astype(np.uint8), max_corners, quality_level, min_distance)
-                
-                heatmap = np.zeros((H, W), dtype=np.float32)
-                if gray_features is not None:
-                    for feature in gray_features:
-                        x, y = feature.ravel()
-                        heatmap[int(y), int(x)] += 1
-                    
-                heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-                blurred_heatmap = cv2.GaussianBlur(heatmap, (5, 5), sigmaX=1.0, sigmaY=1.0)
-                blurred_heatmap = (blurred_heatmap - blurred_heatmap.min()) / (blurred_heatmap.max() - blurred_heatmap.min() + 1e-8)
-
-                all_keypoints = torch.from_numpy(blurred_heatmap).unsqueeze(0).to(device)
-
-            all_responses[i] = all_keypoints
-
-        return all_responses.to(device)
-
-    def add_fast_keypoint_heatmap(self, tensor_images: torch.Tensor, sigma: float = 2.0):
-        """
-        Takes a batch of PyTorch tensor images, extracts FAST keypoints using OpenCV,
-        creates a heatmap, applies Gaussian blur, and appends it as a new channel.
-        
-        Args:
-            tensor_images (torch.Tensor): Input batch of images (B, C, H, W) in range [0,1].
-            sigma (float): Standard deviation for Gaussian blur.
-        
-        Returns:
-            torch.Tensor: Modified tensor with an extra channel containing the heatmap.
-        """
-        if tensor_images.dim() != 4:
-            raise ValueError("Input tensor must have 4 dimensions (B, C, H, W)")
-        
-        device = tensor_images.device
-        batch_size, _, height, width = tensor_images.shape
-        heatmaps = []
-        
-        for img in tensor_images:
-            # Convert tensor to OpenCV format (H, W, C) and then grayscale
-            np_image = (img.permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)
-            gray = cv2.cvtColor(np_image, cv2.COLOR_RGB2GRAY) if np_image.shape[-1] == 3 else np_image
-            
-            # Use FAST feature detector
-            fast = cv2.FastFeatureDetector_create(threshold=10, nonmaxSuppression=False)
-            keypoints = fast.detect(gray, None)
-            
-            # Create heatmap
-            heatmap = np.zeros((height, width), dtype=np.float32)
-            for kp in keypoints:
-                x, y = int(kp.pt[0]), int(kp.pt[1])
-                if 0 <= x < width and 0 <= y < height:
-                    heatmap[y, x] = 1.0
-            
-            # Apply Gaussian blur
-            heatmap = gaussian_filter(heatmap, sigma=sigma)
-            
-            # Normalize heatmap to [0,1]
-            heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-            
-            # Convert to PyTorch tensor
-            heatmaps.append(torch.from_numpy(heatmap).unsqueeze(0))  # (1, H, W)
-        
-        heatmaps_tensor = torch.stack(heatmaps, dim=0).to(device)  # (B, 1, H, W)
-        #output_tensor = torch.cat([tensor_images, heatmaps_tensor], dim=1)  # (B, C+1, H, W)
-        
-        return heatmaps_tensor
-    
-    def harris_detector_batch(self, images, k=0.04, threshold=0.01):
-        batch_size, channels, height, width = images.shape
-        corners_batch = np.zeros((batch_size, height, width), dtype=np.float32)
-
-        device = images.device
-        images = images.cpu().numpy()
-
-        for batch_idx in range(batch_size):
-            image = images[batch_idx]
-            combined_corners = np.zeros((height, width), dtype=np.float32)
-
-            for channel_idx in range(channels):
-                gray = cv2.normalize(image[channel_idx], None, 0, 255, cv2.NORM_MINMAX).astype('uint8')
-                harris_corners = cv2.cornerHarris(gray, 2, 3, k)
-                harris_corners = cv2.dilate(harris_corners, None)
-                harris_corners = harris_corners > threshold * harris_corners.max()
-
-                combined_corners = np.maximum(combined_corners, harris_corners)
-
-            blurred_corners = cv2.GaussianBlur(combined_corners, (5, 5), sigmaX=1.0, sigmaY=1.0)
-            blurred_corners = (blurred_corners - blurred_corners.min()) / (blurred_corners.max() - blurred_corners.min() + 1e-8)
-
-            corners_batch[batch_idx] = blurred_corners
-            #cv2.imwrite(os.path.join(output_dir, f'harris_laplace_corners_{batch_idx}.png'), (combined_corners * 255).astype(np.uint8))
-
-        # Convert to tensor and return
-        corners_batch = torch.from_numpy(corners_batch)
-        # add channel dimension
-        corners_batch = corners_batch.unsqueeze(1)
-
-        return corners_batch.to(device)
-
-
+        self.blur = GaussianBlur2d((3, 3), (1.0, 1.0))
 
     def forward(self, x):
+        # x: (B, C, H, W) in [0,1]
+        device = x.device
 
-        fast_keypoint_heatmap = self.add_fast_keypoint_heatmap(x)
-        #harris_laplace_heatmap = self.harris_laplace_detector_batch(x)
-        #canny_into_harris_heatmap = self.canny_into_harris(x)
-        #good_features_heatmap = self.good_features_to_track(x)
-        harris_heatmap = self.harris_detector_batch(x)
+        # Convert to grayscale
+        gray = rgb_to_grayscale(x)  # (B,1,H,W)
+        B, _, H, W = gray.shape
 
-        x = torch.cat((x, harris_heatmap, fast_keypoint_heatmap), dim=1)
+        # Shi-Tomasi / Good Features to Track response
+        shi = gftt_response(
+            gray,
+            grads_mode='sobel'
+        )
+        shi = self.blur(shi)
+        shi = normalize(shi)
 
-        return x
+        # Harris response
+        har = harris_response(
+            gray,
+            k=self.harris_k,
+            grads_mode='sobel'
+        )
+        # Threshold and keep only strong corners
+        har = torch.where(
+            har > self.harris_thr * har.amax(dim=[2, 3], keepdim=True),
+            har,
+            torch.zeros_like(har)
+        )
+        har = self.blur(har)
+        har = normalize(har)
 
+        gray_cpu = (gray.squeeze(1) * 255).byte().cpu().numpy()  # (B, H, W)
+        detector = cv2.FastFeatureDetector_create(
+            threshold=self.fast_thresh,
+            nonmaxSuppression=self.fast_nonmax
+        )
+        fast_maps = []
+        for i in range(B):
+            kps = detector.detect(gray_cpu[i], None)
+            mask = np.zeros((H, W), dtype=np.float32)
+            for kp in kps:
+                y, x_pt = int(kp.pt[1]), int(kp.pt[0])
+                if 0 <= x_pt < W and 0 <= y < H:
+                    mask[y, x_pt] = 1.0
+            heat = cv2.GaussianBlur(mask, (3, 3), 1.0)
+            minv, maxv = heat.min(), heat.max()
+            if maxv - minv > 1e-8:
+                heat = (heat - minv) / (maxv - minv)
+            fast_maps.append(torch.from_numpy(heat).unsqueeze(0))  # (1, H, W)
+        # Stack to (B, 1, H, W)
+        fast = torch.stack(fast_maps, dim=0).to(device)
+
+        # Concatenate original image with heatmaps
+        out = torch.cat([x, har, shi, fast], dim=1)
+        return out
 
 class learnable_block(nn.Module):
     '''

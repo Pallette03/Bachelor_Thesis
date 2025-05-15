@@ -2,3 +2,5 @@ module load release/24.04 GCC/12.3.0 OpenMPI/4.1.5 Python/3.11.3 PyTorch-bundle/
 
 srun --pty --nodes=1 --ntasks=1 --cpus-per-task=4 --gres=gpu:2 --time=01:00:00 --mem-per-cpu=1700 bash -l
 source this_venv/bin/activate
+
+module load GCC/12.3.0 Python/3.11.3
