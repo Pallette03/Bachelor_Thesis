@@ -9,8 +9,8 @@ SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "dataset_generation.py")
 # Example list of parameter sets
 param_sets = [
     {
-        "--rendered_images_amount": 1,
-        "--output_folder": "//datasets/normal",
+        "--rendered_images_amount": 200,
+        "--output_folder": "//datasets/clutter",
         "--hdri_folder": "//HDRI",
         "--gaussian_noise": False,
         "--salt_and_pepper_noise": False,

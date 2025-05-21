@@ -15,11 +15,12 @@ from PIL import Image
 
 from models.KeyNet.keynet import KeyNet
 
-annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'placeholder', 'test', 'annotations')
-img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'placeholder', 'test', 'images', 'rgb')
-model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '48_Hourglass_mixed_guassian_clutter_and_clutter.pth')
+annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'with_clutter', 'validate', 'annotations')
+img_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'with_clutter', 'validate', 'images', 'rgb')
+model_path = os.path.join(os.path.dirname(__file__), os.pardir, 'output', '57_UNet_mixed_gaussian_clutter.pth')
 external_img_path = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'external_images')
-results_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'real_world_results')
+results_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'results_with_pred')
+json_file_path = os.path.join(os.path.dirname(__file__), os.pardir, 'results_with_pred', 'predictions.json')
 
 global_image_size = (800, 800)
 
@@ -67,6 +68,12 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0):
 
     return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
 
+def write_prediction_to_json(image_path, predictions, json_file_path):
+    with open(json_file_path, 'a') as json_file:
+        json.dump({"image_path": image_path, "predictions": predictions}, json_file)
+        json_file.write('\n')
+
+
 def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
 
     print(f"Pixel Number above threshold: {np.sum(pred_heatmap > threshold)}, Pixel Number below threshold: {np.sum(pred_heatmap < threshold)}")
@@ -77,15 +84,15 @@ def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
     return pred_heatmap
 
 
-use_external_image = True
+use_external_image = False
 name_suffix = "hourglass_mixed_gaussian_clutter_external"
 threshold = 0.25
 num_channels = 3
 
 # Load the model
-#model = UNet(n_channels=3, n_classes=1)
+model = UNet(n_channels=3, n_classes=1)
 #model = KeyNet(num_filters=8, num_levels=8, kernel_size=5, in_channels=num_channels)
-model = PoseNet(nstack=4, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
+#model = PoseNet(nstack=4, inp_dim=512, oup_dim=1, bn=False, increase=0, input_image_size=global_image_size[0])
 #model = SimpleModel(in_channels=num_channels, out_channels=1)
 
 model = torch.nn.DataParallel(model)
@@ -114,15 +121,13 @@ if not use_external_image:
     dataset_length = len(dataset)
 else:
     external_list = os.listdir(external_img_path)
-while True:
+while True and i < 200:
     if not use_external_image:
         
         rand_index = np.random.randint(0, dataset_length)
 
-        sample = dataset[i]
-
-        print(i)
-        
+        sample = dataset[rand_index]
+        img_path = os.path.basename(sample['image_path'])
     else:
         # Load an external image
         img_path = os.path.join(external_img_path, external_list.pop())
@@ -189,6 +194,8 @@ while True:
 
     cv2.imwrite("model_input_image.png", cv_image)
 
+    write_prediction_to_json(img_path, keypoints.tolist(), json_file_path)
+    
     for x, y in keypoints:
         cv2.circle(cv_image, (int(x), int(y)), radius=1, color=(0, 255, 255), thickness=3)
     filename = str(i) + "input_image_with_predicted_keypoints_" + name_suffix + ".png"
