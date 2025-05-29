@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "Asus_Z87PRO_Motherboard_ATX_LGA1150_Socket"
+description: "Asus Z87-PRO Motherboard ATX LGA1150 Socket"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asus"
+}
+annotations {
+  key: "gtin"
+  value: "00886227494545"
+}
+annotations {
+  key: "sku"
+  value: "886227494545"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

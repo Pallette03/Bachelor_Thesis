@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Black_Forest_Fruit_Snacks_28_Pack_Grape"
+description: "Black Forest Fruit Snacks 28 Pack Grape"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Black"
+}
+annotations {
+  key: "gtin"
+  value: "00041420746291"
+}
+annotations {
+  key: "sku"
+  value: "00041420746291-cloned-20141211161254033201"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Consumer Goods"
+}

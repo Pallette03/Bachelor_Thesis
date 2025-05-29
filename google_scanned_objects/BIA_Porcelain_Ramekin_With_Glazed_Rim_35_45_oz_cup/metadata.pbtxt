@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "BIA_Porcelain_Ramekin_With_Glazed_Rim_35_45_oz_cup"
+description: "BIA Porcelain Ramekin With Glazed Rim, 3.5\" - 4.5 oz cup"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Ramekin"
+}
+annotations {
+  key: "gtin"
+  value: "00033805000128"
+}
+annotations {
+  key: "sku"
+  value: "00033805000128"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

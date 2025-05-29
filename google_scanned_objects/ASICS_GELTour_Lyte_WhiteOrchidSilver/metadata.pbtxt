@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_GELTour_Lyte_WhiteOrchidSilver"
+description: "ASICS GEL-Tour Lyte\302\256 - White/Orchid/Silver\nA favorite with the weekend golfers and those seeking a softer, more flexible shoe. Combines the comfort and fit of a great running shoe with the stability and support of a great golf shoe."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "883722982409"
+}
+annotations {
+  key: "mpn"
+  value: "p163y.0136"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-883722982409"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

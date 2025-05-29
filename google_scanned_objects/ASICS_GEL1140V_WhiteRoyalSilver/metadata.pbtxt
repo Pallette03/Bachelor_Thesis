@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_GEL1140V_WhiteRoyalSilver"
+description: "ASICS GEL-1140V\342\204\242 - White/Royal/Silver\nHigh on speed and cushioning, this update to our ever-popular 1000V series comes with a breathable mesh upper, the enhanced comfort of a Ventilated Sole Unit, rearfoot GEL\302\256 Cushioning System, a removable sockliner, a the super lightweight comfort of a Solyte\302\256 Midsole Material."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "885681475824"
+}
+annotations {
+  key: "mpn"
+  value: "b251n.0143"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-885681475824"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Azure_Snake_Tieks_Leather_Snake_Print_Ballet_Flats"
+description: "Azure Snake Tieks - Leather Snake Print Ballet Flats\nThese striking ballet flats combine Tiek Blue, cobalt, black and silver in a unique snake print. Made with premium, soft, top-grain Italian leather. Non-elasticized, cushioned back and padded instep. Foldable split-sole design for ultimate portability. Signature Tiek Blue stripes and durable, non-skid rubber soles."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Tieks by Gavrieli"
+}
+annotations {
+  key: "mpn"
+  value: "442"
+}
+annotations {
+  key: "sku"
+  value: "442"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

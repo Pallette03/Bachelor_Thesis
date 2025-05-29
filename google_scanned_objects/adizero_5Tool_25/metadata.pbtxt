@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "adizero_5Tool_25"
+description: "adizero 5-Tool 2.5"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Adidas"
+}
+annotations {
+  key: "gtin"
+  value: "886840848688"
+}
+annotations {
+  key: "mpn"
+  value: "g67142"
+}
+annotations {
+  key: "sku"
+  value: "G67142"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

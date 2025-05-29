@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "adistar_boost_m"
+description: "adistar boost m\nFW-SHOES"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "adidas"
+}
+annotations {
+  key: "gtin"
+  value: "887383314715"
+}
+annotations {
+  key: "sku"
+  value: "F32290"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "BALANCING_CACTUS"
+description: "BALANCING CACTUS\nIt\357\277\275s all about strategy! The player that can build and balance the cactus without making it fall is the winner. Ideal for 1 - 4 players."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "4101"
+}
+annotations {
+  key: "sku"
+  value: "0410101"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

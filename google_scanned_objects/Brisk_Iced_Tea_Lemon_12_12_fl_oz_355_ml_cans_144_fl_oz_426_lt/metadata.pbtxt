@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "Brisk_Iced_Tea_Lemon_12_12_fl_oz_355_ml_cans_144_fl_oz_426_lt"
+description: "Brisk Iced Tea, Lemon - 12 - 12 fl oz (355 ml) cans [144 fl oz (426 lt)]\ndescription 377"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Nikon"
+}
+annotations {
+  key: "gtin"
+  value: "012000810091"
+}
+annotations {
+  key: "mpn"
+  value: "12000810091"
+}
+annotations {
+  key: "sku"
+  value: "Test Item 377"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Consumer Goods"
+}

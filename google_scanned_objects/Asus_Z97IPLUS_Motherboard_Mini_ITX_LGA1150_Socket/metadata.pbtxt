@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "Asus_Z97IPLUS_Motherboard_Mini_ITX_LGA1150_Socket"
+description: "Asus Z97I-PLUS Motherboard Mini ITX LGA1150 Socket"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asus"
+}
+annotations {
+  key: "gtin"
+  value: "00886227764563"
+}
+annotations {
+  key: "sku"
+  value: "886227764563"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

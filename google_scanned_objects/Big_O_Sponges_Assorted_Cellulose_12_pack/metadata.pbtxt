@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "Big_O_Sponges_Assorted_Cellulose_12_pack"
+description: "Big O Sponges, Assorted Cellulose - 12 pack"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Big O"
+}
+annotations {
+  key: "gtin"
+  value: "00051141915944"
+}
+annotations {
+  key: "mpn"
+  value: "big o 12"
+}
+annotations {
+  key: "sku"
+  value: "00051141915944"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Consumer Goods"
+}

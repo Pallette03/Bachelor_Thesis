@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "BREAKFAST_MENU"
+description: "BREAKFAST MENU\nThe set includes 2 slices of bread, a bun, sausage, bacon, cheese, fried egg, boiled egg, salt and pepper that are served on a tray."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "3415"
+}
+annotations {
+  key: "sku"
+  value: "0341501"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

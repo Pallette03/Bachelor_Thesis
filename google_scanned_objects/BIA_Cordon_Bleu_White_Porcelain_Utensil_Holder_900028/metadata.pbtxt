@@ -1,0 +1,38 @@
+model {
+  file: "model.sdf"
+}
+name: "BIA_Cordon_Bleu_White_Porcelain_Utensil_Holder_900028"
+description: "B.I.A Cordon Bleu White Porcelain Utensil Holder 900028\nBIA Cordon Bleu Give your spatulas and serving spoons an elegant home with this 60 Oz.  Made from porcelain, this piece is resistant to chipping, cracking and staining.  The clean design and solid white glaze make this piece a classic addition to any table kitchen."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "BIA Cordon Bleu"
+}
+annotations {
+  key: "gtin"
+  value: "00033805900282"
+}
+annotations {
+  key: "mpn"
+  value: "900028"
+}
+annotations {
+  key: "sku"
+  value: "9091050_20130419_10991100"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

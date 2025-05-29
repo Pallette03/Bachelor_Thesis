@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "Air_Hogs_Wind_Flyers_Set_Airplane_Red"
+description: "Air Hogs Wind Flyers Set, Airplane, Red"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Air Hogs"
+}
+annotations {
+  key: "gtin"
+  value: "00778988953389"
+}
+annotations {
+  key: "sku"
+  value: "00778988953389"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "BATHROOM_FURNITURE_SET_1"
+description: "BATHROOM (FURNITURE SET 1)\nThis set includes stand up shower with removable shower head, a sink, a toilet, and a bathtub. Made of Eco-Friendly PlanWood and solid rubber wood."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "7603"
+}
+annotations {
+  key: "sku"
+  value: "07603P00"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Animal_Crossing_New_Leaf_Nintendo_3DS_Game"
+description: "Animal Crossing: New Leaf [Nintendo 3DS Game]"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Nintendo EAD"
+}
+annotations {
+  key: "gtin"
+  value: "00045496742393"
+}
+annotations {
+  key: "sku"
+  value: "00045496742393"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Media Cases"
+}

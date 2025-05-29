@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_GELLinksmaster_WhiteRasberryGunmetal"
+description: "ASICS GEL-Linksmaster\302\256 - White/Rasberry/Gunmetal\nThe traditional golfer\'s saddle design meets comfort and support in this shoe. Waterproof, for the dew-covered grass of early morning rounds, with a stable, supportive sole for comfort and fit. A great bargain."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "883722825775"
+}
+annotations {
+  key: "mpn"
+  value: "p082y.0180"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-883722825775"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

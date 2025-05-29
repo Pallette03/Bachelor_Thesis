@@ -1,0 +1,38 @@
+model {
+  file: "model.sdf"
+}
+name: "BlackBlack_Nintendo_3DSXL"
+description: "Black/Black Nintendo 3DS\357\277\275XL\nThe Nintendo 3DS XL system combines next-generation portable gaming with eye-popping 3D\nvisuals\357\277\275without the need for special glasses. Take 3D photos, connect to friends, other players, or wireless hotspots with the wireless StreetPass\357\277\275 and SpotPass\357\277\275 communication modes. From games to photos and beyond, Nintendo 3DS XL is the ultimate 3D entertainment system. It comes bundled with a 4GB SD card, making it perfect for downloading content from the Nintendo eShop.\n\nThe Nintendo 3DS XL system plays all Nintendo DS games. Nintendo DS games will not appear in 3D."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Nintendo"
+}
+annotations {
+  key: "gtin"
+  value: "00045496780814"
+}
+annotations {
+  key: "mpn"
+  value: "sprskkab"
+}
+annotations {
+  key: "sku"
+  value: "2014MB"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

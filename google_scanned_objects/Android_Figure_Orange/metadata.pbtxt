@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Android_Figure_Orange"
+description: "Android Figure, Orange"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Google"
+}
+annotations {
+  key: "mpn"
+  value: "droidorange"
+}
+annotations {
+  key: "sku"
+  value: "DroidOrange"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Consumer Goods"
+}

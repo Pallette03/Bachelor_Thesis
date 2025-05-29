@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "Asus_M5A99FX_PRO_R20_Motherboard_ATX_Socket_AM3"
+description: "Asus M5A99FX PRO R2.0 Motherboard ATX Socket AM3+"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asus"
+}
+annotations {
+  key: "gtin"
+  value: "00610839187430"
+}
+annotations {
+  key: "sku"
+  value: "610839187430"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

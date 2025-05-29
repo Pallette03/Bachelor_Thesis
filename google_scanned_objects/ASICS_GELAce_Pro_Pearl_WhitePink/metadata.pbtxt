@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_GELAce_Pro_Pearl_WhitePink"
+description: "ASICS GEL-Ace\342\204\242 Pro - Pearl White/Pink\nASICS most advanced golf shoe, and the choice of pros the world over. Soft waterproof upper and GEL\302\256 Cushioning System mean comfort, while the supportive Trusstic System\302\256 will give you the stability for a balanced swing."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "885681355843"
+}
+annotations {
+  key: "mpn"
+  value: "p215y.0019"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-885681355843"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

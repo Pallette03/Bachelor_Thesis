@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "BAGEL_WITH_CHEESE"
+description: "BAGEL WITH CHEESE\nIncludes 1 bagel cut in half, 1 plate, 1 strawberry, ?1 slice of cheese, and 2 slices of cucumber, tomato, ?and onion."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "3463"
+}
+annotations {
+  key: "sku"
+  value: "0346300"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

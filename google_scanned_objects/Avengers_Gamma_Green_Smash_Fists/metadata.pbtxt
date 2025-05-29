@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Avengers_Gamma_Green_Smash_Fists"
+description: "Avengers Gamma Green Smash Fists"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Hasbro"
+}
+annotations {
+  key: "gtin"
+  value: "00653569966579"
+}
+annotations {
+  key: "sku"
+  value: "653569966579"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

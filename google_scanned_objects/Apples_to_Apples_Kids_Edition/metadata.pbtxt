@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Apples_to_Apples_Kids_Edition"
+description: "Apples to Apples - Kids Edition"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Apples"
+}
+annotations {
+  key: "gtin"
+  value: "00027084645248"
+}
+annotations {
+  key: "sku"
+  value: "00027084645248"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Consumer Goods"
+}

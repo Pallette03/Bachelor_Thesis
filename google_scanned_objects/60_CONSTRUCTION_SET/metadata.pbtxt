@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "60_CONSTRUCTION_SET"
+description: "60 CONSTRUCTION SET\nThe pieces can be easily assembled and reassembled to create any imaginable form. ?"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "5534"
+}
+annotations {
+  key: "sku"
+  value: "0553400"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

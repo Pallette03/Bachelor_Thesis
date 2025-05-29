@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_GELChallenger_9_Royal_BlueWhiteBlack"
+description: "ASICS GEL-Challenger\302\256 9 - Royal Blue/White/Black\nThe GEL-Challenger\302\256 9 provides exceptional comfort with Rearfoot & Forefoot GEL\302\256 Cushioning Systems and outstanding stability and support with a hidden midfoot Trusstic System\302\256. Excellent upper fit is addressed with P.H.F.\342\204\242 in the collar, while synthetic leather and mesh upper materials provide enhanced breathability and flexibility. A perfect choice for that everyday tennis enthusiast."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "885681799609"
+}
+annotations {
+  key: "mpn"
+  value: "e303y.4201"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-885681799609"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

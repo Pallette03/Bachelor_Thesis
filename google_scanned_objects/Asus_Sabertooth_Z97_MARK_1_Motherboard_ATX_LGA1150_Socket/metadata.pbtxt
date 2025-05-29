@@ -1,0 +1,34 @@
+model {
+  file: "model.sdf"
+}
+name: "Asus_Sabertooth_Z97_MARK_1_Motherboard_ATX_LGA1150_Socket"
+description: "Asus Sabertooth Z97 MARK 1 - Motherboard - ATX - LGA1150 Socket"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asus"
+}
+annotations {
+  key: "gtin"
+  value: "00886227764457"
+}
+annotations {
+  key: "sku"
+  value: "886227764457"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+}

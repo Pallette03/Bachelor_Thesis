@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "ASICS_HyperRocketgirl_SP_5_WhiteMalibu_BlueBlack"
+description: "ASICS Hyper-Rocketgirl\342\204\242 SP 5 - White/Malibu Blue/Black\nSleek and speedy in design, the 5th rendition of the sprint favorite features a combination of mesh and hotmelt TPU overlays in the rearfoot while maintaining it\'s supportive synthetic leather forefoot.  The thin rubber outsole is combined with a lightweight nylon spike plate and five-pin spike design for optimal traction.  If you\'ve got a date with velocity, we have the perfect shoes."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Asics"
+}
+annotations {
+  key: "gtin"
+  value: "885681807885"
+}
+annotations {
+  key: "mpn"
+  value: "g357y.0161"
+}
+annotations {
+  key: "sku"
+  value: "2013-03-12-885681807885"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

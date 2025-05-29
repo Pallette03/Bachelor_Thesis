@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "ALPHABET_AZ_GRADIENT_WQb1ufEycSj"
+description: "ALPHABET A-Z (GRADIENT)\nDevelop your fundamental skills with this alphabet set. The two-sided wooden tiles feature 26 intended capital letters and pictures of objects that correspond to the letter. Trace the letters with your finger and expand your vocabulary!"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "5637"
+}
+annotations {
+  key: "sku"
+  value: "05637P00"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}

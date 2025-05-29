@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "11pro_SL_TRX_FG"
+description: "11pro SL TRX FG\nFW-FIRM GROUND"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "adidas"
+}
+annotations {
+  key: "gtin"
+  value: "887373582285"
+}
+annotations {
+  key: "sku"
+  value: "D65749"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

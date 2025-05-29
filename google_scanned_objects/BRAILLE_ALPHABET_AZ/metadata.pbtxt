@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "BRAILLE_ALPHABET_AZ"
+description: "BRAILLE ALPHABET A-Z\nThis 26 piece Braille Alphabet set can be played 2 sided, one upper case, another one lower case. Each piece has a Braille symbol that represents each letter in the alphabet."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "PlanToys"
+}
+annotations {
+  key: "mpn"
+  value: "5671"
+}
+annotations {
+  key: "sku"
+  value: "05671P00"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Toys"
+}
