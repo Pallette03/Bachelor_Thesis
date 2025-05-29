@@ -535,7 +535,7 @@ class Util_functions:
         # Restore the original state
         scene.use_nodes = original_use_nodes
         
-    def preload_clutter(self, object_folder=os.path.join("G:\GoogleScannedObjects\extracted_files"),  start_index=0, amount=50, clutter_collection_name="Clutter"):
+    def preload_clutter(self, object_folder=bpy.path.abspath("//") + "google_scanned_objects",  start_index=0, amount=50, clutter_collection_name="Clutter"):
         object_list = os.listdir(object_folder)
         
         start_index = int(start_index)
