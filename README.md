@@ -14,8 +14,8 @@ The script accepts the following command-line arguments:
 
 | Argument                     | Type    | Default                     | Description                                                                 |
 |------------------------------|---------|-----------------------------|-----------------------------------------------------------------------------|
-| `--model`                    | `str`   | `"UNet"`                    | Model architecture to use (`UNet`, `KeyNet`, `SimpleModel`, `Hourglass`, `Hourglass_Github`) |
-| `--dataset`                  | `str`   | `"gaussian_noise"`          | Dataset to use (`with_clutter`, `without_clutter`)                          |
+| `--model`                    | `str`   | `"UNet"`                    | Model architecture to use (`UNet`, `KeyNet`, `SimpleModel`, `Hourglass_Github`) |
+| `--dataset`                  | `str`   | `"gaussian_noise"`          | Dataset to use                      |
 | `--batch_size`               | `int`   | `17`                        | Batch size for training                                                     |
 | `--val_batch_size`           | `int`   | `17`                        | Batch size for validation                                                   |
 | `--learning_rate`            | `float` | `0.00342`                   | Learning rate for the optimizer                                             |
