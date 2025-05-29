@@ -4,7 +4,11 @@ This repository contains the code and resources for my Bachelor's thesis project
 
 ## Dataset Generation
 
-In order to generate a new dataset, the parameters in blender_wrapper.py need to be adjusted to the desired settings. This file can then generated the desired datset.
+In order to generate a new dataset, the parameters in blender_wrapper.py need to be adjusted to the desired settings. Blender needs to be installed, and the blender.exe path needs to be input at the top after "BLENDER_PATH". After installing the requirements from requirements.txt the script can generate a dataset.
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Model Training
 
@@ -32,5 +36,4 @@ The script accepts the following command-line arguments:
 | `--val_model_path`           | `str`   | `"dynamic_corner_detector.pth"` | Model path used if only validation is set to True                       |
 
 
-```bash
-pip install -r requirements.txt
+
