@@ -13,7 +13,7 @@ import time
 from models.hourglass.posenet import PoseNet
 from models.hourglass.hourglass import StackedHourglass
 from models.simpleModel.simple_model import SimpleModel
-from unet_model import UNet
+from Scripts.models.unet.unet_model import UNet
 from models.KeyNet.keynet import KeyNet
 import wandb
 import argparse
@@ -52,7 +52,7 @@ class CombinedLoss(nn.Module):
         bce = self.bce_loss(pred, target)
         mse = self.mse_loss(torch.sigmoid(pred), target)
         focal = self.focal_loss(pred, target)
-        return self.lambda_bce * bce + self.lambda_mse * mse + self.lambda_focal * focal
+        return self.lambda_bce * bce + self.lambda_mse * mse# + self.lambda_focal * focal
 
 class PixelEuclideanLoss(nn.Module):
     def __init__(self):
