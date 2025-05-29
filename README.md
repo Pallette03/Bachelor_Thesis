@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ## Model Training
 
-To train a model execute the KeypointDetector.py script.
+To train a model execute the KeypointDetector.py script. The appropriate CUDA drivers need to be installed separately.
 
 The script accepts the following command-line arguments:
 
