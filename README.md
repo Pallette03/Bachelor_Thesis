@@ -2,16 +2,6 @@
 
 This repository contains the code and resources for my Bachelor's thesis project, which involves dataset generation, model training, and testing.
 
-## Table of Contents
-
-- [Dataset Generation](#dataset-generation)
-- [Model Training](#model-training)
-- [Model Testing](#model-testing)
-- [Results](#results)
-- [Requirements](#requirements)
-- [Usage](#usage)
-- [License](#license)
-
 ## Dataset Generation
 
 In order to generate a new dataset, the parameters in blender_wrapper.py need to be adjusted to the desired settings. This file can then generated the desired datset.
