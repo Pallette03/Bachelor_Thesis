@@ -10,6 +10,8 @@ In order to generate a new dataset, the parameters in blender_wrapper.py need to
 pip install -r requirements.txt
 ```
 
+Currently, there are 100 Clutter objects in the google_scanned_objects folder. In case more are needed, they can be downloaded from https://app.gazebosim.org/GoogleResearch/fuel/collections/Scanned%20Objects%20by%20Google%20Research
+
 ## Model Training
 
 To train a model execute the KeypointDetector.py script. The appropriate CUDA drivers need to be installed separately.
