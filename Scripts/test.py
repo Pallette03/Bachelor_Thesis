@@ -12,7 +12,6 @@ from KeypointDetector import UNet
 from models.hourglass.posenet import PoseNet
 from models.simpleModel.simple_model import SimpleModel
 from PIL import Image
-
 from models.KeyNet.keynet import KeyNet
 
 annotations_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'with_clutter', 'validate', 'annotations')
@@ -44,29 +43,17 @@ def collate_fn(batch):
     return {"image": images, "norm_corners": corners_list}
 
 def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0):
-    """
-    Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
-    The heatmap will be upsampled to match the input image size (500×500).
-    """
     target_heatmap = torch.zeros((1, image_size, image_size))
 
 
     for (x, y) in keypoints:
         x = x * image_size
         y = y * image_size
-        x, y = int(x), int(y)  # Scale keypoints
+        x, y = int(x), int(y) 
 
         target_heatmap[0, y, x] = 1
 
-        # if 0 <= x < heatmap_size and 0 <= y < heatmap_size:
-        #     for i in range(-2, 3):  # Small 5×5 Gaussian
-        #         for j in range(-2, 3):
-        #             xi, yj = x + i, y + j
-        #             if 0 <= xi < heatmap_size and 0 <= yj < heatmap_size:
-        #                 exponent = torch.tensor(-((i**2 + j**2) / (2 * sigma**2)), dtype=torch.float32)
-        #                 target_heatmap[0, yj, xi] += torch.exp(exponent)
-
-    return target_heatmap.clamp(0, 1).detach().cpu().numpy()  # Keep values in [0,1]
+    return target_heatmap.clamp(0, 1).detach().cpu().numpy()
 
 def write_prediction_to_json(image_path, predictions, json_file_path):
     with open(json_file_path, 'a') as json_file:
@@ -77,9 +64,6 @@ def write_prediction_to_json(image_path, predictions, json_file_path):
 def convert_pred_to_heatmap(pred_heatmap, threshold=0.5):
 
     print(f"Pixel Number above threshold: {np.sum(pred_heatmap > threshold)}, Pixel Number below threshold: {np.sum(pred_heatmap < threshold)}")
-    
-    # for every value in the heatmap, if it is greater than the threshold, set it to 1, else 0
-    #pred_heatmap[pred_heatmap > threshold] = 1
     pred_heatmap[pred_heatmap <= threshold] = 0
     return pred_heatmap
 
@@ -108,15 +92,14 @@ if num_channels == 1:
 else:
     transforms = torchvision.transforms.Compose([
     torchvision.transforms.Resize(global_image_size),
+    torchvision.transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
     torchvision.transforms.ToTensor()
-    #torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
 
 i = 0
 if not use_external_image:
     
-    # Load the dataset
     dataset = LegoKeypointDataset(annotations_folder, img_dir, transform=transforms)
     dataset_length = len(dataset)
 else:
@@ -129,7 +112,6 @@ while True and i < 200:
         sample = dataset[rand_index]
         img_path = os.path.basename(sample['image_path'])
     else:
-        # Load an external image
         img_path = os.path.join(external_img_path, external_list.pop())
         image = Image.open(img_path).convert("RGB")
         image = transforms(image)
@@ -150,10 +132,8 @@ while True and i < 200:
     # Convert to probability using sigmoid
     prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
 
-    # Normalize the heatmap to the range [0, 1]
     prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
 
-    # Save a heatmap where every pixel gets a color from black to red according to its value using OpenCV
     heatmap = cv2.applyColorMap((prob_heatmap * 255).astype(np.uint8), cv2.COLORMAP_JET)
     filename = str(i) + "predicted_heatmap_blue_to_red_" + name_suffix + ".png"
     file_path = os.path.join(results_dir, filename)
@@ -168,27 +148,21 @@ while True and i < 200:
 
     pred_heatmap = convert_pred_to_heatmap(prob_heatmap, threshold=threshold)
 
-    # Detect blobs in the heatmap and convert them to keypoints
     binary_map = (pred_heatmap > threshold).astype(np.uint8)
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_map)
 
-    # Extract keypoint coordinates (ignore the background component at index 0)
     keypoints = centroids[1:]
 
-    # Print keypoints
     print("Detected Keypoints amount:", len(keypoints))
 
-    # Apply max filter to find local peaks
-    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+    local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)
     peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
 
-    # Get peak coordinates
     y_coords, x_coords = np.where(peaks)
     keypoints = np.column_stack((x_coords, y_coords))
 
     print("Filtered Keypoints amount:", len(keypoints))
 
-    #Save input image with predicted keypoints using opencv
     cv_image = (input_image * 255).astype(np.uint8)
     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
 
@@ -201,14 +175,6 @@ while True and i < 200:
     filename = str(i) + "input_image_with_predicted_keypoints_" + name_suffix + ".png"
     file_path = os.path.join(results_dir, filename)
     cv2.imwrite(file_path, cv_image)
-
-
-    #target_heatmap = keypoints_to_heatmap(sample['norm_corners'], image_size=global_image_size[0]).squeeze(0)
-
-
-
-    # Plot the heatmaps
-
 
     plt.imshow(pred_heatmap, cmap='hot', interpolation='nearest')
     plt.title("Predicted Heatmap")

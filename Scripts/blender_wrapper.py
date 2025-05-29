@@ -1,4 +1,3 @@
-# run_with_params.py
 import subprocess
 import os
 
@@ -6,7 +5,6 @@ BLENDER_PATH = "C:/Program Files/Blender Foundation/Blender 4.2/blender.exe"
 BLEND_FILE_PATH = os.path.join(os.path.dirname(__file__), os.pardir, "hdri_setup.blend")
 SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "dataset_generation.py")
 
-# Example list of parameter sets
 param_sets = [
     {
         "--rendered_images_amount": 200,

@@ -21,7 +21,6 @@ def find_unpaired(dir_a: str, dir_b: str, dir_source: str):
         path_b = os.path.join(dir_b, counterpart)
 
         if not os.path.isfile(path_b):
-            # Check if the counterpart exists in the source directory
             path_source = os.path.join(dir_source, counterpart)
             if os.path.isfile(path_source):
                 shutil.copy2(path_source, path_b)

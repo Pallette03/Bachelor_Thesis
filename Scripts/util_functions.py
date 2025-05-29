@@ -41,11 +41,9 @@ class Util_functions:
         return camera_relative_coords
     
     def world_to_pixel(self, scene, camera_obj, world_coords):
-        # Ensure we have a valid camera
         if camera_obj.type != 'CAMERA':
             raise ValueError("Object is not a camera")
         
-        # Get the camera's intrinsic matrix
         cam_data = camera_obj.data
         render = scene.render
         
@@ -56,16 +54,12 @@ class Util_functions:
             render.pixel_aspect_x / render.pixel_aspect_y
         )
         
-        # World-to-camera matrix (view matrix)
         world_to_camera_matrix = camera_obj.matrix_world.inverted()
         
-        # Transform the world coordinates to camera coordinates
         camera_coords = world_to_camera_matrix @ world_coords
         
-        # Transform camera coordinates to clip space
         clip_coords = proj_matrix @ camera_coords
         
-        # Normalize clip coordinates to NDC
         if clip_coords.w != 0:
             ndc_coords = mathutils.Vector((
                 clip_coords.x / clip_coords.w,
@@ -75,7 +69,6 @@ class Util_functions:
         else:
             raise ValueError("Invalid clip coordinates, w = 0")
         
-        # Convert NDC to pixel coordinates
         pixel_x = (ndc_coords.x + 1) / 2.0 * render.resolution_x
         pixel_y = (1 - ndc_coords.y) / 2.0 * render.resolution_y  # Flip y-axis for Blender's pixel space
         
@@ -98,7 +91,6 @@ class Util_functions:
         hdri_image = bpy.ops.image.open(filepath=img_path)
         hdri_image = bpy.data.images.get(os.path.basename(img_path))
         
-        # Environment Texture node
         env_node = bpy.context.scene.world.node_tree.nodes.get('Environment Texture')
         
         if not env_node:
@@ -106,7 +98,6 @@ class Util_functions:
             env_node = bpy.context.scene.world.node_tree.nodes.new('ShaderNodeTexEnvironment')
             env_node.location = (-300, 300)
             env_node.name = 'Environment Texture'
-            # Connect to Background node
             bg_node = bpy.context.scene.world.node_tree.nodes.get('Background')
             if bg_node:
                 bpy.context.scene.world.node_tree.links.new(bg_node.inputs[0], env_node.outputs[0])
@@ -125,28 +116,23 @@ class Util_functions:
         return denormalized_keypoints
     
     def draw_corners(self, obj, line_collection, camera_collection):
-        # Get the object's bounding box corners in world space
         corners = self.get_corners_of_object(obj, bpy.context.scene.camera)
 
         for corner_name, corner_data in corners.items():
             corners[corner_name] = corner_data[0]
 
-        # Create a new mesh object for the corners
         mesh = bpy.data.meshes.new("Corners")
         obj_corners = bpy.data.objects.new("Corners", mesh)
         line_collection.objects.link(obj_corners)
 
-        # Define vertices and edges
         vertices = list(corners.values())
         edges = [(0, 1), (1, 2), (2, 3), (3, 0),
                 (4, 5), (5, 6), (6, 7), (7, 4),
                 (0, 4), (1, 5), (2, 6), (3, 7)]
 
-        # Create the mesh
         mesh.from_pydata(vertices, edges, [])
         mesh.update()
 
-        # Change the line color to red
         mat = bpy.data.materials.new(name="CornersMaterial")
         mat.diffuse_color = (1, 0, 0, 1)
         obj_corners.data.materials.append(mat)
@@ -160,10 +146,8 @@ class Util_functions:
         cam_data = camera_obj.data
         frame = cam_data.view_frame(scene=scene)
 
-        # Adjust the frame based on depth
         frame = [camera_obj.matrix_world @ (v * depth) for v in frame]
 
-        # Extract the corners
         upper_right = frame[0]
         lower_right = frame[1]
         lower_left = frame[2]
@@ -172,13 +156,10 @@ class Util_functions:
         return lower_left, lower_right, upper_right, upper_left
     
     def is_point_in_camera_view(self, camera, point_world):
-        # Transform the point to the camera's local space
         point_camera_space = camera.matrix_world.inverted() @ point_world
 
-        # Get camera data
         cam_data = camera.data
 
-        # Create Plane objects for each side of the camera frustum
         lower_left, lower_right, upper_right, upper_left = self.get_camera_view_bounds(bpy.context.scene, camera, 1)
         bottom_test = self.is_point_above_plane(lower_left, lower_right, camera.location, point_world)
         right_test = self.is_point_above_plane(lower_right, upper_right, camera.location, point_world)
@@ -201,16 +182,12 @@ class Util_functions:
         :param p3: Third point defining the plane (mathutils.Vector)
         :param test_point: Point to test (mathutils.Vector)
         """
-        # Calculate the normal of the plane
         normal = (p2 - p1).cross(p3 - p1).normalized()
         
-        # Calculate a vector from one plane point to the test point
         vector_to_point = test_point - p1
         
-        # Compute the dot product
         dot_product = normal.dot(vector_to_point)
         
-        # Determine the side
         if dot_product < 0:
             return True
         else:
@@ -222,15 +199,12 @@ class Util_functions:
         Get a random point within the camera frustum at a given depth.
         """
         lower_left, lower_right, upper_right, upper_left = self.get_camera_view_bounds(scene, camera_obj, depth)
-        # Random interpolation of the edges of the view
         random_x = random.uniform(0, 1)
         random_y = random.uniform(0, 1)
 
-        # Linear interpolation between the corners
         point_on_left = lower_left.lerp(upper_left, random_y)
         point_on_right = lower_right.lerp(upper_right, random_y)
 
-        # Final point inside the frustum
         random_point = point_on_left.lerp(point_on_right, random_x)
         return random_point
     
@@ -253,7 +227,6 @@ class Util_functions:
             node_tree = new_mat.node_tree
             nodes = node_tree.nodes
 
-            # get the node with the name "Group"
             group_node = nodes.get("Group")
 
             group_node.inputs[0].default_value = (self.to_blender_color(rgb[0]), self.to_blender_color(rgb[1]), self.to_blender_color(rgb[2]), 1)
@@ -283,22 +256,17 @@ class Util_functions:
     
     
     def draw_line_meth(self, start, direction, length, line_name="Line"):
-        # Calculate the end point of the line
         end = start + direction.normalized() * length
 
-        # Create mesh and object
         mesh = bpy.data.meshes.new(line_name)
         obj = bpy.data.objects.new(line_name, mesh)
 
-        # Define vertices and edges
         vertices = [start, end]
         edges = [(0, 1)]
 
-        # Create the mesh
         mesh.from_pydata(vertices, edges, [])
         mesh.update()
 
-        # Change the line color to red
         mat = bpy.data.materials.new(name="LineMaterial")
         mat.diffuse_color = (1, 0, 0, 1)
         obj.data.materials.append(mat)
@@ -307,19 +275,16 @@ class Util_functions:
     
     def remove_objects(self, obj_set: set, camera_collection):
         for obj in obj_set:
-            # print(f"Removing object: {obj.name}")
             camera_collection.objects.unlink(obj)
             bpy.data.objects.remove(obj)
 
         obj_set.clear()
         
     def position_relative_to_camera(self, camera, obj):
-        # Convert the object's world location to the camera's local space
         relative_position = camera.matrix_world.inverted() @ obj.location
         return relative_position
     
     def get_corners_of_object(self, obj, camera):
-        # Get the object's bounding box corners in world space and put them in a dictionary
         all_corners = {f"Corner_{i}": mathutils.Vector(corner) for i, corner in enumerate(obj.bound_box)}
 
         stud_corrected_corners = {}
@@ -327,19 +292,17 @@ class Util_functions:
         min_z = min(c.z for c in all_corners.values())
         max_z = max(c.z for c in all_corners.values())  # This includes studs
 
-        # Find the second-highest flat surface (excluding studs)
         face_heights = [
             (face.center).z
             for face in obj.data.polygons
-            if len(face.vertices) == 4 and abs(face.normal.z) > 0.9  # Face normal near (0,0,1)
+            if len(face.vertices) == 4 and abs(face.normal.z) > 0.9
         ]
         
-        # Get the second-highest Z value to exclude studs
         unique_heights = sorted(set(face_heights))
         if len(unique_heights) > 1:
-            real_top_z = unique_heights[-1]  # Second-highest surface (likely top of brick body)
+            real_top_z = unique_heights[-1]  # Second-highest surface -> top of brick body
         else:
-            real_top_z = max_z  # Fallback if no distinction found
+            real_top_z = max_z
 
         for name, value in all_corners.items():
             if value.z == max_z:
@@ -356,11 +319,9 @@ class Util_functions:
     def convert_coordinates(self, corner_name, vector, scene, camera, visible=None, lateral_category=None):
 
         co_2d = bpy_extras.object_utils.world_to_camera_view(scene, camera, vector)
-        # Convert the normalized coordinates to pixel coordinates
         x = co_2d.x * scene.render.resolution_x
         y = co_2d.y * scene.render.resolution_y
 
-        # Flip the y coordinate
         y = scene.render.resolution_y - y
 
         if visible is not None and lateral_category is not None:
@@ -369,27 +330,22 @@ class Util_functions:
             return {corner_name: (x, y)}
     
     def get_2d_bound_box(self, obj, scene, camera, camera_collection):
-        # Get the object's bounding box corners in world space
         corners = self.get_corners_of_object(obj, camera)
 
         for corner_name, corner_data in corners.items():
             corner_vector, visible, lateral_category = corner_data
             corners[corner_name] = corner_vector
 
-        # Convert the corners to camera view coordinates
         corners_2d = {corner_name: self.convert_coordinates(corner_name, corner_vector, scene, camera)[corner_name] for corner_name, corner_vector in corners.items()}
         
-        # Get the top left and bottom right coordinates
         top_left = min(corners_2d.values(), key=lambda x: x[0])[0], max(corners_2d.values(), key=lambda x: x[1])[1]
         bottom_right = max(corners_2d.values(), key=lambda x: x[0])[0], min(corners_2d.values(), key=lambda x: x[1])[1]
         return top_left, bottom_right
     
     def draw_points_on_rendered_image(self, image_path, annotations_folder):
-        # Load the image
         img_cv2 = cv2.imread(image_path)
         img = bpy.data.images.load(image_path)
 
-        #img height
         img_height = img.size[1]
 
         file_name = image_path.split("/")[-1].split(".")[0]
@@ -413,17 +369,11 @@ class Util_functions:
                     else:
                         cv2.circle(img_cv2, (int(x), int(y)), 3, (0, 0, 255), -1)
 
-                #lowest x and highest y
                 top_left_corner = (int(min(denormalized_corners.values(), key=lambda x: x[0][0])[0]), int(max(denormalized_corners.values(), key=lambda x: x[0][1])[1]))
-                #highest x and lowest y
                 bottom_right_corner = (int(max(denormalized_corners.values(), key=lambda x: x[0][0])[0]), int(min(denormalized_corners.values(), key=lambda x: x[0][1])[1]))
 
-                # Draw the object's name
-                # Get the center of the bounding box
                 center = (int((top_left_corner[0] + bottom_right_corner[0]) / 2), int((top_left_corner[1] + bottom_right_corner[1]) / 2))
 
-
-                # Get the color
                 if color == "Blue":
                     bgr = (255, 0, 0)
                 elif color == "Green":
@@ -431,9 +381,8 @@ class Util_functions:
                 elif color == "Red":
                     bgr = (0, 0, 255)
                 else:
-                    bgr = (255, 255, 255)  # Default color
+                    bgr = (0, 0, 255)
 
-                # Draw the object's name
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 font_scale = 0.5
                 font_thickness = 1
@@ -442,7 +391,6 @@ class Util_functions:
 
 
 
-        # Save the image
         img.save_render(image_path)
         cv2.imwrite(image_path, img_cv2)
         
@@ -451,11 +399,9 @@ class Util_functions:
         if image is None:
             raise FileNotFoundError(f"Image at path '{image_path}' could not be found or loaded.")
         
-        # Use bottom_left and top_right to crop the image
         x1, y1 = bottom_left
         x2, y2 = top_right
-        
-        # Ensure the coordinates are within the image boundsFalse
+
         x1 = max(0, x1)
         y1 = max(0, y1)
         x2 = min(image.shape[1], x2)
@@ -465,10 +411,8 @@ class Util_functions:
         
         cropped_image = image[y2:y1, x1:x2]
         
-
         cv2.imwrite(image_path, cropped_image)
-        
-        #cv2.imwrite(image_path, cropped_image)
+
 
     def is_visible(self, camera, target, exclude_objects=[]):
         """
@@ -482,18 +426,14 @@ class Util_functions:
         scene = bpy.context.scene
         depsgraph = bpy.context.evaluated_depsgraph_get()
         
-        # Get camera world position
         camera_location = camera.location
         
-        # Direction vector from camera to target
         direction = (target - camera_location).normalized()
         
         # Perform ray casting
         result, location, normal, index, obj, matrix = scene.ray_cast(depsgraph, camera_location, direction)
         
-        # If we hit an object, check if it's in the exclude list
         if result and obj not in exclude_objects:
-            # Check if target is between camera and hit object
             target_distance = (target - camera_location).length
             hit_distance = (location - camera_location).length
             return hit_distance >= target_distance
@@ -532,40 +472,31 @@ class Util_functions:
         return output
         
     def save_depth_map(self, depth_map_path, scene, file_name):
-        # Store the original state of the compositor flag
         original_use_nodes = scene.use_nodes
-        scene.use_nodes = True  # Ensure compositor nodes are enabled
+        scene.use_nodes = True 
         
-        # Get the node tree and lists for convenience
         node_tree = scene.node_tree
         nodes = node_tree.nodes
         links = node_tree.links
 
-        # Ensure the active view layers output the Z (depth) pass
         for layer in scene.view_layers:
             layer.use_pass_z = True
 
-        # List to keep track of nodes we create
         nodes_created = []
         
-        # Create a File Output node for the depth map
         file_node = nodes.new(type="CompositorNodeOutputFile")
         file_node.name = "TempDepthOutput"
         file_node.label = "Temp Depth Output"
         nodes_created.append(file_node)
-        
-        # Set the base path to the directory of the current .blend file
+
         base_path = bpy.path.abspath("//") + depth_map_path
         file_node.base_path = base_path
-        # Set the file prefix; the output will have a frame number appended
         complete_file_name = file_name + "_depth"
         file_node.file_slots[0].path = complete_file_name
-        # Use OpenEXR format for full depth precision and single channel (BW)
+
         file_node.format.file_format = 'PNG'
         file_node.format.color_mode = 'RGB'
-        #file_node.format.color_depth = '16' #Increases Accuracy of depth readings but increases file size
-        
-        # Find an existing Render Layers node, or create one if not found.
+ 
         render_layers = None
         for node in nodes:
             if node.type == 'R_LAYERS':
@@ -576,15 +507,12 @@ class Util_functions:
             render_layers = nodes.new(type="CompositorNodeRLayers")
             render_layers_created = True
             nodes_created.append(render_layers)
-        
-        # Clear any preexisting links on the file node's input (should be unnecessary for a new node)
+
         while file_node.inputs[0].links:
             links.remove(file_node.inputs[0].links[0])
-        
-        # Connect the Render Layers' 'Depth' output to the File Output node
+
         links.new(render_layers.outputs['Depth'], file_node.inputs[0])
-        
-        # Render the scene (this will execute the compositor and save the depth map)
+
         bpy.ops.render.render(write_still=True, use_viewport=True)
         
         frame_str = f"{scene.frame_current:04d}"
@@ -600,11 +528,11 @@ class Util_functions:
         except Exception as e:
             print("Error renaming file:", e)
 
-        # Clean up: remove only the nodes we created
+        # Clean up: remove only the nodes created
         for node in nodes_created:
             nodes.remove(node)
         
-        # Restore the original state for using nodes if it was disabled originally
+        # Restore the original state
         scene.use_nodes = original_use_nodes
         
     def preload_clutter(self, object_folder=os.path.join("G:\GoogleScannedObjects\extracted_files"),  start_index=0, amount=50, clutter_collection_name="Clutter"):
@@ -627,15 +555,11 @@ class Util_functions:
                     return result
             return None
 
-        # Get the active view layer
         view_layer = bpy.context.view_layer
 
-        # Find the desired collection
         layer_collection = find_layer_collection(view_layer.layer_collection, clutter_collection_name)
 
-        # Set it as active if found
         if layer_collection:
-            # Clear the existing objects in the collection
             for obj in layer_collection.collection.objects:
                 layer_collection.collection.objects.unlink(obj)
                 bpy.data.objects.remove(obj)
@@ -650,17 +574,14 @@ class Util_functions:
                 obj_file = os.path.join(object_folder, folder, "meshes", "model.obj")
                 if os.path.isfile(obj_file):
                     
-                    # Load the object
                     bpy.ops.wm.obj_import(filepath=obj_file)
-                    # Get the loaded object by name since its always model
                     obj = bpy.data.objects.get("model")
                     if not obj:
                         continue
                     obj.name = folder
                     obj.hide_render = True
                     obj.hide_set(True)
-                    
-                    # Rescale the object to one quarter of its size
+
                     obj.scale[0] = 0.25
                     obj.scale[1] = 0.25
                     obj.scale[2] = 0.25

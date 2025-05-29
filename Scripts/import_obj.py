@@ -20,13 +20,10 @@ def preload_objects(object_folder=os.path.join("G:\GoogleScannedObjects\extracte
                 return result
         return None
 
-    # Get the active view layer
     view_layer = bpy.context.view_layer
 
-    # Find the desired collection
     layer_collection = find_layer_collection(view_layer.layer_collection, collection_name)
 
-    # Set it as active if found
     if layer_collection:
         view_layer.active_layer_collection = layer_collection
         print(f"Active collection set to: {collection_name}")
@@ -38,9 +35,7 @@ def preload_objects(object_folder=os.path.join("G:\GoogleScannedObjects\extracte
             obj_file = os.path.join(object_folder, folder, "meshes", "model.obj")
             if os.path.isfile(obj_file):
                 
-                # Load the object
                 bpy.ops.wm.obj_import(filepath=obj_file)
-                # Get the loaded object by name since its always model
                 obj = bpy.data.objects.get("model")
                 if not obj:
                     print(f"Object not found: {obj_file}")
@@ -50,7 +45,6 @@ def preload_objects(object_folder=os.path.join("G:\GoogleScannedObjects\extracte
                 obj.hide_render = True
                 obj.hide_set(True)
                 
-                # Rescale the object to one quarter of its size
                 obj.scale[0] = 0.25
                 obj.scale[1] = 0.25
                 obj.scale[2] = 0.25

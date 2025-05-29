@@ -4,7 +4,7 @@ import os
 from models.KeyNet.keynet import KeyNet
 from models.hourglass.posenet import PoseNet
 from models.simpleModel.simple_model import SimpleModel
-from unet_model import UNet
+from Scripts.models.unet.unet_model import UNet
 
 
 model_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'output')
@@ -53,7 +53,6 @@ for model_path in os.listdir(model_folder):
         elif arch == "SimpleModel":
             simple_model_params_dict[model_path] = pytorch_total_params
     
-# Print the number of parameters for each model
 for model_path, num_params in unet_params_dict.items():
     print(f"{model_path}: {num_params} parameters")
     

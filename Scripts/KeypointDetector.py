@@ -65,8 +65,7 @@ class PixelEuclideanLoss(nn.Module):
 
 def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=False, device='cpu'):
     """
-    Converts keypoints into a lower-resolution heatmap (e.g., 128×128) for training.
-    The heatmap will be upsampled to match the input image size (500×500).
+    Converts keypoints into heatmaps for loss calculation during training.
     """
     target_heatmap = torch.zeros((1, image_size, image_size)).to(device)
 
@@ -89,15 +88,6 @@ def keypoints_to_heatmap(keypoints, image_size=500, sigma=1.0, gaussian_blur=Fal
         else:
             target_heatmap[0, y, x] = 1
 
-    
-    # if not os.path.exists(os.path.join(os.path.dirname(__file__), os.pardir, 'heatmap.png')):
-    #     heatmap = target_heatmap.squeeze().detach().cpu().numpy()
-    #     plt.imshow(heatmap, cmap='Reds', interpolation='nearest')
-    #     plt.title("Target Heatmap (Black to Red)")
-    #     plt.colorbar()
-    #     plt.savefig("heatmap.png")
-    #     plt.close()
-
     return target_heatmap
 
 
@@ -107,11 +97,12 @@ def heatmap_loss(pred_heatmaps, keypoints_list, image_size=500, device='cpu', cr
 
     loss = critereon(pred_heatmaps, target_heatmaps)
 
-    #loss = torch.abs(loss)
-
     return loss
 
 def collate_fn(batch):
+    """
+    Custom collate function to handle variable-length keypoints in the dataset.
+    """
     images = [item["image"] for item in batch]
     corners_list = [item["norm_corners"] for item in batch]
     max_corner_amount = max([norm_corners.shape[0] for norm_corners in corners_list])
@@ -132,14 +123,7 @@ def collate_fn(batch):
 
     return {"image": images, "norm_corners": corners_list}
 
-def wait_for_termination(run_handler):
-    while True:
-        if input("Press 'q' to quit: ") == 'q':
-            run_handler.finish()
-            break
-
 def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
-    # Compare batchsize number of predicted keypoints to target keypoints
     
     denormalized_target_keypoints = []
     target_kp_amount = 0
@@ -188,6 +172,7 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
 
 
 def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
+    """Extracts keypoints from predicted heatmaps by finding local maxima above a threshold."""
     all_keypoints = []
     for pred_heatmap in pred_heatmaps:
         prob_heatmap = torch.sigmoid(pred_heatmap.clone()).squeeze().numpy()
@@ -213,8 +198,6 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     critereon = CombinedLoss()
-    #critereon = PixelEuclideanLoss()
-    #scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95 ** epoch)
     
     for epoch in range(num_epochs):
         start_time = time.time()
@@ -227,7 +210,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
         for batch in dataloader:
 
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
-            target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, num_corners_in_batch, 2]
+            target_corners = batch["norm_corners"].to(device)
 
             filtered_target_corners = []
             for corners in target_corners:
@@ -253,9 +236,7 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
             optimizer.zero_grad()
             corner_loss.backward()
             optimizer.step()
-            #scheduler.step()
-            
-            # Accumulate losses for logging
+
             total_corner_loss += corner_loss.item()
           
             counter += 1
@@ -264,19 +245,6 @@ def train_model(model, dataloader, epoch_model_path, num_epochs=5, lr=1e-3, glob
             remaining_time = (time_since_start / (counter / len(dataloader))) - time_since_start
             
             if counter % (len(dataloader) // 20) == 0:
-
-                # pred_heatmap = predicted_corners[-1].squeeze(0).detach().cpu().numpy()
-
-
-                # # Convert to probability using sigmoid
-                # prob_heatmap = torch.sigmoid(torch.tensor(pred_heatmap)).detach().cpu().numpy()
-
-                # # Save a heatmap where every pixel gets a color from black to red according to its value
-                # plt.imshow(prob_heatmap, cmap='Reds', interpolation='nearest')
-                # plt.title("Predicted Heatmap (Black to Red)")
-                # plt.colorbar()
-                # plt.savefig("predicted_heatmap_black_to_red.png")
-                # plt.close()
 
                 log_string = f"[{datetime.datetime.now()}] At Batch {counter}/{len(dataloader)} for Epoch {epoch + 1} taking {time.time() - batch_start_time:.2f} seconds since last checkpoint. Last Loss: {last_loss:.4f}. Progress: {counter / len(dataloader) * 100:.2f}%. Approx. Time left: {remaining_time:.2f} seconds"
                 run_handler.log({"Batch Progress": f"{counter}/{len(dataloader)}", "Time since last checkpoint": (time.time() - batch_start_time), "Last Loss": last_loss, "Progress": (counter / len(dataloader) * 100), "Approx. Time left": remaining_time})
@@ -324,7 +292,7 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
         for batch in dataloader:
             
             images = batch["image"].to(device)  # Shape: [batch_size, 3, H, W]
-            target_corners = batch["norm_corners"].to(device)  # Shape: [batch_size, 1, H, W]
+            target_corners = batch["norm_corners"].to(device)
 
             filtered_target_corners = []
             for corners in target_corners:
@@ -340,7 +308,6 @@ def validate_model(model, dataloader, global_image_size, gaussian_blur=False, th
 
             predicted_corners = model(images)
             
-            # Use normal MSE loss for now but ignore 0
             corner_loss = corner_loss = heatmap_loss(predicted_corners, target_corners, image_size=global_image_size[0], device=device, critereon=critereon, gaussian_blur=gaussian_blur)
             val_last_loss = corner_loss.item()
             
@@ -428,8 +395,8 @@ def main(params):
     else:
         transform_1 = transforms.Compose([
             transforms.Resize(global_image_size),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
             transforms.ToTensor()
-            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
 
@@ -456,10 +423,6 @@ def main(params):
 
     model = nn.DataParallel(model)
     # Train the model
-    
-    
-    
-
     if only_validate:
         print("Validating the model...")
         val_dataset = LegoKeypointDataset(os.path.join(validate_dir, 'annotations'), os.path.join(validate_dir, 'images', 'rgb'), transform=transform_1)
@@ -500,10 +463,7 @@ def main(params):
             "distance_threshold": distance_threshold,
             "run_handler": run
         }
-        
-        # print("Validating the model...")
-        # model.load_state_dict(torch.load(epoch_model_path))
-        # validate_model(model, **validataion_params)
+
         print("Training the model...")
         model, f1_score = train_model(model, train_dataloader, epoch_model_path, num_epochs=num_epochs, lr=learning_rate, global_image_size=global_image_size, gaussian_blur=gaussian_blur, run_handler=run, validataion_params=validataion_params)
     

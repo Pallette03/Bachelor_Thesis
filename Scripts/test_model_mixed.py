@@ -4,7 +4,6 @@ import torch
 
 
 def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, global_image_size=(500, 500)):
-    # Compare batchsize number of predicted keypoints to target keypoints
     
     denormalized_target_keypoints = []
     target_kp_amount = 0
@@ -22,7 +21,6 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
     for i in range(len(pred_keypoints)):
         num_pred_points += len(pred_keypoints[i])
         for idx, pred_point in enumerate(pred_keypoints[i]):
-            # Find the closest target point
             closest_target_point = None
             closest_distance = float("inf")
             for target_point in denormalized_target_keypoints[i]:
@@ -40,7 +38,7 @@ def calculate_accuracy(pred_keypoints, target_keypoints, distance_threshold=5, g
                 if len(denormalized_target_keypoints[i]) == 0:
                     break
             if closest_distance == float("inf"):
-                closest_distance = 0 # If no target point is found, set distance to 0. needs to be changed
+                closest_distance = 0 
             total_distance += closest_distance
 
     if num_pred_points == 0:
@@ -57,13 +55,11 @@ def get_keypoints_from_predictions(pred_heatmaps, threshold=0.5):
     for pred_heatmap in pred_heatmaps:
         prob_heatmap = torch.sigmoid(pred_heatmap.clone()).squeeze().numpy()
 
-        # Normalize heatmap to [0, 1]
         prob_heatmap = (prob_heatmap - np.min(prob_heatmap)) / (np.max(prob_heatmap) - np.min(prob_heatmap))
 
-        local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)  # Adjust size
+        local_max = scipy.ndimage.maximum_filter(prob_heatmap, size=5)
         peaks = (prob_heatmap == local_max) & (prob_heatmap > threshold)
 
-        # Get peak coordinates
         y_coords, x_coords = np.where(peaks)
         keypoints = np.column_stack((x_coords, y_coords))
 

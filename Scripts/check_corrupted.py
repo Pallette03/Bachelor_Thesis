@@ -8,10 +8,10 @@ def validate_image(img_path):
     """
     try:
         with Image.open(img_path) as img:
-            img.verify()  # Verify that the image is not corrupted
-        return img_path, None  # Return file path and no error
+            img.verify()
+        return img_path, None 
     except (IOError, SyntaxError) as e:
-        return img_path, str(e)  # Return file path and the error
+        return img_path, str(e) 
 
 def validate_images_parallel(image_dir, num_workers=4):
     """
@@ -31,12 +31,11 @@ def validate_images_parallel(image_dir, num_workers=4):
 
     return corrupted_images
 
-# Specify your directory path and number of threads
 train_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'train', 'images', 'rgb')
 validate_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'validate', 'images', 'rgb')
 train_annotations_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'train', 'annotations')
 validate_annotations_dir = os.path.join(os.path.dirname(__file__), os.pardir, 'datasets', 'gaussian_noise', 'validate', 'annotations')
-num_workers = 4  # Adjust based on your CPU core count
+num_workers = 4 
 corrupted_images = validate_images_parallel(train_dir, num_workers)
 validate_corrupted_images = validate_images_parallel(validate_dir, num_workers)
 
@@ -47,14 +46,12 @@ print("Removing corrupted images...")
 for img_path in corrupted_images:
     print(f"Removing corrupted image: {img_path}")
     os.remove(img_path)
-    # Optionally, you can also remove the corresponding annotation files if needed
     annotation_path = os.path.join(train_annotations_dir, os.path.basename(img_path).replace('.png', '.json'))
     os.remove(annotation_path)
     
 for img_path in validate_corrupted_images:
     print(f"Removing corrupted image: {img_path}")
     os.remove(img_path)
-    # Optionally, you can also remove the corresponding annotation files if needed
     annotation_path = os.path.join(validate_annotations_dir, os.path.basename(img_path).replace('.png', '.json'))
     os.remove(annotation_path)
     

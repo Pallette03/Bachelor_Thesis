@@ -16,21 +16,17 @@ def process_json_file(json_file, images_dir, depth_dir, output_dir):
                     print("No 'image_path' key in record:", record)
                     continue
 
-                # Combine directory with image file name
                 img_path = os.path.join(images_dir, image_filename)
                 if os.path.exists(img_path):
-                    # Copy the image to the output directory
                     os.makedirs(os.path.join(output_dir, 'images'), exist_ok=True)
                     output_img_path = os.path.join(os.path.join(output_dir, 'images'), os.path.basename(img_path))
                     shutil.copy(img_path, output_img_path)
                 else:
                     print(f"Image not found: {img_path}")
                     
-                # Check for depth image
                 depth_filename = image_filename.replace(".png", "_depth.png")
                 depth_path = os.path.join(depth_dir, depth_filename)
                 if os.path.exists(depth_path):
-                    # Copy the depth image to the output directory
                     os.makedirs(os.path.join(output_dir, 'depth'), exist_ok=True)
                     output_depth_path = os.path.join(os.path.join(output_dir, 'depth'), os.path.basename(depth_path))
                     shutil.copy(depth_path, output_depth_path)

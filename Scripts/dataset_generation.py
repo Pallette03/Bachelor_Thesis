@@ -243,7 +243,7 @@ def main_main(params):
     start_time = time.time()
     bpy.context.preferences.edit.use_global_undo = False
 
-    preload_amount = 50 # Defines the amount of objects to be preloaded. The Higher the amount, the more memory is used.
+    preload_amount = 50 # Defines the amount of objects to be preloaded.
     seperating_img_amount = math.ceil(rendered_images_amount / (1000 / preload_amount))
     
     for i in range(rendered_images_amount):
@@ -268,7 +268,7 @@ def main_main(params):
                 else:
                     bpy.ops.render.render(write_still=True, use_viewport=True)
 
-                bpy.data.orphans_purge()  # Purges unused data
+                bpy.data.orphans_purge()
                 
                 if add_gaussian_noise:
                     uf.add_gaussian_noise_to_image(bpy.context.scene.render.filepath, gaussian_mean, gaussian_var)
