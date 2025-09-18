@@ -264,7 +264,7 @@ def main_main(params):
                 print(f"Rendering image {i+1}/{rendered_images_amount}")
 
                 if depth_output:
-                    uf.save_depth_map(depth_map_folder, bpy.context.scene, time_for_name)
+                    uf.save_depth_map(depth_map_folder, bpy.context.scene, time_for_name, depth_max=params.get('max_z') + 0.5)
                 else:
                     bpy.ops.render.render(write_still=True, use_viewport=True)
 

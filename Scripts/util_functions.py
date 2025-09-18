@@ -471,7 +471,8 @@ class Util_functions:
         cv2.imwrite(image_path, output)
         return output
         
-    def save_depth_map(self, depth_map_path, scene, file_name):
+    def save_depth_map(self, depth_map_path, scene, file_name, depth_min=0.0, depth_max=5.0):
+
         original_use_nodes = scene.use_nodes
         scene.use_nodes = True 
         
@@ -495,23 +496,29 @@ class Util_functions:
         file_node.file_slots[0].path = complete_file_name
 
         file_node.format.file_format = 'PNG'
-        file_node.format.color_mode = 'RGB'
- 
+        file_node.format.color_mode = 'BW'  # grayscale
+        
         render_layers = None
         for node in nodes:
             if node.type == 'R_LAYERS':
                 render_layers = node
                 break
-        render_layers_created = False
         if render_layers is None:
             render_layers = nodes.new(type="CompositorNodeRLayers")
-            render_layers_created = True
             nodes_created.append(render_layers)
+
+        map_node = nodes.new(type="CompositorNodeMapRange")
+        map_node.inputs['From Min'].default_value = depth_min
+        map_node.inputs['From Max'].default_value = depth_max 
+        map_node.inputs['To Min'].default_value = 0.0
+        map_node.inputs['To Max'].default_value = 1.0
+        nodes_created.append(map_node)
 
         while file_node.inputs[0].links:
             links.remove(file_node.inputs[0].links[0])
 
-        links.new(render_layers.outputs['Depth'], file_node.inputs[0])
+        links.new(render_layers.outputs['Depth'], map_node.inputs[0])
+        links.new(map_node.outputs[0], file_node.inputs[0])
 
         bpy.ops.render.render(write_still=True, use_viewport=True)
         
@@ -532,7 +539,6 @@ class Util_functions:
         for node in nodes_created:
             nodes.remove(node)
         
-        # Restore the original state
         scene.use_nodes = original_use_nodes
         
     def preload_clutter(self, object_folder=bpy.path.abspath("//") + "google_scanned_objects",  start_index=0, amount=50, clutter_collection_name="Clutter"):
